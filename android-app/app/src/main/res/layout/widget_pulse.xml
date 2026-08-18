@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="16dp">
 
     <!-- HEADER ROW -->
     <LinearLayout
@@ -14,62 +14,69 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Claude Pulse"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Claude Pulse"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_rec_reason"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Best choice for quick queries"
+                android:textColor="#94A3B8"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- RECOMMENDATION PILL -->
         <TextView
             android:id="@+id/widget_rec_pill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/widget_rec_bg"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
             android:text="Use pcgpt"
             android:textColor="#00F2FE"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- REASON SUBTEXT -->
-    <TextView
-        android:id="@+id/widget_rec_reason"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="pcgpt resets soonest. Best for quick queries."
-        android:textColor="#94A3B8"
-        android:textSize="11sp" />
-
-    <!-- DUAL ACCOUNTS GAUGES ROW -->
+    <!-- DUAL ACCOUNTS TELEMETRY ROW -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <!-- ACCOUNT 1 -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:background="@drawable/widget_card_bg"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="10dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="shlokshah412"
+                android:text="● shlokshah412"
                 android:textColor="#00F2FE"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -78,10 +85,10 @@
                 android:id="@+id/widget_acc1_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="3h 15m Left"
+                android:layout_marginTop="3dp"
+                android:text="2h 27m Left"
                 android:textColor="#F8FAFC"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -89,16 +96,16 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="6dp"
             android:layout_weight="1"
             android:background="@drawable/widget_card_bg"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="10dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="pcgpt"
+                android:text="● pcgpt"
                 android:textColor="#C084FC"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -107,49 +114,26 @@
                 android:id="@+id/widget_acc2_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="15m Left"
+                android:layout_marginTop="3dp"
+                android:text="4h 31m Left"
                 android:textColor="#F8FAFC"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 1-TAP ACTION BAR -->
-    <LinearLayout
+    <!-- 1-TAP FULL WIDTH FROSTED LAUNCH BAR -->
+    <TextView
+        android:id="@+id/widget_btn_launch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/widget_btn_launch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
-            android:background="@drawable/widget_btn_launch"
-            android:gravity="center"
-            android:paddingVertical="6dp"
-            android:text="Open Claude"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/widget_btn_ping"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="1"
-            android:background="@drawable/widget_btn_ping"
-            android:gravity="center"
-            android:paddingVertical="6dp"
-            android:text="Ping Both"
-            android:textColor="#00F2FE"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+        android:layout_marginTop="10dp"
+        android:background="@drawable/widget_btn_launch"
+        android:gravity="center"
+        android:paddingVertical="9dp"
+        android:text="Open Claude as Recommended"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

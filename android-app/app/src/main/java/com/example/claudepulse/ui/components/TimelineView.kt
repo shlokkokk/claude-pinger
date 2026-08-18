@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -50,12 +48,12 @@ fun TimelineView(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .padding(vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // Lane 1: shlokshah412
-        TimelineLaneRow(
-            label = "shlokshah412",
+        TimelineLaneTrack(
+            label = "shlokshah412 (Account 1)",
             labelColor = Color(0xFF00F2FE),
             account = Account.SHLOKSHAH412,
             selectedNode = selectedNode,
@@ -67,8 +65,8 @@ fun TimelineView(
         )
 
         // Lane 2: pcgpt
-        TimelineLaneRow(
-            label = "pcgpt",
+        TimelineLaneTrack(
+            label = "pcgpt (Account 2)",
             labelColor = Color(0xFFC084FC),
             account = Account.PCGPT,
             selectedNode = selectedNode,
@@ -81,9 +79,7 @@ fun TimelineView(
 
         // Time Markers
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 90.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             listOf("00:00", "06:00", "12:00", "18:00", "24:00").forEach { time ->
@@ -99,7 +95,7 @@ fun TimelineView(
 }
 
 @Composable
-private fun TimelineLaneRow(
+private fun TimelineLaneTrack(
     label: String,
     labelColor: Color,
     account: Account,
@@ -109,50 +105,75 @@ private fun TimelineLaneRow(
 ) {
     val pings = TelemetryCalculator.SCHEDULE.filter { it.account == account }
 
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Text(
-            text = label,
-            color = labelColor,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace,
-            modifier = Modifier.width(82.dp)
-        )
+        // Lane Header (Clean & Unconstrained)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(labelColor)
+                )
+                Text(
+                    text = label,
+                    color = labelColor,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
 
+            Text(
+                text = "${pings.size} pings / day",
+                color = Color(0xFF64748B),
+                fontSize = 10.sp,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+
+        // Full-Width Track
         Box(
             modifier = Modifier
-                .weight(1f)
-                .height(18.dp),
+                .fillMaxWidth()
+                .height(20.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            // Track background bar
+            // Track bar background
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0x14FFFFFF))
+                    .background(Color(0x1AFFFFFF))
             )
 
-            // Live now cursor
+            // Live time cursor
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(18.dp)
+                    .height(20.dp)
             ) {
                 val x = size.width * cursorFraction
                 drawLine(
                     color = Color.White,
                     start = Offset(x, 0f),
                     end = Offset(x, size.height),
-                    strokeWidth = 2.dp.toPx()
+                    strokeWidth = 2.5.dp.toPx()
                 )
             }
 
-            // Ping Nodes
+            // Glowing Ping Nodes
             pings.forEach { node ->
                 val fraction = node.minsOfDay / 1440f
                 val isSelected = selectedNode?.id == node.id
@@ -160,13 +181,13 @@ private fun TimelineLaneRow(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(fraction)
-                        .padding(end = if (fraction >= 1f) 0.dp else 0.dp),
+                        .padding(end = 0.dp),
                     contentAlignment = Alignment.CenterEnd
                 ) {
                     Box(
                         modifier = Modifier
                             .size(if (isSelected) 18.dp else 14.dp)
-                            .shadow(if (isSelected) 8.dp else 4.dp, CircleShape, spotColor = labelColor)
+                            .shadow(if (isSelected) 10.dp else 4.dp, CircleShape, spotColor = labelColor)
                             .clip(CircleShape)
                             .background(labelColor)
                             .border(
