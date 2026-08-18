@@ -12,7 +12,7 @@ Claude.ai uses a 5-hour rolling usage limit window that only begins counting dow
 
 ## Features
 
-- **Dual-Account Staggered Scheduling**: Alternates pings between Account 1 and Account 2 every ~2.5 to 3 hours, giving you continuous rolling limits.
+- **Dual-Account Staggered Scheduling**: Alternates pings between multiple accounts every ~2.5 to 3 hours, giving you continuous rolling limits throughout the day.
 - **Race Condition Prevention**: Incorporates an exact **+2 minute safe buffer** after every 5-hour window expiry, eliminating early-ping collisions.
 - **Free Tier Cloudflare Optimization**: Smartly compresses 8 daily runs across 2 accounts into **5 Cloudflare cron triggers** to strictly comply with Cloudflare Workers Free Tier limits.
 - **Single & Multi-Account Testing**: Supports testing all accounts or targeting a specific account on-demand using query parameters (`?account=1` or `?account=2`).
@@ -32,8 +32,8 @@ flowchart LR
     B -->|Check Cron & Hour| C{Route Target Account}
     C -->|Acc 1 Schedule| D[Browserless API - Account 1]
     C -->|Acc 2 Schedule| E[Browserless API - Account 2]
-    D -->|Puppeteer Session| F[Claude.ai - shlokshah412]
-    E -->|Puppeteer Session| G[Claude.ai - pcgpt]
+    D -->|Puppeteer Session| F[Claude.ai - Account 1]
+    E -->|Puppeteer Session| G[Claude.ai - Account 2]
 ```
 
 ---
@@ -59,7 +59,7 @@ flowchart LR
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/shlokkokk/claude-pinger.git
+   git clone https://github.com/<your-username>/claude-pinger.git
    cd claude-pinger
    ```
 
@@ -99,14 +99,14 @@ The cron schedule uses a **dual-account staggered system** with an exact **+2 mi
 
 | Time (IST) | Target Account | Cloudflare Cron (UTC) | Active Window | Purpose |
 | :---: | :---: | :---: | :---: | :--- |
-| **07:30 AM** | 🟣 **Account 2 (`pcgpt`)** | `0 2,10 * * *` *(UTC 2)* | `07:30 AM ➔ 12:30 PM` | Early Morning Start |
-| **10:28 AM** | 🔵 **Account 1 (`shlokshah412`)** | `58 4 * * *` | `10:28 AM ➔ 03:28 PM` | **Morning Workday Start** |
-| **12:32 PM** | 🟣 **Account 2 (`pcgpt`)** | `2 7,15 * * *` *(UTC 7)* | `12:32 PM ➔ 05:32 PM` | Lunchtime Switch *(+2m buffer)* |
-| **03:30 PM** | 🔵 **Account 1 (`shlokshah412`)** | `0 2,10 * * *` *(UTC 10)* | `03:30 PM ➔ 08:30 PM` | Afternoon Sprint *(3:30 on the dot)* |
-| **05:34 PM** | 🟣 **Account 2 (`pcgpt`)** | `4 12,20 * * *` *(UTC 12)* | `05:34 PM ➔ 10:34 PM` | Post-Work / Tea Break *(+2m buffer)* |
-| **08:32 PM** | 🔵 **Account 1 (`shlokshah412`)** | `2 7,15 * * *` *(UTC 15)* | `08:32 PM ➔ 01:32 AM` | Evening Session *(+2m buffer)* |
-| **10:36 PM** | 🟣 **Account 2 (`pcgpt`)** | `6 17 * * *` | `10:36 PM ➔ 03:36 AM` | Peak Night Deep Work *(+2m buffer)* |
-| **01:34 AM** | 🔵 **Account 1 (`shlokshah412`)** | `4 12,20 * * *` *(UTC 20)* | `01:34 AM ➔ 06:34 AM` | Late-Night Wrap-up *(+2m buffer)* |
+| **07:30 AM** | 🟣 **Account 2** | `0 2,10 * * *` *(UTC 2)* | `07:30 AM ➔ 12:30 PM` | Early Morning Start |
+| **10:28 AM** | 🔵 **Account 1** | `58 4 * * *` | `10:28 AM ➔ 03:28 PM` | **Morning Workday Start** |
+| **12:32 PM** | 🟣 **Account 2** | `2 7,15 * * *` *(UTC 7)* | `12:32 PM ➔ 05:32 PM` | Lunchtime Switch *(+2m buffer)* |
+| **03:30 PM** | 🔵 **Account 1** | `0 2,10 * * *` *(UTC 10)* | `03:30 PM ➔ 08:30 PM` | Afternoon Sprint *(3:30 on the dot)* |
+| **05:34 PM** | 🟣 **Account 2** | `4 12,20 * * *` *(UTC 12)* | `05:34 PM ➔ 10:34 PM` | Post-Work / Tea Break *(+2m buffer)* |
+| **08:32 PM** | 🔵 **Account 1** | `2 7,15 * * *` *(UTC 15)* | `08:32 PM ➔ 01:32 AM` | Evening Session *(+2m buffer)* |
+| **10:36 PM** | 🟣 **Account 2** | `6 17 * * *` | `10:36 PM ➔ 03:36 AM` | Peak Night Deep Work *(+2m buffer)* |
+| **01:34 AM** | 🔵 **Account 1** | `4 12,20 * * *` *(UTC 20)* | `01:34 AM ➔ 06:34 AM` | Late-Night Wrap-up *(+2m buffer)* |
 
 Together, they provide alternating fresh limit resets **every ~2.5 to 3 hours** across your day with zero overlapping collisions.
 
@@ -121,12 +121,12 @@ Trigger a manual execution anytime:
   curl "https://<your-worker-subdomain>.workers.dev"
   ```
 
-- **Ping Account 1 Only (`shlokshah412`)**:
+- **Ping Account 1 Only**:
   ```bash
   curl "https://<your-worker-subdomain>.workers.dev?account=1"
   ```
 
-- **Ping Account 2 Only (`pcgpt`)**:
+- **Ping Account 2 Only**:
   ```bash
   curl "https://<your-worker-subdomain>.workers.dev?account=2"
   ```
@@ -138,10 +138,10 @@ Expected JSON response:
   "message": "Ping finished!",
   "results": [
     {
-      "account": "Account 1 (shlokshah412)",
+      "account": "Account 1",
       "result": {
         "success": true,
-        "url": "https://claude.ai/chat/07e9f80b-e9b6-4b28-a2c2-4675458f541b",
+        "url": "https://claude.ai/chat/<chat-id>",
         "pageTitle": "Ping test - Claude",
         "actionExecuted": true,
         "stepError": null
@@ -150,5 +150,3 @@ Expected JSON response:
   ]
 }
 ```
-
----
