@@ -1,33 +1,96 @@
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(pingAllClaudeAccounts(env));
+    const cron = event.cron;
+    const utcHour = new Date().getUTCHours();
+    console.log(`Cron triggered: ${cron} at UTC hour ${utcHour}`);
+
+    let targetAccount = null;
+
+    if (cron === '58 4 * * *') {
+      // 10:28 AM IST -> Account 1
+      targetAccount = 1;
+    } else if (cron === '6 17 * * *') {
+      // 10:36 PM IST -> Account 2
+      targetAccount = 2;
+    } else if (cron === '0 2,10 * * *') {
+      // 07:30 AM IST (UTC 2) -> Account 2 | 03:30 PM IST (UTC 10) -> Account 1
+      targetAccount = (utcHour < 6) ? 2 : 1;
+    } else if (cron === '2 7,15 * * *') {
+      // 12:32 PM IST (UTC 7) -> Account 2 | 08:32 PM IST (UTC 15) -> Account 1
+      targetAccount = (utcHour < 11) ? 2 : 1;
+    } else if (cron === '4 12,20 * * *') {
+      // 05:34 PM IST (UTC 12) -> Account 2 | 01:34 AM IST (UTC 20) -> Account 1
+      targetAccount = (utcHour < 16) ? 2 : 1;
+    }
+
+    if (targetAccount === 1 || targetAccount === 2) {
+      ctx.waitUntil(pingSpecificAccount(env, targetAccount));
+    } else {
+      ctx.waitUntil(pingAllClaudeAccounts(env));
+    }
   },
 
   async fetch(request, env) {
+    const url = new URL(request.url);
+    const accountParam = url.searchParams.get('account');
+
     if (request.method === 'POST' || request.method === 'GET') {
-      const results = await pingAllClaudeAccounts(env);
-      return new Response(JSON.stringify({ message: 'Multi-account ping finished!', results }), {
+      let results;
+      if (accountParam === '1') {
+        results = await pingSpecificAccount(env, 1);
+      } else if (accountParam === '2') {
+        results = await pingSpecificAccount(env, 2);
+      } else {
+        results = await pingAllClaudeAccounts(env);
+      }
+      return new Response(JSON.stringify({ message: 'Ping finished!', results }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-    return new Response('Send a request to trigger multi-account pings.', { status: 200 });
+    return new Response('Send a request to trigger multi-account pings. Use ?account=1 or ?account=2 to test a single account.', { status: 200 });
   }
 };
+
+async function pingSpecificAccount(env, accountNum) {
+  let acc = null;
+  if (accountNum === 1 && env.CLAUDE_SESSION_KEY) {
+    acc = { 
+      name: 'Account 1 (shlokshah412)', 
+      key: env.CLAUDE_SESSION_KEY, 
+      chatUrl: env.CLAUDE_CHAT_URL_1 
+    };
+  } else if (accountNum === 2 && env.CLAUDE_SESSION_KEY_2) {
+    acc = { 
+      name: 'Account 2 (pcgpt)', 
+      key: env.CLAUDE_SESSION_KEY_2, 
+      chatUrl: env.CLAUDE_CHAT_URL_2 
+    };
+  }
+
+  if (!acc) {
+    console.error(`Account ${accountNum} credentials not found in env.`);
+    return [{ success: false, error: `Account ${accountNum} credentials not found.` }];
+  }
+
+  console.log(`Pinging specific account: ${acc.name}...`);
+  const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl);
+  return [{ account: acc.name, result: res }];
+}
 
 async function pingAllClaudeAccounts(env) {
   const accounts = [];
   if (env.CLAUDE_SESSION_KEY) {
     accounts.push({ 
       name: 'Account 1 (shlokshah412)', 
-      key: env.CLAUDE_SESSION_KEY,
+      key: env.CLAUDE_SESSION_KEY, 
       chatUrl: env.CLAUDE_CHAT_URL_1 
     });
   }
   if (env.CLAUDE_SESSION_KEY_2) {
     accounts.push({ 
       name: 'Account 2 (pcgpt)', 
-      key: env.CLAUDE_SESSION_KEY_2,
+      key: env.CLAUDE_SESSION_KEY_2, 
       chatUrl: env.CLAUDE_CHAT_URL_2 
     });
   }
@@ -35,8 +98,8 @@ async function pingAllClaudeAccounts(env) {
   for (let i = 3; env[`CLAUDE_SESSION_KEY_${i}`]; i++) {
     accounts.push({ 
       name: `Account ${i}`, 
-      key: env[`CLAUDE_SESSION_KEY_${i}`],
-      chatUrl: env[`CLAUDE_CHAT_URL_${i}`]
+      key: env[`CLAUDE_SESSION_KEY_${i}`], 
+      chatUrl: env[`CLAUDE_CHAT_URL_${i}`] 
     });
   }
 
@@ -206,4 +269,3 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrl) {
     return { success: false, error: err.message };
   }
 }
-

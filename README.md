@@ -91,21 +91,21 @@ flowchart LR
 
 ## Schedule Configuration
 
-The cron schedule is configured in `wrangler.json`:
+The cron schedule uses a **dual-account staggered system** with an exact **+2 minute safe buffer** to prevent early-ping race conditions (4 runs per account, 8 total per day):
 
-```json
-{
-  "name": "claude-pinger",
-  "main": "src/index.js",
-  "compatibility_date": "2024-01-01",
-  "triggers": {
-    "crons": ["0 */5 * * *"]
-  }
-}
-```
+- **🔵 Account 1 (`shlokshah412`)**:
+  - `58 4 * * *` (10:28 AM IST)
+  - `0 10 * * *` (03:30 PM IST)
+  - `2 15 * * *` (08:32 PM IST)
+  - `4 20 * * *` (01:34 AM IST)
 
-- **Cron Schedule**: `0 */5 * * *` (Fires every 5 hours at `00:00`, `05:00`, `10:00`, `15:00`, `20:00` UTC).
-- **Timezone Alignment (IST)**: Fired at `01:30 AM`, `06:30 AM`, `10:30 AM`, `03:30 PM`, `08:30 PM` IST to align with sleep and work blocks.
+- **🟣 Account 2 (`pcgpt`)**:
+  - `0 2 * * *` (07:30 AM IST)
+  - `2 7 * * *` (12:32 PM IST)
+  - `4 12 * * *` (05:34 PM IST)
+  - `6 17 * * *` (10:36 PM IST)
+
+Together, they provide alternating fresh limit resets **every ~2.5 to 3 hours** across your day with zero overlapping collisions.
 
 ---
 
