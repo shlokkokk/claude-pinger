@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -32,10 +33,11 @@
             android:id="@+id/widget_live_clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="● 06:43 PM"
+            android:text="● --:--:--"
             android:textColor="#10B981"
             android:textSize="11sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:text="● 12:00:00 PM" />
     </LinearLayout>
 
     <!-- DUAL TELEMETRY COCKPIT (SEAMLESS COLUMNS WITH VERTICAL DIVIDER) -->
@@ -70,19 +72,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
-                android:text="1h 46m"
+                android:text="--h --m Left"
                 android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textSize="19sp"
+                android:textStyle="bold"
+                tools:text="2h 30m Left" />
 
             <TextView
                 android:id="@+id/widget_acc1_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Resets at 08:32 PM"
+                android:text="Resets at --:--"
                 android:textColor="#94A3B8"
-                android:textSize="10sp" />
+                android:textSize="10sp"
+                tools:text="Resets at 08:32 PM" />
 
             <TextView
                 android:id="@+id/widget_acc1_badge"
@@ -92,13 +96,14 @@
                 android:background="@drawable/widget_badge_cyan"
                 android:paddingHorizontal="7dp"
                 android:paddingVertical="2dp"
-                android:text="Expiring soon"
+                android:text="Status"
                 android:textColor="#00F2FE"
                 android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:text="Expiring soon" />
         </LinearLayout>
 
-        <!-- SUBTLE VERTICAL DIVIDER (FrameLayout supported by RemoteViews) -->
+        <!-- SUBTLE VERTICAL DIVIDER -->
         <FrameLayout
             android:layout_width="1dp"
             android:layout_height="match_parent"
@@ -127,19 +132,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
-                android:text="3h 50m"
+                android:text="--h --m Left"
                 android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textSize="19sp"
+                android:textStyle="bold"
+                tools:text="4h 15m Left" />
 
             <TextView
                 android:id="@+id/widget_acc2_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Resets at 10:36 PM"
+                android:text="Resets at --:--"
                 android:textColor="#94A3B8"
-                android:textSize="10sp" />
+                android:textSize="10sp"
+                tools:text="Resets at 10:36 PM" />
 
             <TextView
                 android:id="@+id/widget_acc2_badge"
@@ -149,10 +156,11 @@
                 android:background="@drawable/widget_badge_purple"
                 android:paddingHorizontal="7dp"
                 android:paddingVertical="2dp"
-                android:text="Fresh quota"
+                android:text="Status"
                 android:textColor="#C084FC"
                 android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:text="Fresh quota" />
         </LinearLayout>
     </LinearLayout>
 
@@ -171,10 +179,11 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Short: shlokshah412  •  Deep: pcgpt"
+            android:text="Quick Tasks: [Account]   •   Deep Work: [Account]"
             android:textColor="#E2E8F0"
             android:textSize="11sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:text="Quick Tasks: shlokshah412   •   Deep Work: pcgpt" />
     </LinearLayout>
 
 </LinearLayout>

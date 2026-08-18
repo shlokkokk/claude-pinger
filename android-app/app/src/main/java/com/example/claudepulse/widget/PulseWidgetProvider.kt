@@ -32,32 +32,32 @@ class PulseWidgetProvider : AppWidgetProvider() {
 
             // Account 1: shlokshah412
             if (telemetry.acc1.isActive) {
-                views.setTextViewText(R.id.widget_acc1_time, TelemetryCalculator.formatDuration(acc1Mins))
+                views.setTextViewText(R.id.widget_acc1_time, "${TelemetryCalculator.formatDuration(acc1Mins)} Left")
                 views.setTextViewText(R.id.widget_acc1_reset, "Resets at ${telemetry.acc1.nextPingDisplay}")
                 views.setTextViewText(R.id.widget_acc1_badge, if (acc1IsSoonest) "Expiring soon" else "Fresh quota")
             } else {
-                views.setTextViewText(R.id.widget_acc1_time, "0m")
+                views.setTextViewText(R.id.widget_acc1_time, "0m Left")
                 views.setTextViewText(R.id.widget_acc1_reset, "Next: ${telemetry.acc1.nextPingDisplay}")
                 views.setTextViewText(R.id.widget_acc1_badge, "Idle")
             }
 
             // Account 2: pcgpt
             if (telemetry.acc2.isActive) {
-                views.setTextViewText(R.id.widget_acc2_time, TelemetryCalculator.formatDuration(acc2Mins))
+                views.setTextViewText(R.id.widget_acc2_time, "${TelemetryCalculator.formatDuration(acc2Mins)} Left")
                 views.setTextViewText(R.id.widget_acc2_reset, "Resets at ${telemetry.acc2.nextPingDisplay}")
                 views.setTextViewText(R.id.widget_acc2_badge, if (!acc1IsSoonest) "Expiring soon" else "Fresh quota")
             } else {
-                views.setTextViewText(R.id.widget_acc2_time, "0m")
+                views.setTextViewText(R.id.widget_acc2_time, "0m Left")
                 views.setTextViewText(R.id.widget_acc2_reset, "Next: ${telemetry.acc2.nextPingDisplay}")
                 views.setTextViewText(R.id.widget_acc2_badge, "Idle")
             }
 
-            // Dual Guidance Strip
+            // Articulated intelligence advice with generous spacing
             val shortTaskAcc = if (acc1IsSoonest) telemetry.acc1.account.username else telemetry.acc2.account.username
             val longSessionAcc = if (!acc1IsSoonest) telemetry.acc1.account.username else telemetry.acc2.account.username
             views.setTextViewText(
                 R.id.widget_advice_text,
-                "Short: $shortTaskAcc   •   Deep: $longSessionAcc"
+                "Quick Tasks: $shortTaskAcc   •   Deep Work: $longSessionAcc"
             )
 
             // 1-Tap Open Claude Pulse App
