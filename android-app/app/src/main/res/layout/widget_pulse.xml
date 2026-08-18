@@ -5,73 +5,57 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="13dp">
 
-    <!-- HEADER ROW -->
+    <!-- TOP HEADER: BRAND + LIVE STATUS -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Claude Pulse"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/widget_rec_reason"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Best choice for quick queries"
-                android:textColor="#94A3B8"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- RECOMMENDATION PILL -->
         <TextView
-            android:id="@+id/widget_rec_pill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/widget_rec_bg"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="5dp"
-            android:text="Use pcgpt"
-            android:textColor="#00F2FE"
-            android:textSize="12sp"
+            android:text="Claude Pulse"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/widget_live_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="● 06:37 PM"
+            android:textColor="#10B981"
+            android:textSize="11sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- DUAL ACCOUNTS TELEMETRY ROW -->
+    <!-- DUAL ACCOUNTS SIDE-BY-SIDE COCKPIT -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         android:layout_weight="1"
-        android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- ACCOUNT 1 -->
+        <!-- ACCOUNT 1: SHLOKSHAH412 -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:background="@drawable/widget_card_bg"
+            android:gravity="center_vertical"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="7dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -85,22 +69,33 @@
                 android:id="@+id/widget_acc1_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="2h 27m Left"
+                android:layout_marginTop="2dp"
+                android:text="Reset in 2h 27m"
                 android:textColor="#F8FAFC"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_acc1_reset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="At 08:32 PM • Expiring"
+                android:textColor="#94A3B8"
+                android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- ACCOUNT 2 -->
+        <!-- ACCOUNT 2: PCGPT -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:background="@drawable/widget_card_bg"
+            android:gravity="center_vertical"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="7dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -114,26 +109,43 @@
                 android:id="@+id/widget_acc2_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="4h 31m Left"
+                android:layout_marginTop="2dp"
+                android:text="Reset in 4h 31m"
                 android:textColor="#F8FAFC"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_acc2_reset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="At 10:36 PM • Fresh"
+                android:textColor="#94A3B8"
+                android:textSize="10sp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 1-TAP FULL WIDTH FROSTED LAUNCH BAR -->
-    <TextView
-        android:id="@+id/widget_btn_launch"
+    <!-- INTELLIGENCE STRIP: CLEAR DUAL-PURPOSE GUIDANCE -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/widget_btn_launch"
+        android:layout_marginTop="7dp"
+        android:background="@drawable/widget_rec_bg"
         android:gravity="center"
-        android:paddingVertical="9dp"
-        android:text="Open Claude as Recommended"
-        android:textColor="#FFFFFF"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp">
+
+        <TextView
+            android:id="@+id/widget_advice_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Use shlokshah412 for short tasks • pcgpt for long sessions"
+            android:textColor="#CBD5E1"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </LinearLayout>

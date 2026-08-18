@@ -933,19 +933,19 @@ private fun PingCompactChip(
 ) {
     Box(
         modifier = modifier
-            .height(46.dp)
+            .height(50.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(Color(0x0DFFFFFF))
             .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(10.dp))
             .clickable { onClick() }
-            .padding(horizontal = 6.dp, vertical = 4.dp),
+            .padding(horizontal = 6.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(15.dp))
+            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(14.dp))
             Text(text = title, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
