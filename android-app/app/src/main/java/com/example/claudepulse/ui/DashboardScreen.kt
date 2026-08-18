@@ -120,9 +120,9 @@ fun DashboardScreen() {
                 .padding(innerPadding)
                 .padding(horizontal = 14.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(11.dp)
         ) {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             val openWebDashboard: () -> Unit = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://claude-pinger.claude-pinger.workers.dev")).apply {
@@ -131,7 +131,7 @@ fun DashboardScreen() {
                 context.startActivity(intent)
             }
 
-            // 1. BRAND HEADER
+            // 1. BRAND HEADER (Balanced Proportions)
             HeaderSection(
                 timeDisplay = telemetry.currentISTTime,
                 onOpenWebDashboard = openWebDashboard
@@ -152,14 +152,14 @@ fun DashboardScreen() {
                 onLaunch = { launchDialogAccount = telemetry.recommendation.account }
             )
 
-            // 4. DUAL ACCOUNTS STREAMLINED CARDS
+            // 4. DUAL ACCOUNTS STREAMLINED CARDS (Spacious actions)
             DualAccountsSection(
                 telemetry = telemetry,
                 onLaunch = { launchDialogAccount = it },
                 onPing = { pingDialogTarget = it }
             )
 
-            // 5. MANUAL PING CONTROLS (DISTINCT CUSTOM ICONS)
+            // 5. MANUAL PING CONTROLS (Compact buttons, zero wasted space)
             ManualPingConsole(
                 isPinging = isPinging,
                 logs = logs,
@@ -181,7 +181,7 @@ fun DashboardScreen() {
                 }
             )
 
-            // 6. 24-HOUR PING SCHEDULE & MATRIX LIST
+            // 6. 24-HOUR PING SCHEDULE & MATRIX LIST (Exact +2m column alignment)
             ScheduleMatrixSection(
                 telemetry = telemetry,
                 selectedNode = selectedNode,
@@ -192,9 +192,9 @@ fun DashboardScreen() {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -208,7 +208,7 @@ fun DashboardScreen() {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Language, contentDescription = null, tint = Color(0xFF00F2FE), modifier = Modifier.size(14.dp))
+                        Icon(imageVector = Icons.Default.Language, contentDescription = null, tint = Color(0xFF00F2FE), modifier = Modifier.size(13.dp))
                         Text("Open Web Dashboard", color = Color(0xFF00F2FE), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -366,23 +366,23 @@ private fun HeaderSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 3.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             modifier = Modifier.clickable { onOpenWebDashboard() },
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(9.dp)
         ) {
-            BrandLogoIcon(size = 42.dp)
-            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            BrandLogoIcon(size = 38.dp)
+            Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text(
                     text = "Claude Pulse",
                     color = Color.White,
-                    fontSize = 17.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = (-0.03).sp
+                    letterSpacing = (-0.02).sp
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -415,15 +415,15 @@ private fun HeaderSection(
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color(0xFF10141F))
                 .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(20.dp))
-                .padding(horizontal = 10.dp, vertical = 6.dp)
+                .padding(horizontal = 9.dp, vertical = 5.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(6.dp)
+                        .size(5.dp)
                         .alpha(alpha)
                         .clip(CircleShape)
                         .background(Color(0xFF10B981))
@@ -447,9 +447,9 @@ private fun TaskModeSwitcher(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFF0D1017))
-            .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(14.dp))
+            .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(12.dp))
             .padding(3.dp)
     ) {
         Row(
@@ -461,15 +461,15 @@ private fun TaskModeSwitcher(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(11.dp))
+                    .clip(RoundedCornerShape(10.dp))
                     .background(if (isQuick) Color(0x1F10B981) else Color.Transparent)
                     .border(
                         1.dp,
                         if (isQuick) Color(0x4D10B981) else Color.Transparent,
-                        RoundedCornerShape(11.dp)
+                        RoundedCornerShape(10.dp)
                     )
                     .clickable { onModeSelected(TaskMode.QUICK) }
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 7.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
@@ -480,7 +480,7 @@ private fun TaskModeSwitcher(
                         imageVector = Icons.Default.Schedule,
                         contentDescription = null,
                         tint = if (isQuick) Color(0xFF34D399) else Color(0xFF64748B),
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
                     Text(
                         text = "Quick Query",
@@ -496,15 +496,15 @@ private fun TaskModeSwitcher(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(11.dp))
+                    .clip(RoundedCornerShape(10.dp))
                     .background(if (isDeep) Color(0x1F00F2FE) else Color.Transparent)
                     .border(
                         1.dp,
                         if (isDeep) Color(0x4D00F2FE) else Color.Transparent,
-                        RoundedCornerShape(11.dp)
+                        RoundedCornerShape(10.dp)
                     )
                     .clickable { onModeSelected(TaskMode.DEEP) }
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 7.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
@@ -515,7 +515,7 @@ private fun TaskModeSwitcher(
                         imageVector = Icons.Default.Layers,
                         contentDescription = null,
                         tint = if (isDeep) Color(0xFF00F2FE) else Color(0xFF64748B),
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
                     Text(
                         text = "Deep Work",
@@ -540,13 +540,13 @@ private fun HeroRecommendationCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF0F131D)),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x26FFFFFF))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -555,10 +555,10 @@ private fun HeroRecommendationCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(7.dp))
                         .background(if (isAcc1) Color(0x2400F2FE) else Color(0x24C084FC))
-                        .border(1.dp, if (isAcc1) Color(0x5900F2FE) else Color(0x59C084FC), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .border(1.dp, if (isAcc1) Color(0x5900F2FE) else Color(0x59C084FC), RoundedCornerShape(7.dp))
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
                         text = "USE ${rec.account.username.uppercase()}",
@@ -580,7 +580,7 @@ private fun HeroRecommendationCard(
             Text(
                 text = rec.title,
                 color = Color.White,
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (-0.02).sp
             )
@@ -589,7 +589,7 @@ private fun HeroRecommendationCard(
                 text = rec.reason,
                 color = Color(0xFF94A3B8),
                 fontSize = 12.sp,
-                lineHeight = 17.sp
+                lineHeight = 16.sp
             )
 
             Spacer(modifier = Modifier.height(2.dp))
@@ -599,8 +599,8 @@ private fun HeroRecommendationCard(
                 onClick = onLaunch,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(46.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .height(42.dp),
+                shape = RoundedCornerShape(11.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isAcc1) Color(0x2600F2FE) else Color(0x26C084FC)
                 ),
@@ -617,12 +617,12 @@ private fun HeroRecommendationCard(
                         imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(15.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                     Text(
                         text = "Open Claude as ${rec.account.username}",
                         color = Color.White,
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -676,8 +676,8 @@ private fun StreamlinedAccountCard(
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x26FFFFFF))
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(13.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Header row with username and status
             Row(
@@ -702,7 +702,7 @@ private fun StreamlinedAccountCard(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(if (telemetry.isActive) Color(0x1F10B981) else Color(0x14FFFFFF))
-                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                        .padding(horizontal = 7.dp, vertical = 2.dp)
                 ) {
                     Text(
                         text = if (telemetry.isActive) "ACTIVE" else "IDLE",
@@ -714,7 +714,7 @@ private fun StreamlinedAccountCard(
                 }
             }
 
-            // Gauges & remaining time
+            // Gauges & remaining time (Clear left area)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -722,16 +722,16 @@ private fun StreamlinedAccountCard(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(11.dp)
                 ) {
                     OrbitProgressRing(
                         account = account,
                         percentLeft = telemetry.percentLeft,
                         isActive = telemetry.isActive,
-                        size = 46.dp
+                        size = 42.dp
                     )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                         Text(
                             text = if (telemetry.isActive) "${TelemetryCalculator.formatDuration(telemetry.minsLeftInWindow)} Left" else "0m Left",
                             color = Color(0xFFF8FAFC),
@@ -748,38 +748,38 @@ private fun StreamlinedAccountCard(
                     }
                 }
 
-                // Quick Action Buttons
+                // Generously spaced action buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     OutlinedButton(
                         onClick = onLaunch,
-                        modifier = Modifier.height(36.dp),
-                        shape = RoundedCornerShape(9.dp),
+                        modifier = Modifier.height(34.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0x0DFFFFFF)),
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x26FFFFFF)),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp)
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 11.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(imageVector = Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
+                            Icon(imageVector = Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
                             Text("Launch", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
                     OutlinedButton(
                         onClick = onPing,
-                        modifier = Modifier.height(36.dp),
-                        shape = RoundedCornerShape(9.dp),
+                        modifier = Modifier.height(34.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0x0DFFFFFF)),
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x26FFFFFF)),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp)
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 11.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(imageVector = Icons.Default.Sensors, contentDescription = null, tint = accentColor, modifier = Modifier.size(13.dp))
+                            Icon(imageVector = Icons.Default.Sensors, contentDescription = null, tint = accentColor, modifier = Modifier.size(12.dp))
                             Text("Ping", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -804,8 +804,8 @@ private fun ManualPingConsole(
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x26FFFFFF))
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(13.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -816,7 +816,7 @@ private fun ManualPingConsole(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(imageVector = Icons.Default.Terminal, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(16.dp))
+                    Icon(imageVector = Icons.Default.Terminal, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(15.dp))
                     Text("Manual Ping Controls", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
                 }
 
@@ -833,10 +833,10 @@ private fun ManualPingConsole(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(9.dp))
                     .background(Color(0x0AFFFFFF))
-                    .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(10.dp))
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                    .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(9.dp))
+                    .padding(horizontal = 9.dp, vertical = 7.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -850,11 +850,11 @@ private fun ManualPingConsole(
 
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(7.dp))
                         .background(Color(0x14FFFFFF))
-                        .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(8.dp))
+                        .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(7.dp))
                         .clickable { onTestWiring() }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -866,36 +866,33 @@ private fun ManualPingConsole(
                 }
             }
 
-            // 3 Action Buttons with DISTINCT CUSTOM ICONS
+            // 3 Compact Action Buttons (Height 46dp, zero wasted empty space)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 // Ping shlokshah412 (Person / User icon)
-                PingActionButton(
+                PingCompactChip(
                     modifier = Modifier.weight(1f),
                     title = "shlokshah412",
-                    sub = "Account 1",
                     icon = Icons.Default.Person,
                     color = Color(0xFF00F2FE),
                     onClick = { onPingAccount(Account.SHLOKSHAH412) }
                 )
 
                 // Ping pcgpt (Computer / Terminal icon)
-                PingActionButton(
+                PingCompactChip(
                     modifier = Modifier.weight(1f),
                     title = "pcgpt",
-                    sub = "Account 2",
                     icon = Icons.Default.Computer,
                     color = Color(0xFFC084FC),
                     onClick = { onPingAccount(Account.PCGPT) }
                 )
 
                 // Ping Both (Sync / All Inclusive icon)
-                PingActionButton(
+                PingCompactChip(
                     modifier = Modifier.weight(1f),
                     title = "Both",
-                    sub = "All Accounts",
                     icon = Icons.Default.Sync,
                     color = Color.White,
                     onClick = onPingBoth
@@ -906,13 +903,13 @@ private fun ManualPingConsole(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(9.dp))
                     .background(Color(0xFF07090F))
-                    .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(10.dp))
-                    .padding(10.dp)
+                    .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(9.dp))
+                    .padding(8.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    logs.takeLast(4).forEach { log ->
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    logs.takeLast(3).forEach { log ->
                         Text(
                             text = log,
                             color = if (log.contains("[Error]")) Color(0xFFEF4444) else if (log.contains("[Success]")) Color(0xFF10B981) else Color(0xFF94A3B8),
@@ -927,31 +924,29 @@ private fun ManualPingConsole(
 }
 
 @Composable
-private fun PingActionButton(
+private fun PingCompactChip(
     modifier: Modifier = Modifier,
     title: String,
-    sub: String,
     icon: ImageVector,
     color: Color,
     onClick: () -> Unit
 ) {
     Box(
         modifier = modifier
-            .height(72.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .height(46.dp)
+            .clip(RoundedCornerShape(10.dp))
             .background(Color(0x0DFFFFFF))
-            .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(10.dp))
             .clickable { onClick() }
-            .padding(8.dp),
+            .padding(horizontal = 6.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
-            Text(text = title, color = color, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
-            Text(text = sub, color = Color(0xFF64748B), fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(15.dp))
+            Text(text = title, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -969,8 +964,8 @@ private fun ScheduleMatrixSection(
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x26FFFFFF))
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(13.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -981,7 +976,7 @@ private fun ScheduleMatrixSection(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(imageVector = Icons.Default.Schedule, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(16.dp))
+                    Icon(imageVector = Icons.Default.Schedule, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(15.dp))
                     Text("24h Ping Schedule", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
                 }
 
@@ -992,10 +987,10 @@ private fun ScheduleMatrixSection(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(9.dp))
                     .background(Color(0xFF131722))
-                    .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(10.dp))
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(9.dp))
+                    .padding(horizontal = 11.dp, vertical = 7.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1048,8 +1043,8 @@ private fun ScheduleMatrixSection(
                 onSelectNode = onSelectNode
             )
 
-            // 8-Item Schedule Matrix Table (Strict Uniform 3-Column Rows)
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            // 8-Item Schedule Matrix Table (Fixed 4-Column Layout with 100% Guaranteed Column Alignment)
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 TelemetryCalculator.SCHEDULE.forEach { item ->
                     val isAcc1 = item.account == Account.SHLOKSHAH412
                     val isSelected = selectedNode?.id == item.id
@@ -1058,18 +1053,18 @@ private fun ScheduleMatrixSection(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(11.dp))
+                            .height(40.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .background(if (isSelected) Color(0x1F22D3EE) else Color(0x08FFFFFF))
                             .border(
                                 1.dp,
                                 if (isSelected) dotColor else Color(0x1AFFFFFF),
-                                RoundedCornerShape(11.dp)
+                                RoundedCornerShape(10.dp)
                             )
                             .clickable {
                                 if (isSelected) onSelectNode(null) else onSelectNode(item)
                             }
-                            .padding(horizontal = 12.dp),
+                            .padding(horizontal = 11.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Row(
@@ -1083,16 +1078,16 @@ private fun ScheduleMatrixSection(
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.width(82.dp)
+                                modifier = Modifier.width(80.dp)
                             )
 
-                            // Column 2: Account Badge (110dp fixed)
+                            // Column 2: Account Badge (105dp fixed)
                             Row(
-                                modifier = Modifier.width(115.dp),
+                                modifier = Modifier.width(105.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
-                                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(dotColor))
+                                Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(dotColor))
                                 Text(
                                     text = item.account.username,
                                     color = dotColor,
@@ -1103,29 +1098,31 @@ private fun ScheduleMatrixSection(
                                 )
                             }
 
-                            // Column 3: Buffer & Tag (Weight 1f, right-aligned, single line)
-                            Row(
-                                modifier = Modifier.weight(1f),
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically
+                            // Column 3: Buffer Pill (46dp fixed - EXACT SAME COLUMN ON EVERY ROW)
+                            Box(
+                                modifier = Modifier.width(46.dp),
+                                contentAlignment = Alignment.CenterStart
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(5.dp))
+                                        .clip(RoundedCornerShape(4.dp))
                                         .background(Color(0x1F10B981))
                                         .padding(horizontal = 5.dp, vertical = 1.dp)
                                 ) {
                                     Text("+2m", color = Color(0xFF10B981), fontSize = 10.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
                                 }
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = item.tag,
-                                    color = Color(0xFF94A3B8),
-                                    fontSize = 11.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
                             }
+
+                            // Column 4: Activity Tag (Weight 1f, Right aligned, Ellipsis)
+                            Text(
+                                text = item.tag,
+                                color = Color(0xFF94A3B8),
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                 }
