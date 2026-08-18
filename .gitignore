@@ -3,3 +3,7 @@ node_modules/
 .dev.vars
 .env
 *.log
+
+# Android App and Release Binaries
+android-app/
+*.apk
