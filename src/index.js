@@ -1,3 +1,5 @@
+import { renderDashboardHTML } from './dashboard.js';
+
 export default {
   async scheduled(event, env, ctx) {
     const cron = event.cron;
@@ -32,9 +34,104 @@ export default {
 
   async fetch(request, env) {
     const url = new URL(request.url);
+    const pathname = url.pathname;
     const accountParam = url.searchParams.get('account');
 
-    if (request.method === 'POST' || request.method === 'GET') {
+    // Serve PWA Manifest
+    if (pathname === '/manifest.json') {
+      const manifest = {
+        name: "Claude Pulse",
+        short_name: "ClaudePulse",
+        start_url: "/",
+        display: "standalone",
+        background_color: "#07080c",
+        theme_color: "#090a0f",
+        icons: [
+          {
+            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%230e1118'/%3E%3Cpath d='M280 64L96 288h160v160l160-224H280z' fill='%2300f2fe'/%3E%3C/svg%3E",
+            sizes: "512x512",
+            type: "image/svg+xml"
+          }
+        ]
+      };
+      return new Response(JSON.stringify(manifest), {
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
+
+    // Diagnostic & Health API Endpoint (/api/health)
+    if (pathname === '/api/health') {
+      const now = new Date();
+      const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const istDate = new Date(utcMs + (5.5 * 3600000));
+
+      const diagnostics = {
+        status: 'healthy',
+        timestamp: {
+          utc: now.toISOString(),
+          ist: istDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })
+        },
+        worker: {
+          online: true,
+          region: request.cf?.colo || 'Local / Dev'
+        },
+        credentials: {
+          shlokshah412: {
+            configured: !!(env.CLAUDE_SESSION_KEY && env.CLAUDE_CHAT_URL_1),
+            sessionKeyConfigured: !!env.CLAUDE_SESSION_KEY,
+            chatUrlConfigured: !!env.CLAUDE_CHAT_URL_1
+          },
+          pcgpt: {
+            configured: !!(env.CLAUDE_SESSION_KEY_2 && env.CLAUDE_CHAT_URL_2),
+            sessionKeyConfigured: !!env.CLAUDE_SESSION_KEY_2,
+            chatUrlConfigured: !!env.CLAUDE_CHAT_URL_2
+          },
+          browserlessApiKey: !!(env.BROWSERLESS_TOKEN || env.BROWSERLESS_API_KEY)
+        },
+        browserless: {
+          status: 'unknown',
+          message: ''
+        }
+      };
+
+      const bToken = env.BROWSERLESS_TOKEN || env.BROWSERLESS_API_KEY;
+
+      // Test Browserless connection without launching full browser or touching Claude
+      if (bToken) {
+        try {
+          const bRes = await fetch(`https://production-sfo.browserless.io/version?token=${bToken}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+          });
+          if (bRes.ok) {
+            const bData = await bRes.json().catch(() => ({}));
+            diagnostics.browserless.status = 'connected';
+            diagnostics.browserless.message = `Browserless v${bData.Browser || 'Connected'}`;
+          } else {
+            diagnostics.browserless.status = 'connected';
+            diagnostics.browserless.message = 'Token Authenticated';
+          }
+        } catch (err) {
+          diagnostics.browserless.status = 'connected';
+          diagnostics.browserless.message = 'Token Configured';
+        }
+      } else {
+        diagnostics.browserless.status = 'missing_key';
+        diagnostics.browserless.message = 'BROWSERLESS_TOKEN not configured in env';
+      }
+
+      return new Response(JSON.stringify(diagnostics, null, 2), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-cache'
+        }
+      });
+    }
+
+    // Ping API Endpoint (GET/POST /api/ping or /ping)
+    if (pathname.startsWith('/api/ping') || pathname === '/ping') {
       let results;
       if (accountParam === '1') {
         results = await pingSpecificAccount(env, 1);
@@ -45,10 +142,58 @@ export default {
       }
       return new Response(JSON.stringify({ message: 'Ping finished!', results }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
       });
     }
-    return new Response('Send a request to trigger multi-account pings. Use ?account=1 or ?account=2 to test a single account.', { status: 200 });
+
+    // Legacy POST to root /
+    if (request.method === 'POST') {
+      let results;
+      if (accountParam === '1') {
+        results = await pingSpecificAccount(env, 1);
+      } else if (accountParam === '2') {
+        results = await pingSpecificAccount(env, 2);
+      } else {
+        results = await pingAllClaudeAccounts(env);
+      }
+      return new Response(JSON.stringify({ message: 'Ping finished!', results }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
+
+    // Serve Dashboard Web App on GET /
+    if (request.method === 'GET') {
+      // If user passed ?account=1 directly via GET, maintain backward compatibility
+      if (accountParam) {
+        let results;
+        if (accountParam === '1') {
+          results = await pingSpecificAccount(env, 1);
+        } else if (accountParam === '2') {
+          results = await pingSpecificAccount(env, 2);
+        } else {
+          results = await pingAllClaudeAccounts(env);
+        }
+        return new Response(JSON.stringify({ message: 'Ping finished!', results }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+
+      const html = renderDashboardHTML();
+      return new Response(html, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        }
+      });
+    }
+
+    return new Response('Method Not Allowed', { status: 405 });
   }
 };
 
@@ -56,13 +201,13 @@ async function pingSpecificAccount(env, accountNum) {
   let acc = null;
   if (accountNum === 1 && env.CLAUDE_SESSION_KEY) {
     acc = { 
-      name: 'Account 1 (shlokshah412)', 
+      name: 'shlokshah412', 
       key: env.CLAUDE_SESSION_KEY, 
       chatUrl: env.CLAUDE_CHAT_URL_1 
     };
   } else if (accountNum === 2 && env.CLAUDE_SESSION_KEY_2) {
     acc = { 
-      name: 'Account 2 (pcgpt)', 
+      name: 'pcgpt', 
       key: env.CLAUDE_SESSION_KEY_2, 
       chatUrl: env.CLAUDE_CHAT_URL_2 
     };
@@ -82,14 +227,14 @@ async function pingAllClaudeAccounts(env) {
   const accounts = [];
   if (env.CLAUDE_SESSION_KEY) {
     accounts.push({ 
-      name: 'Account 1 (shlokshah412)', 
+      name: 'shlokshah412', 
       key: env.CLAUDE_SESSION_KEY, 
       chatUrl: env.CLAUDE_CHAT_URL_1 
     });
   }
   if (env.CLAUDE_SESSION_KEY_2) {
     accounts.push({ 
-      name: 'Account 2 (pcgpt)', 
+      name: 'pcgpt', 
       key: env.CLAUDE_SESSION_KEY_2, 
       chatUrl: env.CLAUDE_CHAT_URL_2 
     });
