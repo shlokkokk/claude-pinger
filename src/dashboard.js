@@ -612,8 +612,11 @@ export function renderDashboardHTML() {
 
     .log-line {
       display: flex;
+      align-items: baseline;
       gap: 6px;
-      word-break: break-all;
+      word-break: normal;
+      overflow-wrap: break-word;
+      line-height: 1.4;
     }
 
     .log-time { color: var(--text-muted); flex-shrink: 0; }
@@ -1179,7 +1182,7 @@ export function renderDashboardHTML() {
       <div class="console-drawer" id="consoleLogs">
         <div class="log-line">
           <span class="log-time">[System]</span>
-          <span class="log-msg">Autopilot online on Cloudflare Workers.</span>
+          <span class="log-msg">Autopilot active on Cloudflare</span>
         </div>
       </div>
     </section>
