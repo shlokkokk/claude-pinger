@@ -239,10 +239,19 @@ fun DashboardScreen() {
                             logs.add("[System] Dispatching ping for ${target.username}...")
                             val res = CloudflareApiService.triggerPing(target.id)
                             isPinging = false
-                            if (res.success) {
-                                logs.add("[Success] ${target.username} ➔ ${res.message}")
+                            val st = res.statuses.firstOrNull()
+                            if (st != null) {
+                                if (st.success) {
+                                    logs.add("[Success] ${st.username} ➔ ${st.detail}")
+                                } else {
+                                    logs.add("[Error] ${st.username} ➔ ${st.detail}")
+                                }
                             } else {
-                                logs.add("[Error] ${target.username} ➔ ${res.message}")
+                                if (res.success) {
+                                    logs.add("[Success] ${target.username} ➔ ${res.message}")
+                                } else {
+                                    logs.add("[Error] ${target.username} ➔ ${res.message}")
+                                }
                             }
                             telemetry = TelemetryCalculator.calculate(taskMode)
                         }
@@ -274,10 +283,20 @@ fun DashboardScreen() {
                             logs.add("[System] Dispatching ping for Both Accounts...")
                             val res = CloudflareApiService.triggerPing(null)
                             isPinging = false
-                            if (res.success) {
-                                logs.add("[Success] Both Accounts ➔ ${res.message}")
+                            if (res.statuses.isNotEmpty()) {
+                                res.statuses.forEach { st ->
+                                    if (st.success) {
+                                        logs.add("[Success] ${st.username} ➔ ${st.detail}")
+                                    } else {
+                                        logs.add("[Error] ${st.username} ➔ ${st.detail}")
+                                    }
+                                }
                             } else {
-                                logs.add("[Error] Ping ➔ ${res.message}")
+                                if (res.success) {
+                                    logs.add("[Success] Both Accounts ➔ ${res.message}")
+                                } else {
+                                    logs.add("[Error] Ping ➔ ${res.message}")
+                                }
                             }
                             telemetry = TelemetryCalculator.calculate(taskMode)
                         }

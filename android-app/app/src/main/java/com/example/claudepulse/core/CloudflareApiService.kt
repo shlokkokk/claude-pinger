@@ -3,12 +3,11 @@ package com.example.claudepulse.core
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-data class PingResult(val success: Boolean, val message: String, val rawJson: String)
+data class AccountPingStatus(val username: String, val success: Boolean, val detail: String)
+data class PingResult(val success: Boolean, val message: String, val statuses: List<AccountPingStatus> = emptyList())
 data class HealthResult(val healthy: Boolean, val latencyMs: Long, val details: String)
 
 object CloudflareApiService {
@@ -64,16 +63,40 @@ object CloudflareApiService {
 
             if (code in 200..299) {
                 val json = JSONObject(response)
-                val results = json.optJSONArray("results")
-                val firstResult = results?.optJSONObject(0)
-                val success = firstResult?.optJSONObject("result")?.optBoolean("success", true) ?: true
-                val pageTitle = firstResult?.optJSONObject("result")?.optString("pageTitle", "Ping dispatched") ?: "Ping sent"
-                PingResult(success, pageTitle, response)
+                val resultsArray = json.optJSONArray("results")
+                val statuses = mutableListOf<AccountPingStatus>()
+
+                if (resultsArray != null && resultsArray.length() > 0) {
+                    for (i in 0 until resultsArray.length()) {
+                        val item = resultsArray.optJSONObject(i) ?: continue
+                        val accId = item.optInt("account", if (accountNum != null) accountNum else (i + 1))
+                        val username = if (accId == 1) "shlokshah412" else "pcgpt"
+                        
+                        val resultObj = item.optJSONObject("result") ?: item.optJSONObject("value")
+                        val isFulfilled = item.optString("status") != "rejected"
+                        val isSuccess = isFulfilled && (resultObj?.optBoolean("success", true) ?: true)
+                        val errorDetail = resultObj?.optString("error") ?: item.optString("reason", "Ping failed")
+
+                        statuses.add(
+                            AccountPingStatus(
+                                username = username,
+                                success = isSuccess,
+                                detail = if (isSuccess) "Ping sent" else errorDetail
+                            )
+                        )
+                    }
+                } else {
+                    val defaultName = if (accountNum == 1) "shlokshah412" else if (accountNum == 2) "pcgpt" else "Both"
+                    statuses.add(AccountPingStatus(defaultName, true, "Ping sent"))
+                }
+
+                val allSuccessful = statuses.all { it.success }
+                PingResult(allSuccessful, if (allSuccessful) "Ping sent" else "One or more pings failed", statuses)
             } else {
-                PingResult(false, "Server returned HTTP $code", response)
+                PingResult(false, "Server returned HTTP $code")
             }
         } catch (e: Exception) {
-            PingResult(false, e.message ?: "Network error", "")
+            PingResult(false, e.message ?: "Network error")
         }
     }
 }
