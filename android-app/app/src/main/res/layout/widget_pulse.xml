@@ -98,8 +98,8 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- SUBTLE VERTICAL DIVIDER -->
-        <View
+        <!-- SUBTLE VERTICAL DIVIDER (FrameLayout supported by RemoteViews) -->
+        <FrameLayout
             android:layout_width="1dp"
             android:layout_height="match_parent"
             android:layout_marginVertical="4dp"
