@@ -4,8 +4,8 @@ export function renderDashboardHTML() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Claude Pulse — shlokshah412 & pcgpt Switcher</title>
-  <meta name="description" content="Real-time intelligent rate-limit tracking and dynamic switcher for Claude accounts.">
+  <title>Claude Pulse</title>
+  <meta name="description" content="Real-time intelligent rate-limit autopilot and account switcher for Claude.">
   <meta name="theme-color" content="#07080c">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,8 +18,8 @@ export function renderDashboardHTML() {
     :root {
       --bg-base: #07080c;
       --bg-surface: #0e1118;
-      --bg-card: rgba(14, 18, 26, 0.75);
-      --bg-card-hover: rgba(22, 28, 40, 0.9);
+      --bg-card: rgba(14, 18, 26, 0.8);
+      --bg-card-hover: rgba(22, 28, 40, 0.95);
       --border-subtle: rgba(255, 255, 255, 0.08);
       --border-focus: rgba(255, 255, 255, 0.2);
       
@@ -30,6 +30,7 @@ export function renderDashboardHTML() {
       --acc2-indigo: #a855f7;
 
       --success-green: #10b981;
+      --mint-green: #34d399;
       --warning-amber: #f59e0b;
       --danger-red: #ef4444;
 
@@ -56,18 +57,18 @@ export function renderDashboardHTML() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: max(38px, env(safe-area-inset-top, 38px)) 16px env(safe-area-inset-bottom, 32px);
+      padding: max(28px, env(safe-area-inset-top, 28px)) 12px max(32px, env(safe-area-inset-bottom, 32px));
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     .app-container {
       width: 100%;
-      max-width: 620px;
+      max-width: 580px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
       margin: 0 auto;
-      padding-bottom: 40px;
     }
 
     /* HEADER */
@@ -75,40 +76,42 @@ export function renderDashboardHTML() {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 2px 10px;
+      padding: 4px 2px 8px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .brand-icon-box {
-      width: 42px;
-      height: 42px;
-      border-radius: 13px;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
       background: #111520;
       border: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
 
     .brand-icon-box svg {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
     }
 
     .brand-text h1 {
-      font-size: 1.22rem;
+      font-size: 1.15rem;
       font-weight: 800;
       letter-spacing: -0.03em;
       color: #fff;
+      line-height: 1.2;
     }
 
     .brand-text p {
-      font-size: 0.74rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
       font-weight: 600;
     }
@@ -116,20 +119,20 @@ export function renderDashboardHTML() {
     .header-right {
       display: flex;
       align-items: center;
-      gap: 8px;
     }
 
     .live-clock-pill {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: #10141f;
       border: 1px solid var(--border-subtle);
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 20px;
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.74rem;
       color: var(--text-secondary);
+      white-space: nowrap;
     }
 
     .pulse-dot {
@@ -139,6 +142,7 @@ export function renderDashboardHTML() {
       border-radius: 50%;
       box-shadow: 0 0 6px var(--success-green);
       animation: blink 2s infinite ease-in-out;
+      flex-shrink: 0;
     }
 
     @keyframes blink {
@@ -146,14 +150,14 @@ export function renderDashboardHTML() {
       50% { opacity: 0.35; transform: scale(0.85); }
     }
 
-    /* MODE SELECTOR */
+    /* MODE SELECTOR (PILL SWITCHER) */
     .mode-switch-wrapper {
       display: flex;
       background: #0d1017;
       border: 1px solid var(--border-subtle);
       border-radius: 14px;
-      padding: 4px;
-      gap: 4px;
+      padding: 3px;
+      gap: 3px;
     }
 
     .mode-btn {
@@ -161,19 +165,26 @@ export function renderDashboardHTML() {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 9px 12px;
+      gap: 6px;
+      padding: 8px 6px;
       border-radius: 10px;
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       font-weight: 700;
       color: var(--text-muted);
       background: transparent;
       border: none;
       cursor: pointer;
+      white-space: nowrap;
       transition: all 0.15s ease;
     }
 
-    .mode-btn svg { width: 15px; height: 15px; }
+    .mode-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .mode-btn.active.quick-mode {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--mint-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
 
     .mode-btn.active.deep-mode {
       background: rgba(0, 242, 254, 0.12);
@@ -181,20 +192,17 @@ export function renderDashboardHTML() {
       border: 1px solid rgba(0, 242, 254, 0.3);
     }
 
-    .mode-btn.active.quick-mode {
-      background: rgba(16, 185, 129, 0.12);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
     /* HERO RECOMMENDATION CARD */
     .hero-recommendation {
       background: #0f131d;
       border: 1px solid var(--border-subtle);
-      border-radius: 20px;
-      padding: 22px;
+      border-radius: 18px;
+      padding: 16px;
       position: relative;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .hero-recommendation::before {
@@ -211,22 +219,23 @@ export function renderDashboardHTML() {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      gap: 6px;
     }
 
     .rec-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.72rem;
+      gap: 5px;
+      font-size: 0.68rem;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 4px 10px;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
       border-radius: 8px;
       background: rgba(0, 242, 254, 0.1);
       color: var(--acc1-cyan);
       border: 1px solid rgba(0, 242, 254, 0.25);
+      white-space: nowrap;
     }
 
     .rec-badge.pcgpt-badge {
@@ -235,38 +244,46 @@ export function renderDashboardHTML() {
       border: 1px solid rgba(192, 132, 252, 0.25);
     }
 
+    .rec-next-reset-text {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      text-align: right;
+    }
+
     .hero-title {
-      font-size: 1.4rem;
+      font-size: 1.25rem;
       font-weight: 800;
       letter-spacing: -0.02em;
-      margin-bottom: 6px;
       color: #fff;
+      line-height: 1.2;
     }
 
     .hero-reason {
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       color: var(--text-secondary);
-      line-height: 1.5;
-      margin-bottom: 18px;
+      line-height: 1.45;
+      margin-bottom: 4px;
     }
 
     .launch-cta {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       width: 100%;
-      padding: 13px 18px;
-      border-radius: 14px;
-      font-size: 0.92rem;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
       font-weight: 800;
       color: #ffffff;
       background: linear-gradient(135deg, rgba(0, 242, 254, 0.14) 0%, rgba(56, 189, 248, 0.06) 100%);
       border: 1px solid rgba(0, 242, 254, 0.35);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 4px 16px rgba(0, 0, 0, 0.25);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 4px 14px rgba(0, 0, 0, 0.25);
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
     }
 
     .launch-cta.pcgpt-cta {
@@ -275,46 +292,28 @@ export function renderDashboardHTML() {
       color: #ffffff;
     }
 
-    .launch-cta:hover {
-      background: linear-gradient(135deg, rgba(0, 242, 254, 0.22) 0%, rgba(56, 189, 248, 0.12) 100%);
-      border-color: rgba(0, 242, 254, 0.6);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 0 18px rgba(0, 242, 254, 0.2);
-    }
-
-    .launch-cta.pcgpt-cta:hover {
-      background: linear-gradient(135deg, rgba(192, 132, 252, 0.22) 0%, rgba(168, 85, 247, 0.12) 100%);
-      border-color: rgba(192, 132, 252, 0.6);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 0 18px rgba(192, 132, 252, 0.2);
-    }
-
     .launch-cta:active {
       transform: scale(0.98);
       filter: brightness(0.95);
     }
 
-    .launch-cta svg { width: 16px; height: 16px; }
+    .launch-cta svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-    /* DUAL ACCOUNT TELEMETRY GAUGES */
+    /* DUAL ACCOUNT TELEMETRY GRID (SIDE-BY-SIDE ON ALL SCREENS) */
     .accounts-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    @media (max-width: 500px) {
-      .accounts-grid {
-        grid-template-columns: 1fr;
-      }
+      gap: 8px;
     }
 
     .account-card {
       background: #0f131d;
       border: 1px solid var(--border-subtle);
-      border-radius: 18px;
-      padding: 16px;
+      border-radius: 16px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       position: relative;
     }
 
@@ -328,22 +327,26 @@ export function renderDashboardHTML() {
     }
 
     .acc-tag {
-      font-size: 0.86rem;
+      font-size: 0.78rem;
       font-weight: 800;
       letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .acc1-theme .acc-tag { color: var(--acc1-cyan); }
     .acc2-theme .acc-tag { color: var(--acc2-purple); }
 
     .acc-status-tag {
-      font-size: 0.66rem;
+      font-size: 0.62rem;
       font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 6px;
+      padding: 2px 6px;
+      border-radius: 5px;
       font-family: var(--font-mono);
       background: rgba(255, 255, 255, 0.05);
       color: var(--text-secondary);
+      flex-shrink: 0;
     }
 
     .acc-status-tag.active {
@@ -354,13 +357,13 @@ export function renderDashboardHTML() {
     .ring-wrapper {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
     }
 
     .progress-circle {
       position: relative;
-      width: 60px;
-      height: 60px;
+      width: 48px;
+      height: 48px;
       flex-shrink: 0;
     }
 
@@ -372,7 +375,7 @@ export function renderDashboardHTML() {
 
     .progress-circle circle {
       fill: none;
-      stroke-width: 6;
+      stroke-width: 5.5;
       stroke-linecap: round;
     }
 
@@ -392,8 +395,8 @@ export function renderDashboardHTML() {
     }
 
     .ring-center-icon svg {
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
       transform: none !important;
     }
 
@@ -403,42 +406,46 @@ export function renderDashboardHTML() {
     .ring-meta {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
+      min-width: 0;
     }
 
     .ring-meta-val {
-      font-size: 1rem;
+      font-size: 0.88rem;
       font-weight: 800;
       font-family: var(--font-mono);
       color: var(--text-primary);
+      white-space: nowrap;
     }
 
     .ring-meta-sub {
-      font-size: 0.72rem;
+      font-size: 0.66rem;
       color: var(--text-muted);
       font-family: var(--font-mono);
+      white-space: nowrap;
     }
 
     .card-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 6px;
     }
 
     .btn-secondary {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 0.76rem;
+      gap: 4px;
+      padding: 7px 6px;
+      border-radius: 9px;
+      font-size: 0.72rem;
       font-weight: 700;
       color: var(--text-primary);
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-subtle);
       cursor: pointer;
       text-decoration: none;
+      white-space: nowrap;
       transition: all 0.15s ease;
     }
 
@@ -447,17 +454,17 @@ export function renderDashboardHTML() {
       border-color: var(--border-focus);
     }
 
-    .btn-secondary svg { width: 13px; height: 13px; }
+    .btn-secondary svg { width: 12px; height: 12px; flex-shrink: 0; }
 
     /* SECTION CARD BASE */
     .section-card {
       background: #0f131d;
       border: 1px solid var(--border-subtle);
-      border-radius: 18px;
-      padding: 18px;
+      border-radius: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
     }
 
     .section-head {
@@ -467,26 +474,28 @@ export function renderDashboardHTML() {
     }
 
     .section-head h2 {
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       font-weight: 800;
       color: #fff;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      white-space: nowrap;
     }
 
-    .section-head h2 svg { width: 16px; height: 16px; color: var(--acc1-blue); }
+    .section-head h2 svg { width: 15px; height: 15px; color: var(--acc1-blue); flex-shrink: 0; }
 
     /* COMMAND CONSOLE & DIAGNOSTICS */
     .health-bar-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 9px 12px;
+      padding: 8px 10px;
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      font-size: 0.78rem;
+      border-radius: 10px;
+      font-size: 0.74rem;
+      gap: 8px;
     }
 
     .health-status-badge {
@@ -496,20 +505,23 @@ export function renderDashboardHTML() {
       font-family: var(--font-mono);
       font-weight: 700;
       color: var(--success-green);
+      white-space: nowrap;
     }
 
     .btn-diagnostic-check {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
       color: var(--text-primary);
-      padding: 5px 12px;
+      padding: 4px 10px;
       border-radius: 8px;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
       transition: all 0.15s ease;
     }
 
@@ -518,12 +530,12 @@ export function renderDashboardHTML() {
       border-color: var(--border-focus);
     }
 
-    .btn-diagnostic-check svg { width: 13px; height: 13px; }
+    .btn-diagnostic-check svg { width: 12px; height: 12px; }
 
     .controls-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
+      gap: 6px;
     }
 
     .btn-action {
@@ -532,9 +544,9 @@ export function renderDashboardHTML() {
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 12px 6px;
-      min-height: 80px;
-      border-radius: 14px;
+      padding: 10px 4px;
+      min-height: 74px;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-subtle);
       cursor: pointer;
@@ -549,13 +561,13 @@ export function renderDashboardHTML() {
     .btn-action:active { transform: scale(0.97); }
 
     .btn-action-icon-pill {
-      width: 26px;
-      height: 26px;
-      border-radius: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .btn-ping-acc1 .btn-action-icon-pill { background: rgba(0, 242, 254, 0.12); color: var(--acc1-cyan); }
@@ -563,10 +575,10 @@ export function renderDashboardHTML() {
     .btn-ping-all .btn-action-icon-pill { background: rgba(255, 255, 255, 0.08); color: #fff; }
 
     .btn-action-title {
-      font-size: 0.8rem;
+      font-size: 0.74rem;
       font-weight: 800;
       white-space: nowrap;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
     }
 
     .btn-ping-acc1 .btn-action-title { color: var(--acc1-cyan); }
@@ -574,33 +586,33 @@ export function renderDashboardHTML() {
     .btn-ping-all .btn-action-title { color: #fff; }
 
     .btn-action-sub {
-      font-size: 0.68rem;
+      font-size: 0.64rem;
       color: var(--text-muted);
       font-family: var(--font-mono);
       font-weight: 500;
       white-space: nowrap;
     }
 
-    .btn-action svg { width: 14px; height: 14px; }
+    .btn-action svg { width: 13px; height: 13px; }
 
     .console-drawer {
       background: #07090f;
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 12px;
+      border-radius: 10px;
+      padding: 10px;
       font-family: var(--font-mono);
-      font-size: 0.76rem;
+      font-size: 0.72rem;
       color: #94a3b8;
-      max-height: 130px;
+      max-height: 110px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
     }
 
     .log-line {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       word-break: break-all;
     }
 
@@ -610,25 +622,26 @@ export function renderDashboardHTML() {
     .log-msg.info { color: var(--acc1-cyan); }
     .log-msg.error { color: var(--danger-red); }
 
-    /* DUAL-LANE 24H MASTER TIMELINE (CLEAN CRISP DOTS & INSPECTOR) */
+    /* DUAL-LANE 24H MASTER TIMELINE */
     .timeline-inspect-bubble {
       background: #131722;
       border: 1px solid var(--border-focus);
-      border-radius: 12px;
-      padding: 10px 14px;
+      border-radius: 10px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      font-size: 0.78rem;
+      gap: 8px;
+      font-size: 0.74rem;
     }
 
     .inspect-acc-pill {
       font-weight: 800;
-      font-size: 0.72rem;
-      padding: 2px 7px;
-      border-radius: 6px;
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 5px;
       font-family: var(--font-mono);
+      white-space: nowrap;
     }
 
     .inspect-acc-pill.acc1 { background: rgba(0, 242, 254, 0.15); color: var(--acc1-cyan); }
@@ -638,19 +651,19 @@ export function renderDashboardHTML() {
     .dual-lane-timeline {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding: 6px 0 2px;
+      gap: 10px;
+      padding: 4px 0 2px;
     }
 
     .timeline-lane-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .lane-label {
-      width: 95px;
-      font-size: 0.74rem;
+      width: 82px;
+      font-size: 0.72rem;
       font-weight: 800;
       font-family: var(--font-mono);
       flex-shrink: 0;
@@ -662,7 +675,7 @@ export function renderDashboardHTML() {
 
     .lane-track {
       flex: 1;
-      height: 10px;
+      height: 9px;
       background: rgba(255, 255, 255, 0.05);
       border-radius: 8px;
       position: relative;
@@ -674,8 +687,8 @@ export function renderDashboardHTML() {
       position: absolute;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
       border: 2px solid var(--bg-base);
       cursor: pointer;
@@ -685,11 +698,11 @@ export function renderDashboardHTML() {
 
     .lane-node.acc1 {
       background-color: var(--acc1-cyan);
-      box-shadow: 0 0 8px rgba(0, 242, 254, 0.7);
+      box-shadow: 0 0 7px rgba(0, 242, 254, 0.7);
     }
     .lane-node.acc2 {
       background-color: var(--acc2-purple);
-      box-shadow: 0 0 8px rgba(192, 132, 252, 0.7);
+      box-shadow: 0 0 7px rgba(192, 132, 252, 0.7);
     }
 
     .lane-node:hover, .lane-node:active, .lane-node.selected {
@@ -699,20 +712,20 @@ export function renderDashboardHTML() {
     }
 
     .lane-node.acc1:hover, .lane-node.acc1:active, .lane-node.acc1.selected {
-      box-shadow: 0 0 16px var(--acc1-cyan), 0 0 24px rgba(0, 242, 254, 0.5);
+      box-shadow: 0 0 14px var(--acc1-cyan), 0 0 20px rgba(0, 242, 254, 0.5);
     }
 
     .lane-node.acc2:hover, .lane-node.acc2:active, .lane-node.acc2.selected {
-      box-shadow: 0 0 16px var(--acc2-purple), 0 0 24px rgba(192, 132, 252, 0.5);
+      box-shadow: 0 0 14px var(--acc2-purple), 0 0 20px rgba(192, 132, 252, 0.5);
     }
 
     .timeline-now-cursor-lane {
       position: absolute;
       top: -3px;
       bottom: -3px;
-      width: 2.5px;
+      width: 2px;
       background-color: #ffffff;
-      box-shadow: 0 0 8px #ffffff, 0 0 16px rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 7px #ffffff, 0 0 14px rgba(255, 255, 255, 0.6);
       z-index: 10;
       cursor: pointer;
     }
@@ -720,30 +733,31 @@ export function renderDashboardHTML() {
     .timeline-labels {
       display: flex;
       justify-content: space-between;
-      font-size: 0.7rem;
+      font-size: 0.66rem;
       color: var(--text-muted);
       font-family: var(--font-mono);
       margin-top: 2px;
-      padding-left: 105px;
+      padding-left: 90px;
     }
 
-    /* SCHEDULE MATRIX LIST (FULL COMPREHENSIVE INFO) */
+    /* SCHEDULE MATRIX LIST */
     .schedule-list {
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
     }
 
     .schedule-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 14px;
+      padding: 9px 12px;
       background: rgba(255, 255, 255, 0.025);
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      font-size: 0.82rem;
+      border-radius: 11px;
+      font-size: 0.78rem;
       cursor: pointer;
+      gap: 8px;
       transition: all 0.15s ease;
     }
 
@@ -752,24 +766,22 @@ export function renderDashboardHTML() {
       border-color: var(--border-focus);
     }
 
-    .schedule-item.highlighted.acc1-item {
-      border-color: rgba(0, 242, 254, 0.5);
-    }
-
-    .schedule-item.highlighted.acc2-item {
-      border-color: rgba(192, 132, 252, 0.5);
-    }
+    .schedule-item.highlighted.acc1-item { border-color: rgba(0, 242, 254, 0.5); }
+    .schedule-item.highlighted.acc2-item { border-color: rgba(192, 132, 252, 0.5); }
 
     .schedule-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      white-space: nowrap;
+      min-width: 0;
     }
 
     .schedule-acc-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
+      flex-shrink: 0;
     }
 
     .schedule-acc-dot.acc1 { background-color: var(--acc1-cyan); }
@@ -779,12 +791,13 @@ export function renderDashboardHTML() {
       font-family: var(--font-mono);
       font-weight: 700;
       color: #fff;
+      font-size: 0.78rem;
     }
 
     .schedule-name-tag {
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 700;
-      margin-left: 4px;
+      margin-left: 3px;
     }
 
     .schedule-name-tag.acc1-name { color: var(--acc1-cyan); }
@@ -793,19 +806,24 @@ export function renderDashboardHTML() {
     .schedule-right {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.74rem;
+      gap: 6px;
+      font-size: 0.72rem;
       color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
     }
 
     .safe-buffer-badge {
-      font-size: 0.66rem;
-      padding: 2px 6px;
-      border-radius: 6px;
+      font-size: 0.62rem;
+      padding: 1px 5px;
+      border-radius: 5px;
       background: rgba(16, 185, 129, 0.1);
       color: var(--success-green);
       font-family: var(--font-mono);
       font-weight: 700;
+      flex-shrink: 0;
     }
 
     /* CONFIRMATION MODAL */
@@ -821,7 +839,7 @@ export function renderDashboardHTML() {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
       z-index: 1000;
       opacity: 0;
       visibility: hidden;
@@ -833,13 +851,13 @@ export function renderDashboardHTML() {
     .modal-box {
       background: #0f131c;
       border: 1px solid var(--border-focus);
-      border-radius: 20px;
-      padding: 22px;
+      border-radius: 18px;
+      padding: 18px;
       width: 100%;
-      max-width: 420px;
+      max-width: 380px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
       transform: scale(0.96);
       transition: transform 0.2s ease;
@@ -850,13 +868,13 @@ export function renderDashboardHTML() {
     .modal-header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .modal-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
       background: rgba(56, 189, 248, 0.12);
       border: 1px solid rgba(56, 189, 248, 0.3);
       color: var(--acc1-blue);
@@ -866,32 +884,32 @@ export function renderDashboardHTML() {
       flex-shrink: 0;
     }
 
-    .modal-icon svg { width: 20px; height: 20px; }
+    .modal-icon svg { width: 18px; height: 18px; }
 
-    .modal-title h3 { font-size: 1.1rem; font-weight: 800; color: #fff; }
-    .modal-title p { font-size: 0.76rem; color: var(--text-muted); }
+    .modal-title h3 { font-size: 1rem; font-weight: 800; color: #fff; }
+    .modal-title p { font-size: 0.72rem; color: var(--text-muted); }
 
     .modal-body {
-      font-size: 0.86rem;
+      font-size: 0.82rem;
       color: var(--text-secondary);
-      line-height: 1.5;
+      line-height: 1.45;
       background: rgba(255, 255, 255, 0.025);
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 12px;
+      border-radius: 10px;
+      padding: 10px;
     }
 
     .modal-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
       margin-top: 2px;
     }
 
     .btn-modal {
-      padding: 11px 16px;
-      border-radius: 12px;
-      font-size: 0.86rem;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.82rem;
       font-weight: 700;
       border: none;
       cursor: pointer;
@@ -925,9 +943,9 @@ export function renderDashboardHTML() {
     /* FOOTER */
     .footer {
       text-align: center;
-      font-size: 0.74rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
-      padding: 12px 0;
+      padding: 8px 0;
     }
   </style>
 </head>
@@ -974,13 +992,13 @@ export function renderDashboardHTML() {
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <span>Quick Query / Expiring</span>
+        <span>Quick Query</span>
       </button>
       <button class="mode-btn" id="modeDeep" onclick="setTaskMode('deep')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
         </svg>
-        <span>Deep Work / Large Task</span>
+        <span>Deep Work</span>
       </button>
     </div>
 
@@ -988,12 +1006,12 @@ export function renderDashboardHTML() {
     <section class="hero-recommendation" id="heroCard">
       <div class="rec-top-row">
         <div class="rec-badge" id="recBadge">
-          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
           </svg>
           <span id="recBadgeText">Calculating...</span>
         </div>
-        <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-muted);" id="recNextReset">
+        <div class="rec-next-reset-text" id="recNextReset">
           Next reset: --
         </div>
       </div>
@@ -1004,11 +1022,11 @@ export function renderDashboardHTML() {
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
         </svg>
-        <span id="heroCtaText">Launch Recommended Account</span>
+        <span id="heroCtaText">Open Claude as pcgpt</span>
       </button>
     </section>
 
-    <!-- DUAL ACCOUNT TELEMETRY GAUGES -->
+    <!-- DUAL ACCOUNT TELEMETRY GAUGES (SIDE-BY-SIDE ON ALL SCREENS) -->
     <section class="accounts-grid">
       
       <!-- ACCOUNT 1: SHLOKSHAH412 -->
@@ -1048,7 +1066,7 @@ export function renderDashboardHTML() {
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.828a5 5 0 010-7.072m7.072 0a5 5 0 010 7.072M12 12h.01"/>
             </svg>
-            Ping Now
+            Ping
           </button>
         </div>
       </div>
@@ -1090,36 +1108,36 @@ export function renderDashboardHTML() {
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
             </svg>
-            Ping Now
+            Ping
           </button>
         </div>
       </div>
 
     </section>
 
-    <!-- REMOTE COMMAND CONSOLE & DIAGNOSTICS -->
+    <!-- MANUAL PING CONTROLS & DIAGNOSTICS -->
     <section class="section-card">
       <div class="section-head">
         <h2>
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
-          Remote Command Console
+          Manual Ping Controls
         </h2>
-        <span style="font-size: 0.72rem; color: var(--success-green); font-family: var(--font-mono);" id="pingStatusText">Ready</span>
+        <span style="font-size: 0.7rem; color: var(--success-green); font-family: var(--font-mono);" id="pingStatusText">Ready</span>
       </div>
 
       <!-- DIAGNOSTIC BAR -->
       <div class="health-bar-row">
         <div class="health-status-badge" id="healthBadge">
           <span class="pulse-dot"></span>
-          <span id="healthSummaryText">Worker Online &bull; Cloudflare</span>
+          <span id="healthSummaryText">Cloudflare Online</span>
         </div>
         <button class="btn-diagnostic-check" onclick="runDiagnostics()">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
           </svg>
-          Test Wiring (No Ping)
+          Test Wiring
         </button>
       </div>
 
@@ -1131,8 +1149,8 @@ export function renderDashboardHTML() {
               <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.828a5 5 0 010-7.072m7.072 0a5 5 0 010 7.072M12 12h.01"/>
             </svg>
           </div>
-          <span class="btn-action-title">Ping shlokshah412</span>
-          <span class="btn-action-sub">Trigger Acc 1</span>
+          <span class="btn-action-title">shlokshah412</span>
+          <span class="btn-action-sub">Account 1</span>
         </button>
 
         <!-- PING PCGPT -->
@@ -1142,8 +1160,8 @@ export function renderDashboardHTML() {
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
             </svg>
           </div>
-          <span class="btn-action-title">Ping pcgpt</span>
-          <span class="btn-action-sub">Trigger Acc 2</span>
+          <span class="btn-action-title">pcgpt</span>
+          <span class="btn-action-sub">Account 2</span>
         </button>
 
         <!-- PING BOTH -->
@@ -1153,44 +1171,43 @@ export function renderDashboardHTML() {
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
           </div>
-          <span class="btn-action-title">Ping Both</span>
-          <span class="btn-action-sub">Simultaneous</span>
+          <span class="btn-action-title">Both</span>
+          <span class="btn-action-sub">All Accounts</span>
         </button>
       </div>
 
       <div class="console-drawer" id="consoleLogs">
         <div class="log-line">
           <span class="log-time">[System]</span>
-          <span class="log-msg">Claude Pulse initialized. Connected to Cloudflare Worker.</span>
+          <span class="log-msg">Autopilot online on Cloudflare Workers.</span>
         </div>
       </div>
     </section>
 
-    <!-- DUAL-LANE 24-HOUR INTERACTIVE TIMELINE & MATRIX LIST -->
+    <!-- 24-HOUR PING SCHEDULE & MATRIX LIST -->
     <section class="section-card">
       <div class="section-head">
         <h2>
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
-          24-Hour Master Schedule (IST)
+          24h Ping Schedule
         </h2>
-        <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">+2m Buffer</span>
+        <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);">+2m Buffer</span>
       </div>
 
       <!-- INTERACTIVE INSPECT BANNER -->
       <div class="timeline-inspect-bubble" id="timelineBubble">
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
           <span class="inspect-acc-pill now" id="bubbleAccPill">LIVE NOW</span>
-          <span style="font-weight: 700; color: #fff;" id="bubbleTime">--:-- --</span>
-          <span style="color: var(--text-muted);" id="bubbleTag">Current Position</span>
+          <span style="font-weight: 700; color: #fff; font-family: var(--font-mono);" id="bubbleTime">--:-- --</span>
         </div>
-        <div style="font-family: var(--font-mono); color: var(--text-secondary);" id="bubbleDiff">
+        <div style="font-family: var(--font-mono); color: var(--text-secondary); font-size: 0.7rem;" id="bubbleDiff">
           Tracking active
         </div>
       </div>
 
-      <!-- DUAL LANE TRACKS (CRISP & CLEAN) -->
+      <!-- DUAL LANE TRACKS -->
       <div class="dual-lane-timeline" id="timelineContainer">
         <!-- Lane 1: shlokshah412 -->
         <div class="timeline-lane-row">
@@ -1264,20 +1281,20 @@ export function renderDashboardHTML() {
 
     function setTaskMode(mode) {
       currentTaskMode = mode;
-      document.getElementById('modeDeep').className = 'mode-btn ' + (mode === 'deep' ? 'active deep-mode' : '');
       document.getElementById('modeQuick').className = 'mode-btn ' + (mode === 'quick' ? 'active quick-mode' : '');
+      document.getElementById('modeDeep').className = 'mode-btn ' + (mode === 'deep' ? 'active deep-mode' : '');
       updateUI();
     }
 
     const SCHEDULE = [
-      { id: 'ping-1', account: 1, name: 'shlokshah412', hour: 1, min: 34, minsOfDay: 1 * 60 + 34, display: '01:34 AM', tag: 'Late Night Wrap-up' },
-      { id: 'ping-2', account: 2, name: 'pcgpt', hour: 7, min: 30, minsOfDay: 7 * 60 + 30, display: '07:30 AM', tag: 'Early Morning Start' },
-      { id: 'ping-3', account: 1, name: 'shlokshah412', hour: 10, min: 28, minsOfDay: 10 * 60 + 28, display: '10:28 AM', tag: 'Morning Workday Start' },
-      { id: 'ping-4', account: 2, name: 'pcgpt', hour: 12, min: 32, minsOfDay: 12 * 60 + 32, display: '12:32 PM', tag: 'Lunchtime Switch' },
-      { id: 'ping-5', account: 1, name: 'shlokshah412', hour: 15, min: 30, minsOfDay: 15 * 60 + 30, display: '03:30 PM', tag: 'Afternoon Sprint' },
-      { id: 'ping-6', account: 2, name: 'pcgpt', hour: 17, min: 34, minsOfDay: 17 * 60 + 34, display: '05:34 PM', tag: 'Tea Break / Post-Work' },
-      { id: 'ping-7', account: 1, name: 'shlokshah412', hour: 20, min: 32, minsOfDay: 20 * 60 + 32, display: '08:32 PM', tag: 'Dinner / Evening Session' },
-      { id: 'ping-8', account: 2, name: 'pcgpt', hour: 22, min: 36, minsOfDay: 22 * 60 + 36, display: '10:36 PM', tag: 'Peak Midnight Deep Work' }
+      { id: 'ping-1', account: 1, name: 'shlokshah412', hour: 1, min: 34, minsOfDay: 1 * 60 + 34, display: '01:34 AM', tag: 'Late Night Ping' },
+      { id: 'ping-2', account: 2, name: 'pcgpt', hour: 7, min: 30, minsOfDay: 7 * 60 + 30, display: '07:30 AM', tag: 'Morning Ping' },
+      { id: 'ping-3', account: 1, name: 'shlokshah412', hour: 10, min: 28, minsOfDay: 10 * 60 + 28, display: '10:28 AM', tag: 'Workday Ping' },
+      { id: 'ping-4', account: 2, name: 'pcgpt', hour: 12, min: 32, minsOfDay: 12 * 60 + 32, display: '12:32 PM', tag: 'Midday Ping' },
+      { id: 'ping-5', account: 1, name: 'shlokshah412', hour: 15, min: 30, minsOfDay: 15 * 60 + 30, display: '03:30 PM', tag: 'Afternoon Ping' },
+      { id: 'ping-6', account: 2, name: 'pcgpt', hour: 17, min: 34, minsOfDay: 17 * 60 + 34, display: '05:34 PM', tag: 'Evening Ping' },
+      { id: 'ping-7', account: 1, name: 'shlokshah412', hour: 20, min: 32, minsOfDay: 20 * 60 + 32, display: '08:32 PM', tag: 'Night Ping' },
+      { id: 'ping-8', account: 2, name: 'pcgpt', hour: 22, min: 36, minsOfDay: 22 * 60 + 36, display: '10:36 PM', tag: 'Midnight Ping' }
     ].sort((a, b) => a.minsOfDay - b.minsOfDay);
 
     const WINDOW_DURATION_MINS = 300; // 5 hours
@@ -1346,34 +1363,34 @@ export function renderDashboardHTML() {
         if (acc1.isActive && acc2.isActive) {
           if (acc2.minsLeftInWindow > 0 && acc2.minsLeftInWindow <= 90 && acc1.minsLeftInWindow > 90) {
             recommendedAcc = 2;
-            reason = 'pcgpt expires in ' + formatHoursMins(acc2.minsLeftInWindow) + '. Burn its expiring quota for quick queries without touching shlokshah412.';
+            reason = 'pcgpt resets in ' + formatHoursMins(acc2.minsLeftInWindow) + '. Best for quick questions before its limit resets.';
           } else if (acc1.minsLeftInWindow > 0 && acc1.minsLeftInWindow <= 90 && acc2.minsLeftInWindow > 90) {
             recommendedAcc = 1;
-            reason = 'shlokshah412 expires in ' + formatHoursMins(acc1.minsLeftInWindow) + '. Burn its expiring quota for quick queries without touching pcgpt.';
+            reason = 'shlokshah412 resets in ' + formatHoursMins(acc1.minsLeftInWindow) + '. Best for quick questions before its limit resets.';
           } else if (acc1.minsLeftInWindow <= acc2.minsLeftInWindow) {
             recommendedAcc = 1;
-            reason = 'shlokshah412 is closer to expiry (' + formatHoursMins(acc1.minsLeftInWindow) + ' left). Ideal for quick queries.';
+            reason = 'shlokshah412 resets soonest (' + formatHoursMins(acc1.minsLeftInWindow) + ' left). Ideal for quick queries.';
           } else {
             recommendedAcc = 2;
-            reason = 'pcgpt is closer to expiry (' + formatHoursMins(acc2.minsLeftInWindow) + ' left). Ideal for quick queries.';
+            reason = 'pcgpt resets soonest (' + formatHoursMins(acc2.minsLeftInWindow) + ' left). Ideal for quick queries.';
           }
         } else if (acc1.isActive) {
           recommendedAcc = 1;
-          reason = 'shlokshah412 active (' + formatHoursMins(acc1.minsLeftInWindow) + ' remaining).';
+          reason = 'shlokshah412 is active (' + formatHoursMins(acc1.minsLeftInWindow) + ' remaining).';
         } else if (acc2.isActive) {
           recommendedAcc = 2;
-          reason = 'pcgpt active (' + formatHoursMins(acc2.minsLeftInWindow) + ' remaining).';
+          reason = 'pcgpt is active (' + formatHoursMins(acc2.minsLeftInWindow) + ' remaining).';
         } else {
           recommendedAcc = (acc1.minsUntilNext <= acc2.minsUntilNext) ? 1 : 2;
-          reason = 'Both idle; ' + (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt') + ' resets soonest.';
+          reason = 'Both accounts idle; ' + (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt') + ' pings next in ' + formatHoursMins(recommendedAcc === 1 ? acc1.minsUntilNext : acc2.minsUntilNext) + '.';
         }
       } else {
         if (acc1.isActive && !acc2.isActive) {
           recommendedAcc = 1;
-          reason = 'shlokshah412 active with ' + formatHoursMins(acc1.minsLeftInWindow) + ' left (full sprint capacity).';
+          reason = 'shlokshah412 has ' + formatHoursMins(acc1.minsLeftInWindow) + ' remaining (highest available limit).';
         } else if (!acc1.isActive && acc2.isActive) {
           recommendedAcc = 2;
-          reason = 'pcgpt active with ' + formatHoursMins(acc2.minsLeftInWindow) + ' left (full sprint capacity).';
+          reason = 'pcgpt has ' + formatHoursMins(acc2.minsLeftInWindow) + ' remaining (highest available limit).';
         } else if (acc1.isActive && acc2.isActive) {
           if (acc1.minsLeftInWindow >= acc2.minsLeftInWindow) {
             recommendedAcc = 1;
@@ -1384,7 +1401,7 @@ export function renderDashboardHTML() {
           }
         } else {
           recommendedAcc = (acc1.minsUntilNext <= acc2.minsUntilNext) ? 1 : 2;
-          reason = 'Both cooling; ' + (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt') + ' resets first in ' + formatHoursMins(recommendedAcc === 1 ? acc1.minsUntilNext : acc2.minsUntilNext) + '.';
+          reason = 'Both idle; ' + (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt') + ' pings next in ' + formatHoursMins(recommendedAcc === 1 ? acc1.minsUntilNext : acc2.minsUntilNext) + '.';
         }
       }
 
@@ -1462,7 +1479,6 @@ export function renderDashboardHTML() {
         document.getElementById('bubbleAccPill').className = 'inspect-acc-pill now';
         document.getElementById('bubbleAccPill').innerText = 'LIVE NOW';
         document.getElementById('bubbleTime').innerText = formatTimeDisplay(data.nowIST);
-        document.getElementById('bubbleTag').innerText = 'Current Position';
         document.getElementById('bubbleDiff').innerText = 'Next: ' + nextPingOverall.name + ' in ' + formatHoursMins(nextPingOverall.minsUntilNext);
       }
     }
@@ -1488,8 +1504,7 @@ export function renderDashboardHTML() {
       pill.className = 'inspect-acc-pill ' + (isAcc1 ? 'acc1' : 'acc2');
       pill.innerText = item.name;
 
-      document.getElementById('bubbleTime').innerText = item.display;
-      document.getElementById('bubbleTag').innerText = item.tag;
+      document.getElementById('bubbleTime').innerText = item.display + ' (' + item.tag + ')';
       document.getElementById('bubbleDiff').innerText = diffText;
 
       document.querySelectorAll('.lane-node').forEach(node => {
@@ -1584,10 +1599,8 @@ export function renderDashboardHTML() {
         row.innerHTML = \`
           <div class="schedule-left">
             <div class="schedule-acc-dot \${item.account === 1 ? 'acc1' : 'acc2'}"></div>
-            <div>
-              <span class="schedule-time">\${item.display}</span>
-              <span class="schedule-name-tag \${item.account === 1 ? 'acc1-name' : 'acc2-name'}">\${item.name}</span>
-            </div>
+            <span class="schedule-time">\${item.display}</span>
+            <span class="schedule-name-tag \${item.account === 1 ? 'acc1-name' : 'acc2-name'}">\${item.name}</span>
           </div>
           <div class="schedule-right">
             <span class="safe-buffer-badge">+2m</span>
@@ -1668,11 +1681,11 @@ export function renderDashboardHTML() {
       const body = document.getElementById('modalBody');
       const confirmBtn = document.getElementById('modalConfirmBtn');
 
-      title.innerText = 'Trigger ' + label + '?';
-      body.innerHTML = 'This will immediately dispatch a headless browser session on <strong>Browserless.io</strong> to send a keep-alive character (<code style="color: #fff; font-family: monospace;">.</code>) and refresh your 5-hour limit.';
+      title.innerText = 'Ping ' + label + '?';
+      body.innerHTML = 'Sends a 1-character keep-alive message (<code style="color: #fff; font-family: monospace;">.</code>) via Browserless to refresh your 5-hour limit window on Claude.';
 
       confirmBtn.className = 'btn-modal btn-modal-confirm ' + (target === 2 ? 'acc2-confirm' : '');
-      confirmBtn.innerText = 'Dispatch Ping';
+      confirmBtn.innerText = 'Send Ping';
       confirmBtn.onclick = () => {
         closeModal();
         triggerPing(target);
@@ -1689,8 +1702,8 @@ export function renderDashboardHTML() {
       const body = document.getElementById('modalBody');
       const confirmBtn = document.getElementById('modalConfirmBtn');
 
-      title.innerText = 'Launch ' + accName;
-      body.innerHTML = 'Make sure your current browser tab or mobile app is logged in as <strong style="color: ' + (isAcc2 ? 'var(--acc2-purple)' : 'var(--acc1-cyan)') + ';">' + accName + '</strong> before opening Claude.';
+      title.innerText = 'Open Claude as ' + accName;
+      body.innerHTML = 'Ensure your active browser tab or Claude app is signed into <strong style="color: ' + (isAcc2 ? 'var(--acc2-purple)' : 'var(--acc1-cyan)') + ';">' + accName + '</strong>.';
 
       confirmBtn.className = 'btn-modal btn-modal-confirm ' + (isAcc2 ? 'acc2-confirm' : '');
       confirmBtn.innerText = 'Open Claude.ai';
