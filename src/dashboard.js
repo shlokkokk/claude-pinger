@@ -102,18 +102,25 @@ export function renderDashboardHTML() {
       height: 20px;
     }
 
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
     .brand-text h1 {
       font-size: 1.15rem;
       font-weight: 800;
       letter-spacing: -0.03em;
       color: #fff;
-      line-height: 1.2;
+      line-height: 1.15;
     }
 
     .brand-text p {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
       font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     .header-right {
@@ -236,6 +243,7 @@ export function renderDashboardHTML() {
       color: var(--acc1-cyan);
       border: 1px solid rgba(0, 242, 254, 0.25);
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .rec-badge.pcgpt-badge {
@@ -299,11 +307,12 @@ export function renderDashboardHTML() {
 
     .launch-cta svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-    /* DUAL ACCOUNT TELEMETRY GRID (SIDE-BY-SIDE ON ALL SCREENS) */
+    /* DUAL ACCOUNT TELEMETRY GRID (STRICT EQUAL 50/50 ON ALL SCREENS) */
     .accounts-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 8px;
+      width: 100%;
     }
 
     .account-card {
@@ -315,6 +324,8 @@ export function renderDashboardHTML() {
       flex-direction: column;
       gap: 10px;
       position: relative;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .account-card.acc1-theme { border-top: 2.5px solid var(--acc1-cyan); }
@@ -1438,7 +1449,7 @@ export function renderDashboardHTML() {
       document.getElementById('heroReason').innerText = data.reason;
       
       const nextPingOverall = (data.acc1.minsUntilNext < data.acc2.minsUntilNext) ? data.acc1 : data.acc2;
-      document.getElementById('recNextReset').innerText = 'Next reset: ' + nextPingOverall.name + ' in ' + formatHoursMins(nextPingOverall.minsUntilNext);
+      document.getElementById('recNextReset').innerText = 'Reset in ' + formatHoursMins(nextPingOverall.minsUntilNext);
 
       heroCta.className = 'launch-cta ' + (isAcc1 ? '' : 'pcgpt-cta');
       document.getElementById('heroCtaText').innerText = 'Open Claude as ' + (isAcc1 ? 'shlokshah412' : 'pcgpt');
@@ -1447,7 +1458,7 @@ export function renderDashboardHTML() {
       
       // Update shlokshah412
       document.getElementById('acc1Circle').style.strokeDashoffset = fullCircumference * (1 - data.acc1.percentLeft / 100);
-      document.getElementById('acc1TimeRemaining').innerText = data.acc1.isActive ? (formatHoursMins(data.acc1.minsLeftInWindow) + ' Left') : 'Idle (0m Left)';
+      document.getElementById('acc1TimeRemaining').innerText = data.acc1.isActive ? (formatHoursMins(data.acc1.minsLeftInWindow) + ' Left') : '0m Left';
       document.getElementById('acc1NextPing').innerText = 'Next: ' + data.acc1.nextPing.display;
 
       const acc1StatusTag = document.getElementById('acc1StatusTag');
@@ -1461,7 +1472,7 @@ export function renderDashboardHTML() {
 
       // Update pcgpt
       document.getElementById('acc2Circle').style.strokeDashoffset = fullCircumference * (1 - data.acc2.percentLeft / 100);
-      document.getElementById('acc2TimeRemaining').innerText = data.acc2.isActive ? (formatHoursMins(data.acc2.minsLeftInWindow) + ' Left') : 'Idle (0m Left)';
+      document.getElementById('acc2TimeRemaining').innerText = data.acc2.isActive ? (formatHoursMins(data.acc2.minsLeftInWindow) + ' Left') : '0m Left';
       document.getElementById('acc2NextPing').innerText = 'Next: ' + data.acc2.nextPing.display;
 
       const acc2StatusTag = document.getElementById('acc2StatusTag');
