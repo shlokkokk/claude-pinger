@@ -23,8 +23,6 @@ class PulseWidgetProvider : AppWidgetProvider() {
             val telemetry = TelemetryCalculator.calculate()
             val views = RemoteViews(context.packageName, R.layout.widget_pulse)
 
-            // Header live clock
-            views.setTextViewText(R.id.widget_live_clock, "● ${telemetry.currentISTTime}")
 
             val acc1Mins = telemetry.acc1.minsLeftInWindow
             val acc2Mins = telemetry.acc2.minsLeftInWindow

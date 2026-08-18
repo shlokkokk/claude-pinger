@@ -29,15 +29,31 @@
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <TextView
-            android:id="@+id/widget_live_clock"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="● --:--:--"
-            android:textColor="#10B981"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            tools:text="● 12:00:00 PM" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="● "
+                android:textColor="#10B981"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextClock
+                android:id="@+id/widget_live_clock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:format12Hour="hh:mm a"
+                android:format24Hour="HH:mm"
+                android:textColor="#10B981"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="07:05 PM" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- DUAL TELEMETRY COCKPIT (SEAMLESS COLUMNS WITH VERTICAL DIVIDER) -->
