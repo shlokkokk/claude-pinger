@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:orientation="vertical"
-    android:padding="13dp">
+    android:padding="16dp">
 
     <!-- TOP HEADER: BRAND + LIVE STATUS -->
     <LinearLayout
@@ -17,9 +17,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:letterSpacing="-0.02"
             android:text="Claude Pulse"
             android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <TextView
@@ -31,110 +32,138 @@
             android:id="@+id/widget_live_clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="● 06:37 PM"
+            android:text="● 06:43 PM"
             android:textColor="#10B981"
             android:textSize="11sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- DUAL ACCOUNTS SIDE-BY-SIDE COCKPIT -->
+    <!-- DUAL TELEMETRY COCKPIT (SEAMLESS COLUMNS WITH VERTICAL DIVIDER) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="8dp"
         android:layout_weight="1"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- ACCOUNT 1: SHLOKSHAH412 -->
+        <!-- LEFT COLUMN: SHLOKSHAH412 -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="4dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/widget_card_bg"
-            android:gravity="center_vertical"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:paddingHorizontal="9dp"
-            android:paddingVertical="7dp">
+            android:paddingEnd="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="● shlokshah412"
                 android:textColor="#00F2FE"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/widget_acc1_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Reset in 2h 27m"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp"
+                android:layout_marginTop="3dp"
+                android:text="1h 46m"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/widget_acc1_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:text="At 08:32 PM • Expiring"
+                android:layout_marginTop="2dp"
+                android:text="Resets at 08:32 PM"
                 android:textColor="#94A3B8"
                 android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/widget_acc1_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/widget_badge_cyan"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="Expiring soon"
+                android:textColor="#00F2FE"
+                android:textSize="10sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- ACCOUNT 2: PCGPT -->
+        <!-- SUBTLE VERTICAL DIVIDER -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="4dp"
+            android:background="#26FFFFFF" />
+
+        <!-- RIGHT COLUMN: PCGPT -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="4dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/widget_card_bg"
-            android:gravity="center_vertical"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:paddingHorizontal="9dp"
-            android:paddingVertical="7dp">
+            android:paddingStart="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="● pcgpt"
                 android:textColor="#C084FC"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/widget_acc2_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Reset in 4h 31m"
-                android:textColor="#F8FAFC"
-                android:textSize="13sp"
+                android:layout_marginTop="3dp"
+                android:text="3h 50m"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/widget_acc2_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:text="At 10:36 PM • Fresh"
+                android:layout_marginTop="2dp"
+                android:text="Resets at 10:36 PM"
                 android:textColor="#94A3B8"
                 android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/widget_acc2_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/widget_badge_purple"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="Fresh quota"
+                android:textColor="#C084FC"
+                android:textSize="10sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- INTELLIGENCE STRIP: CLEAR DUAL-PURPOSE GUIDANCE -->
+    <!-- BOTTOM INTELLIGENCE PILL -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="7dp"
         android:background="@drawable/widget_rec_bg"
         android:gravity="center"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="5dp">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp">
 
         <TextView
             android:id="@+id/widget_advice_text"
@@ -142,9 +171,9 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Use shlokshah412 for short tasks • pcgpt for long sessions"
-            android:textColor="#CBD5E1"
-            android:textSize="10sp"
+            android:text="Short: shlokshah412  •  Deep: pcgpt"
+            android:textColor="#E2E8F0"
+            android:textSize="11sp"
             android:textStyle="bold" />
     </LinearLayout>
 
