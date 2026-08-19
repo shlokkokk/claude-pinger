@@ -689,7 +689,7 @@ export function renderDashboardHTML() {
 
     .lane-track {
       flex: 1;
-      height: 9px;
+      height: 10px;
       background: rgba(255, 255, 255, 0.05);
       border-radius: 8px;
       position: relative;
@@ -697,12 +697,41 @@ export function renderDashboardHTML() {
       cursor: pointer;
     }
 
+    .lane-band {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: 6px;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .lane-band.acc1 {
+      background: rgba(0, 242, 254, 0.18);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+    }
+
+    .lane-band.acc2 {
+      background: rgba(192, 132, 252, 0.18);
+      border: 1px solid rgba(192, 132, 252, 0.3);
+    }
+
+    .lane-band.active {
+      background: rgba(0, 242, 254, 0.32);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+    }
+
+    .lane-band.acc2.active {
+      background: rgba(192, 132, 252, 0.32);
+      box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+    }
+
     .lane-node {
       position: absolute;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       border: 2px solid var(--bg-base);
       cursor: pointer;
@@ -1372,9 +1401,10 @@ export function renderDashboardHTML() {
 
       let recommendedAcc = 1;
       let reason = '';
+      let isStandby = false;
 
-      if (currentTaskMode === 'quick') {
-        if (acc1.isActive && acc2.isActive) {
+      if (acc1.isActive && acc2.isActive) {
+        if (currentTaskMode === 'quick') {
           if (acc2.minsLeftInWindow > 0 && acc2.minsLeftInWindow <= 90 && acc1.minsLeftInWindow > 90) {
             recommendedAcc = 2;
             reason = 'pcgpt resets in ' + formatHoursMins(acc2.minsLeftInWindow) + '. Best for quick questions before its limit resets.';
@@ -1388,24 +1418,7 @@ export function renderDashboardHTML() {
             recommendedAcc = 2;
             reason = 'pcgpt resets soonest (' + formatHoursMins(acc2.minsLeftInWindow) + ' left). Ideal for quick queries.';
           }
-        } else if (acc1.isActive) {
-          recommendedAcc = 1;
-          reason = 'shlokshah412 is active (' + formatHoursMins(acc1.minsLeftInWindow) + ' remaining).';
-        } else if (acc2.isActive) {
-          recommendedAcc = 2;
-          reason = 'pcgpt is active (' + formatHoursMins(acc2.minsLeftInWindow) + ' remaining).';
         } else {
-          recommendedAcc = (acc1.minsUntilNext <= acc2.minsUntilNext) ? 1 : 2;
-          reason = 'Both accounts idle; ' + (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt') + ' pings next in ' + formatHoursMins(recommendedAcc === 1 ? acc1.minsUntilNext : acc2.minsUntilNext) + '.';
-        }
-      } else {
-        if (acc1.isActive && !acc2.isActive) {
-          recommendedAcc = 1;
-          reason = 'shlokshah412 has ' + formatHoursMins(acc1.minsLeftInWindow) + ' remaining (highest available limit).';
-        } else if (!acc1.isActive && acc2.isActive) {
-          recommendedAcc = 2;
-          reason = 'pcgpt has ' + formatHoursMins(acc2.minsLeftInWindow) + ' remaining (highest available limit).';
-        } else if (acc1.isActive && acc2.isActive) {
           if (acc1.minsLeftInWindow >= acc2.minsLeftInWindow) {
             recommendedAcc = 1;
             reason = 'shlokshah412 has the freshest limit (' + formatHoursMins(acc1.minsLeftInWindow) + ' left vs ' + formatHoursMins(acc2.minsLeftInWindow) + ' on pcgpt).';
@@ -1413,14 +1426,24 @@ export function renderDashboardHTML() {
             recommendedAcc = 2;
             reason = 'pcgpt has the freshest limit (' + formatHoursMins(acc2.minsLeftInWindow) + ' left vs ' + formatHoursMins(acc1.minsLeftInWindow) + ' on shlokshah412).';
           }
-        } else {
-          recommendedAcc = (acc1.minsUntilNext <= acc2.minsUntilNext) ? 1 : 2;
-          reason = 'Both idle; ' + (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt') + ' pings next in ' + formatHoursMins(recommendedAcc === 1 ? acc1.minsUntilNext : acc2.minsUntilNext) + '.';
         }
+      } else if (acc1.isActive && !acc2.isActive) {
+        recommendedAcc = 1;
+        reason = 'shlokshah412 is active (' + formatHoursMins(acc1.minsLeftInWindow) + ' remaining). pcgpt is currently in standby.';
+      } else if (!acc1.isActive && acc2.isActive) {
+        recommendedAcc = 2;
+        reason = 'pcgpt is active (' + formatHoursMins(acc2.minsLeftInWindow) + ' remaining). shlokshah412 is currently in standby.';
+      } else {
+        isStandby = true;
+        recommendedAcc = (acc1.minsUntilNext <= acc2.minsUntilNext) ? 1 : 2;
+        const nextTargetName = (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt');
+        const nextTargetTime = (recommendedAcc === 1 ? acc1.nextPing.display : acc2.nextPing.display);
+        const nextTargetDiff = (recommendedAcc === 1 ? acc1.minsUntilNext : acc2.minsUntilNext);
+        reason = 'Both accounts in standby. Next 5-hour limit window opens with ' + nextTargetName + ' at ' + nextTargetTime + ' (in ' + formatHoursMins(nextTargetDiff) + ').';
       }
 
       recommendedTargetAccount = recommendedAcc;
-      return { nowIST, currentMinsOfDay, acc1, acc2, recommendedAcc, reason };
+      return { nowIST, currentMinsOfDay, acc1, acc2, recommendedAcc, reason, isStandby };
     }
 
     function formatHoursMins(totalMins) {
@@ -1443,45 +1466,54 @@ export function renderDashboardHTML() {
       const recBadge = document.getElementById('recBadge');
       const heroCta = document.getElementById('heroCta');
       
-      recBadge.className = 'rec-badge ' + (isAcc1 ? '' : 'pcgpt-badge');
-      document.getElementById('recBadgeText').innerText = isAcc1 ? 'OPTIMAL: SHLOKSHAH412' : 'OPTIMAL: PCGPT';
-      document.getElementById('heroTitle').innerText = isAcc1 ? 'Use shlokshah412' : 'Use pcgpt';
-      document.getElementById('heroReason').innerText = data.reason;
-      
       const nextPingOverall = (data.acc1.minsUntilNext < data.acc2.minsUntilNext) ? data.acc1 : data.acc2;
-      document.getElementById('recNextReset').innerText = 'Reset in ' + formatHoursMins(nextPingOverall.minsUntilNext);
 
-      heroCta.className = 'launch-cta ' + (isAcc1 ? '' : 'pcgpt-cta');
-      document.getElementById('heroCtaText').innerText = 'Open Claude as ' + (isAcc1 ? 'shlokshah412' : 'pcgpt');
+      if (data.isStandby) {
+        recBadge.className = 'rec-badge standby-badge';
+        document.getElementById('recBadgeText').innerText = 'STANDBY: NEXT IN ' + formatHoursMins(nextPingOverall.minsUntilNext).toUpperCase();
+        document.getElementById('heroTitle').innerText = 'System Standby';
+        document.getElementById('heroReason').innerText = data.reason;
+        heroCta.className = 'launch-cta ' + (isAcc1 ? '' : 'pcgpt-cta');
+        document.getElementById('heroCtaText').innerText = 'Open Claude (' + (isAcc1 ? 'shlokshah412' : 'pcgpt') + ')';
+      } else {
+        recBadge.className = 'rec-badge ' + (isAcc1 ? '' : 'pcgpt-badge');
+        document.getElementById('recBadgeText').innerText = isAcc1 ? 'OPTIMAL: SHLOKSHAH412' : 'OPTIMAL: PCGPT';
+        document.getElementById('heroTitle').innerText = isAcc1 ? 'Use shlokshah412' : 'Use pcgpt';
+        document.getElementById('heroReason').innerText = data.reason;
+        heroCta.className = 'launch-cta ' + (isAcc1 ? '' : 'pcgpt-cta');
+        document.getElementById('heroCtaText').innerText = 'Open Claude as ' + (isAcc1 ? 'shlokshah412' : 'pcgpt');
+      }
+
+      document.getElementById('recNextReset').innerText = 'Next reset in ' + formatHoursMins(nextPingOverall.minsUntilNext);
 
       const fullCircumference = 213.6;
       
       // Update shlokshah412
       document.getElementById('acc1Circle').style.strokeDashoffset = fullCircumference * (1 - data.acc1.percentLeft / 100);
-      document.getElementById('acc1TimeRemaining').innerText = data.acc1.isActive ? (formatHoursMins(data.acc1.minsLeftInWindow) + ' Left') : '0m Left';
-      document.getElementById('acc1NextPing').innerText = 'Next: ' + data.acc1.nextPing.display;
+      document.getElementById('acc1TimeRemaining').innerText = data.acc1.isActive ? (formatHoursMins(data.acc1.minsLeftInWindow) + ' Left') : 'Standby';
+      document.getElementById('acc1NextPing').innerText = data.acc1.isActive ? ('Resets at ' + data.acc1.nextPing.display) : ('Next: ' + data.acc1.nextPing.display);
 
       const acc1StatusTag = document.getElementById('acc1StatusTag');
       if (data.acc1.isActive) {
-        acc1StatusTag.className = 'acc-status-tag active';
-        acc1StatusTag.innerText = 'ACTIVE';
+        acc1StatusTag.className = (data.acc1.minsLeftInWindow <= 45) ? 'acc-status-tag warning' : 'acc-status-tag active';
+        acc1StatusTag.innerText = (data.acc1.minsLeftInWindow <= 45) ? 'EXPIRING' : 'ACTIVE';
       } else {
         acc1StatusTag.className = 'acc-status-tag';
-        acc1StatusTag.innerText = 'IDLE';
+        acc1StatusTag.innerText = 'STANDBY';
       }
 
       // Update pcgpt
       document.getElementById('acc2Circle').style.strokeDashoffset = fullCircumference * (1 - data.acc2.percentLeft / 100);
-      document.getElementById('acc2TimeRemaining').innerText = data.acc2.isActive ? (formatHoursMins(data.acc2.minsLeftInWindow) + ' Left') : '0m Left';
-      document.getElementById('acc2NextPing').innerText = 'Next: ' + data.acc2.nextPing.display;
+      document.getElementById('acc2TimeRemaining').innerText = data.acc2.isActive ? (formatHoursMins(data.acc2.minsLeftInWindow) + ' Left') : 'Standby';
+      document.getElementById('acc2NextPing').innerText = data.acc2.isActive ? ('Resets at ' + data.acc2.nextPing.display) : ('Next: ' + data.acc2.nextPing.display);
 
       const acc2StatusTag = document.getElementById('acc2StatusTag');
       if (data.acc2.isActive) {
-        acc2StatusTag.className = 'acc-status-tag active';
-        acc2StatusTag.innerText = 'ACTIVE';
+        acc2StatusTag.className = (data.acc2.minsLeftInWindow <= 45) ? 'acc-status-tag warning' : 'acc-status-tag active';
+        acc2StatusTag.innerText = (data.acc2.minsLeftInWindow <= 45) ? 'EXPIRING' : 'ACTIVE';
       } else {
         acc2StatusTag.className = 'acc-status-tag';
-        acc2StatusTag.innerText = 'IDLE';
+        acc2StatusTag.innerText = 'STANDBY';
       }
 
       // Update Dual-Lane Cursor
@@ -1558,9 +1590,40 @@ export function renderDashboardHTML() {
       const list = document.getElementById('scheduleList');
       list.innerHTML = '';
 
-      track1.querySelectorAll('.lane-node').forEach(n => n.remove());
-      track2.querySelectorAll('.lane-node').forEach(n => n.remove());
+      track1.querySelectorAll('.lane-node, .lane-band').forEach(n => n.remove());
+      track2.querySelectorAll('.lane-node, .lane-band').forEach(n => n.remove());
 
+      // 1. Render 5-Hour Active Window Highlight Bands
+      SCHEDULE.forEach((item) => {
+        const startMin = item.minsOfDay;
+        const endMin = startMin + 300; // 5 hours (300 mins)
+        const track = (item.account === 1) ? track1 : track2;
+        const accClass = (item.account === 1) ? 'acc1' : 'acc2';
+
+        if (endMin <= 1440) {
+          const band = document.createElement('div');
+          band.className = 'lane-band ' + accClass;
+          band.style.left = (startMin / 1440 * 100) + '%';
+          band.style.width = ((endMin - startMin) / 1440 * 100) + '%';
+          track.appendChild(band);
+        } else {
+          // Midnight wrap-around: Segment A (start to 1440)
+          const bandA = document.createElement('div');
+          bandA.className = 'lane-band ' + accClass;
+          bandA.style.left = (startMin / 1440 * 100) + '%';
+          bandA.style.width = ((1440 - startMin) / 1440 * 100) + '%';
+          track.appendChild(bandA);
+
+          // Segment B (0 to endMin - 1440)
+          const bandB = document.createElement('div');
+          bandB.className = 'lane-band ' + accClass;
+          bandB.style.left = '0%';
+          bandB.style.width = ((endMin - 1440) / 1440 * 100) + '%';
+          track.appendChild(bandB);
+        }
+      });
+
+      // 2. Render Interactive Ping Nodes
       SCHEDULE.forEach((item) => {
         const node = document.createElement('div');
         node.className = 'lane-node ' + (item.account === 1 ? 'acc1' : 'acc2');
@@ -1610,17 +1673,17 @@ export function renderDashboardHTML() {
         row.onmouseleave = () => {
           if (!pinnedItem) inspectNow();
         };
-        row.innerHTML = \`
+        row.innerHTML = `
           <div class="schedule-left">
-            <div class="schedule-acc-dot \${item.account === 1 ? 'acc1' : 'acc2'}"></div>
-            <span class="schedule-time">\${item.display}</span>
-            <span class="schedule-name-tag \${item.account === 1 ? 'acc1-name' : 'acc2-name'}">\${item.name}</span>
+            <div class="schedule-acc-dot ${item.account === 1 ? 'acc1' : 'acc2'}"></div>
+            <span class="schedule-time">${item.display}</span>
+            <span class="schedule-name-tag ${item.account === 1 ? 'acc1-name' : 'acc2-name'}">${item.name}</span>
           </div>
           <div class="schedule-right">
             <span class="safe-buffer-badge">+2m</span>
-            <span>\${item.tag}</span>
+            <span>${item.tag}</span>
           </div>
-        \`;
+        `;
         list.appendChild(row);
       });
     }
