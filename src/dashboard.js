@@ -365,6 +365,11 @@ export function renderDashboardHTML() {
       color: var(--success-green);
     }
 
+    .acc-status-tag.warning {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--warning-amber);
+    }
+
     .ring-wrapper {
       display: flex;
       align-items: center;
@@ -1343,54 +1348,95 @@ export function renderDashboardHTML() {
     const WINDOW_DURATION_MINS = 300; // 5 hours
 
     function getNowIST() {
-      const now = new Date();
-      const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+      // Always derive IST from UTC epoch — never use getTimezoneOffset() which
+      // returns the *local* offset and would double-shift on IST machines.
+      const utcMs = Date.now();
       const istMs = utcMs + (5.5 * 3600000);
       return new Date(istMs);
     }
 
+    function formatHoursMins(totalMins) {
+      const h = Math.floor(totalMins / 60);
+      const m = Math.floor(totalMins % 60);
+      if (h === 0) return m + 'm';
+      return h + 'h ' + m + 'm';
+    }
+
+    function formatHoursMinsSeconds(totalSeconds) {
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = Math.floor(totalSeconds % 60);
+      const pad = (n) => String(n).padStart(2, '0');
+      if (h === 0) return m + 'm ' + pad(s) + 's';
+      return h + 'h ' + pad(m) + 'm ' + pad(s) + 's';
+    }
+
+    function formatMinsToDisplayTime(mins) {
+      const normalized = ((mins % 1440) + 1440) % 1440;
+      const hour24 = Math.floor(normalized / 60);
+      const minute = Math.floor(normalized % 60);
+      const isPm = hour24 >= 12;
+      const hour12 = (hour24 % 12 === 0) ? 12 : (hour24 % 12);
+      return String(hour12).padStart(2, '0') + ':' + String(minute).padStart(2, '0') + ' ' + (isPm ? 'PM' : 'AM');
+    }
+
+    function formatTimeDisplay(date) {
+      return date.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
     function calculateTelemetry() {
       const nowIST = getNowIST();
-      const currentMinsOfDay = nowIST.getHours() * 60 + nowIST.getMinutes() + (nowIST.getSeconds() / 60);
+      const currentSecondsOfDay = nowIST.getHours() * 3600 + nowIST.getMinutes() * 60 + nowIST.getSeconds();
+      const currentMinsOfDay = currentSecondsOfDay / 60;
 
       function getAccountState(accNum, accName) {
         const accPings = SCHEDULE.filter(s => s.account === accNum);
         
         let mostRecent = null;
-        let elapsedSinceRecent = Infinity;
+        let elapsedSinceRecentSeconds = Infinity;
 
         for (const p of accPings) {
-          let diff = currentMinsOfDay - p.minsOfDay;
-          if (diff < 0) diff += 1440;
-          if (diff < elapsedSinceRecent) {
-            elapsedSinceRecent = diff;
+          const pingSeconds = p.hour * 3600 + p.min * 60;
+          let diff = currentSecondsOfDay - pingSeconds;
+          if (diff < 0) diff += 86400;
+          if (diff < elapsedSinceRecentSeconds) {
+            elapsedSinceRecentSeconds = diff;
             mostRecent = p;
           }
         }
 
         let nextPing = null;
-        let minsUntilNext = Infinity;
+        let secondsUntilNext = Infinity;
         for (const p of accPings) {
-          let diff = p.minsOfDay - currentMinsOfDay;
-          if (diff < 0) diff += 1440;
-          if (diff < minsUntilNext) {
-            minsUntilNext = diff;
+          const pingSeconds = p.hour * 3600 + p.min * 60;
+          let diff = pingSeconds - currentSecondsOfDay;
+          if (diff < 0) diff += 86400;
+          if (diff < secondsUntilNext) {
+            secondsUntilNext = diff;
             nextPing = p;
           }
         }
 
-        const isActive = elapsedSinceRecent < WINDOW_DURATION_MINS;
-        const minsLeftInWindow = isActive ? (WINDOW_DURATION_MINS - elapsedSinceRecent) : 0;
-        const percentLeft = Math.max(0, Math.min(100, Math.round((minsLeftInWindow / WINDOW_DURATION_MINS) * 100)));
+        const WINDOW_DURATION_SECONDS = WINDOW_DURATION_MINS * 60;
+        const isActive = elapsedSinceRecentSeconds < WINDOW_DURATION_SECONDS;
+        const secondsLeftInWindow = isActive ? (WINDOW_DURATION_SECONDS - elapsedSinceRecentSeconds) : 0;
+        const minsLeftInWindow = Math.floor(secondsLeftInWindow / 60);
+        const percentLeft = Math.max(0, Math.min(100, Math.round((secondsLeftInWindow / WINDOW_DURATION_SECONDS) * 100)));
+
+        const windowEndMins = (mostRecent.minsOfDay + WINDOW_DURATION_MINS) % 1440;
+        const windowEndDisplay = formatMinsToDisplayTime(windowEndMins);
 
         return {
           account: accNum,
           name: accName,
           mostRecent,
           nextPing,
-          elapsedSinceRecent,
+          windowEndDisplay,
+          elapsedSinceRecentSeconds,
+          secondsLeftInWindow,
           minsLeftInWindow,
-          minsUntilNext,
+          secondsUntilNext,
+          minsUntilNext: Math.floor(secondsUntilNext / 60),
           percentLeft,
           isActive
         };
@@ -1404,57 +1450,33 @@ export function renderDashboardHTML() {
       let isStandby = false;
 
       if (acc1.isActive && acc2.isActive) {
+        const soonest = (acc1.secondsLeftInWindow <= acc2.secondsLeftInWindow) ? acc1 : acc2;
+        const longest = (acc1.secondsLeftInWindow >= acc2.secondsLeftInWindow) ? acc1 : acc2;
+
         if (currentTaskMode === 'quick') {
-          if (acc2.minsLeftInWindow > 0 && acc2.minsLeftInWindow <= 90 && acc1.minsLeftInWindow > 90) {
-            recommendedAcc = 2;
-            reason = 'pcgpt resets in ' + formatHoursMins(acc2.minsLeftInWindow) + '. Best for quick questions before its limit resets.';
-          } else if (acc1.minsLeftInWindow > 0 && acc1.minsLeftInWindow <= 90 && acc2.minsLeftInWindow > 90) {
-            recommendedAcc = 1;
-            reason = 'shlokshah412 resets in ' + formatHoursMins(acc1.minsLeftInWindow) + '. Best for quick questions before its limit resets.';
-          } else if (acc1.minsLeftInWindow <= acc2.minsLeftInWindow) {
-            recommendedAcc = 1;
-            reason = 'shlokshah412 resets soonest (' + formatHoursMins(acc1.minsLeftInWindow) + ' left). Ideal for quick queries.';
-          } else {
-            recommendedAcc = 2;
-            reason = 'pcgpt resets soonest (' + formatHoursMins(acc2.minsLeftInWindow) + ' left). Ideal for quick queries.';
-          }
+          recommendedAcc = soonest.account;
+          reason = soonest.name + ' resets sooner (' + formatHoursMinsSeconds(soonest.secondsLeftInWindow) + ' left vs ' + formatHoursMinsSeconds(longest.secondsLeftInWindow) + ' on ' + longest.name + ').';
         } else {
-          if (acc1.minsLeftInWindow >= acc2.minsLeftInWindow) {
-            recommendedAcc = 1;
-            reason = 'shlokshah412 has the freshest limit (' + formatHoursMins(acc1.minsLeftInWindow) + ' left vs ' + formatHoursMins(acc2.minsLeftInWindow) + ' on pcgpt).';
-          } else {
-            recommendedAcc = 2;
-            reason = 'pcgpt has the freshest limit (' + formatHoursMins(acc2.minsLeftInWindow) + ' left vs ' + formatHoursMins(acc1.minsLeftInWindow) + ' on shlokshah412).';
-          }
+          recommendedAcc = longest.account;
+          reason = longest.name + ' has more time left (' + formatHoursMinsSeconds(longest.secondsLeftInWindow) + ' vs ' + formatHoursMinsSeconds(soonest.secondsLeftInWindow) + ' on ' + soonest.name + ').';
         }
       } else if (acc1.isActive && !acc2.isActive) {
         recommendedAcc = 1;
-        reason = 'shlokshah412 is active (' + formatHoursMins(acc1.minsLeftInWindow) + ' remaining). pcgpt is currently in standby.';
+        reason = 'shlokshah412 is active (' + formatHoursMinsSeconds(acc1.secondsLeftInWindow) + ' left until ' + acc1.windowEndDisplay + '). pcgpt is in standby until ' + acc2.nextPing.display + '.';
       } else if (!acc1.isActive && acc2.isActive) {
         recommendedAcc = 2;
-        reason = 'pcgpt is active (' + formatHoursMins(acc2.minsLeftInWindow) + ' remaining). shlokshah412 is currently in standby.';
+        reason = 'pcgpt is active (' + formatHoursMinsSeconds(acc2.secondsLeftInWindow) + ' left until ' + acc2.windowEndDisplay + '). shlokshah412 is in standby until ' + acc1.nextPing.display + '.';
       } else {
         isStandby = true;
-        recommendedAcc = (acc1.minsUntilNext <= acc2.minsUntilNext) ? 1 : 2;
+        recommendedAcc = (acc1.secondsUntilNext <= acc2.secondsUntilNext) ? 1 : 2;
         const nextTargetName = (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt');
         const nextTargetTime = (recommendedAcc === 1 ? acc1.nextPing.display : acc2.nextPing.display);
-        const nextTargetDiff = (recommendedAcc === 1 ? acc1.minsUntilNext : acc2.minsUntilNext);
-        reason = 'Both accounts in standby. Next 5-hour limit window opens with ' + nextTargetName + ' at ' + nextTargetTime + ' (in ' + formatHoursMins(nextTargetDiff) + ').';
+        const nextTargetDiff = (recommendedAcc === 1 ? acc1.secondsUntilNext : acc2.secondsUntilNext);
+        reason = 'Both accounts in standby. Next window opens on ' + nextTargetName + ' at ' + nextTargetTime + ' (in ' + formatHoursMinsSeconds(nextTargetDiff) + ').';
       }
 
       recommendedTargetAccount = recommendedAcc;
       return { nowIST, currentMinsOfDay, acc1, acc2, recommendedAcc, reason, isStandby };
-    }
-
-    function formatHoursMins(totalMins) {
-      const h = Math.floor(totalMins / 60);
-      const m = Math.floor(totalMins % 60);
-      if (h === 0) return m + 'm';
-      return h + 'h ' + m + 'm';
-    }
-
-    function formatTimeDisplay(date) {
-      return date.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
     function updateUI() {
@@ -1466,15 +1488,16 @@ export function renderDashboardHTML() {
       const recBadge = document.getElementById('recBadge');
       const heroCta = document.getElementById('heroCta');
       
-      const nextPingOverall = (data.acc1.minsUntilNext < data.acc2.minsUntilNext) ? data.acc1 : data.acc2;
+      const nextPingOverall = (data.acc1.secondsUntilNext < data.acc2.secondsUntilNext) ? data.acc1 : data.acc2;
 
       if (data.isStandby) {
         recBadge.className = 'rec-badge standby-badge';
-        document.getElementById('recBadgeText').innerText = 'STANDBY: NEXT IN ' + formatHoursMins(nextPingOverall.minsUntilNext).toUpperCase();
+        document.getElementById('recBadgeText').innerText = 'STANDBY: NEXT IN ' + formatHoursMinsSeconds(nextPingOverall.secondsUntilNext).toUpperCase();
         document.getElementById('heroTitle').innerText = 'System Standby';
         document.getElementById('heroReason').innerText = data.reason;
         heroCta.className = 'launch-cta ' + (isAcc1 ? '' : 'pcgpt-cta');
         document.getElementById('heroCtaText').innerText = 'Open Claude (' + (isAcc1 ? 'shlokshah412' : 'pcgpt') + ')';
+        document.getElementById('recNextReset').innerText = 'Next ping in ' + formatHoursMinsSeconds(nextPingOverall.secondsUntilNext);
       } else {
         recBadge.className = 'rec-badge ' + (isAcc1 ? '' : 'pcgpt-badge');
         document.getElementById('recBadgeText').innerText = isAcc1 ? 'OPTIMAL: SHLOKSHAH412' : 'OPTIMAL: PCGPT';
@@ -1482,16 +1505,18 @@ export function renderDashboardHTML() {
         document.getElementById('heroReason').innerText = data.reason;
         heroCta.className = 'launch-cta ' + (isAcc1 ? '' : 'pcgpt-cta');
         document.getElementById('heroCtaText').innerText = 'Open Claude as ' + (isAcc1 ? 'shlokshah412' : 'pcgpt');
+        
+        const activeAccs = [data.acc1, data.acc2].filter(a => a.isActive);
+        const soonest = activeAccs.reduce((min, a) => a.secondsLeftInWindow < min.secondsLeftInWindow ? a : min, activeAccs[0]);
+        document.getElementById('recNextReset').innerText = 'Limit reset in ' + formatHoursMinsSeconds(soonest.secondsLeftInWindow);
       }
-
-      document.getElementById('recNextReset').innerText = 'Next reset in ' + formatHoursMins(nextPingOverall.minsUntilNext);
 
       const fullCircumference = 213.6;
       
       // Update shlokshah412
       document.getElementById('acc1Circle').style.strokeDashoffset = fullCircumference * (1 - data.acc1.percentLeft / 100);
-      document.getElementById('acc1TimeRemaining').innerText = data.acc1.isActive ? (formatHoursMins(data.acc1.minsLeftInWindow) + ' Left') : 'Standby';
-      document.getElementById('acc1NextPing').innerText = data.acc1.isActive ? ('Resets at ' + data.acc1.nextPing.display) : ('Next: ' + data.acc1.nextPing.display);
+      document.getElementById('acc1TimeRemaining').innerText = data.acc1.isActive ? (formatHoursMinsSeconds(data.acc1.secondsLeftInWindow) + ' Left') : 'Standby';
+      document.getElementById('acc1NextPing').innerText = data.acc1.isActive ? ('Resets at ' + data.acc1.windowEndDisplay + ' • Next: ' + data.acc1.nextPing.display) : ('Next: ' + data.acc1.nextPing.display);
 
       const acc1StatusTag = document.getElementById('acc1StatusTag');
       if (data.acc1.isActive) {
@@ -1504,8 +1529,8 @@ export function renderDashboardHTML() {
 
       // Update pcgpt
       document.getElementById('acc2Circle').style.strokeDashoffset = fullCircumference * (1 - data.acc2.percentLeft / 100);
-      document.getElementById('acc2TimeRemaining').innerText = data.acc2.isActive ? (formatHoursMins(data.acc2.minsLeftInWindow) + ' Left') : 'Standby';
-      document.getElementById('acc2NextPing').innerText = data.acc2.isActive ? ('Resets at ' + data.acc2.nextPing.display) : ('Next: ' + data.acc2.nextPing.display);
+      document.getElementById('acc2TimeRemaining').innerText = data.acc2.isActive ? (formatHoursMinsSeconds(data.acc2.secondsLeftInWindow) + ' Left') : 'Standby';
+      document.getElementById('acc2NextPing').innerText = data.acc2.isActive ? ('Resets at ' + data.acc2.windowEndDisplay + ' • Next: ' + data.acc2.nextPing.display) : ('Next: ' + data.acc2.nextPing.display);
 
       const acc2StatusTag = document.getElementById('acc2StatusTag');
       if (data.acc2.isActive) {
@@ -1525,22 +1550,29 @@ export function renderDashboardHTML() {
         document.getElementById('bubbleAccPill').className = 'inspect-acc-pill now';
         document.getElementById('bubbleAccPill').innerText = 'LIVE NOW';
         document.getElementById('bubbleTime').innerText = formatTimeDisplay(data.nowIST);
-        document.getElementById('bubbleDiff').innerText = 'Next: ' + nextPingOverall.name + ' in ' + formatHoursMins(nextPingOverall.minsUntilNext);
+        document.getElementById('bubbleDiff').innerText = 'Next: ' + nextPingOverall.name + ' in ' + formatHoursMinsSeconds(nextPingOverall.secondsUntilNext);
       }
     }
 
     function inspectScheduleItem(item) {
       selectedScheduleItem = item;
       const nowIST = getNowIST();
-      const currentMinsOfDay = nowIST.getHours() * 60 + nowIST.getMinutes() + (nowIST.getSeconds() / 60);
+      const currentSecondsOfDay = nowIST.getHours() * 3600 + nowIST.getMinutes() * 60 + nowIST.getSeconds();
+      const pingSeconds = item.hour * 3600 + item.min * 60;
       
-      let diff = item.minsOfDay - currentMinsOfDay;
+      let diffSeconds = pingSeconds - currentSecondsOfDay;
       let diffText = '';
-      if (diff > 0) {
-        diffText = 'in ' + formatHoursMins(diff);
-      } else if (diff < 0) {
-        let passed = currentMinsOfDay - item.minsOfDay;
-        diffText = formatHoursMins(passed) + ' ago';
+      if (diffSeconds > 0) {
+        diffText = 'in ' + formatHoursMinsSeconds(diffSeconds);
+      } else if (diffSeconds < 0) {
+        // Could have wrapped to previous day — show elapsed since today's occurrence
+        let passed = currentSecondsOfDay - pingSeconds;
+        if (passed > 86400 / 2) {
+          // Ping is actually tomorrow; show time until
+          diffText = 'in ' + formatHoursMinsSeconds(diffSeconds + 86400);
+        } else {
+          diffText = formatHoursMinsSeconds(passed) + ' ago';
+        }
       } else {
         diffText = 'Right now';
       }
@@ -1673,17 +1705,16 @@ export function renderDashboardHTML() {
         row.onmouseleave = () => {
           if (!pinnedItem) inspectNow();
         };
-        row.innerHTML = `
-          <div class="schedule-left">
-            <div class="schedule-acc-dot ${item.account === 1 ? 'acc1' : 'acc2'}"></div>
-            <span class="schedule-time">${item.display}</span>
-            <span class="schedule-name-tag ${item.account === 1 ? 'acc1-name' : 'acc2-name'}">${item.name}</span>
-          </div>
-          <div class="schedule-right">
-            <span class="safe-buffer-badge">+2m</span>
-            <span>${item.tag}</span>
-          </div>
-        `;
+        row.innerHTML =
+          '<div class="schedule-left">' +
+            '<div class="schedule-acc-dot ' + (item.account === 1 ? 'acc1' : 'acc2') + '"></div>' +
+            '<span class="schedule-time">' + item.display + '</span>' +
+            '<span class="schedule-name-tag ' + (item.account === 1 ? 'acc1-name' : 'acc2-name') + '">' + item.name + '</span>' +
+          '</div>' +
+          '<div class="schedule-right">' +
+            '<span class="safe-buffer-badge">+2m</span>' +
+            '<span>' + item.tag + '</span>' +
+          '</div>';
         list.appendChild(row);
       });
     }
