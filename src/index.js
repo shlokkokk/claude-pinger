@@ -1,35 +1,86 @@
 import { renderDashboardHTML } from './dashboard.js';
 
+export function getAccountCredentials(env, accountNum) {
+  const num = parseInt(accountNum, 10);
+  if (isNaN(num) || num < 1) return null;
+
+  const key = (num === 1) 
+    ? (env.CLAUDE_SESSION_KEY || env.CLAUDE_SESSION_KEY_1) 
+    : env[`CLAUDE_SESSION_KEY_${num}`];
+
+  if (!key) return null;
+
+  const defaultNames = { 1: 'Account 1', 2: 'Account 2' };
+  const defaultColors = {
+    1: '#00f2fe',
+    2: '#c084fc',
+    3: '#10b981',
+    4: '#f59e0b',
+    5: '#ec4899',
+    6: '#38bdf8'
+  };
+
+  const name = env[`CLAUDE_ACCOUNT_NAME_${num}`] || defaultNames[num] || `Account ${num}`;
+  const themeColor = env[`CLAUDE_ACCOUNT_COLOR_${num}`] || defaultColors[num] || '#10b981';
+  const chatUrl = (num === 1) ? (env.CLAUDE_CHAT_URL_1 || env.CLAUDE_CHAT_URL) : env[`CLAUDE_CHAT_URL_${num}`];
+
+  return { id: num, name, key, themeColor, chatUrl: chatUrl || null };
+}
+
+export function getAllAccounts(env) {
+  const accounts = [];
+  let consecutiveMisses = 0;
+
+  for (let i = 1; i <= 20; i++) {
+    const acc = getAccountCredentials(env, i);
+    if (acc) {
+      accounts.push(acc);
+      consecutiveMisses = 0;
+    } else {
+      consecutiveMisses++;
+      if (consecutiveMisses >= 3 && i >= 2) break;
+    }
+  }
+  return accounts;
+}
+
 export default {
   async scheduled(event, env, ctx) {
     const cron = event.cron;
     const utcHour = new Date().getUTCHours();
     console.log(`Cron triggered: ${cron} at UTC hour ${utcHour}`);
 
-    let targetAccount = null;
+    const accounts = getAllAccounts(env);
+    if (accounts.length === 0) {
+      console.warn('Scheduled cron triggered but no accounts are configured in env.');
+      return;
+    }
 
+    let targetCohort = 1;
     if (cron === '58 4 * * *') {
-      // 10:28 AM IST -> Account 1
-      targetAccount = 1;
+      targetCohort = 1;
     } else if (cron === '6 17 * * *') {
-      // 10:36 PM IST -> Account 2
-      targetAccount = 2;
+      targetCohort = 2;
     } else if (cron === '0 2,10 * * *') {
-      // 07:30 AM IST (UTC 2) -> Account 2 | 03:30 PM IST (UTC 10) -> Account 1
-      targetAccount = (utcHour < 6) ? 2 : 1;
+      targetCohort = (utcHour < 6) ? 2 : 1;
     } else if (cron === '2 7,15 * * *') {
-      // 12:32 PM IST (UTC 7) -> Account 2 | 08:32 PM IST (UTC 15) -> Account 1
-      targetAccount = (utcHour < 11) ? 2 : 1;
+      targetCohort = (utcHour < 11) ? 2 : 1;
     } else if (cron === '4 12,20 * * *') {
-      // 05:34 PM IST (UTC 12) -> Account 2 | 01:34 AM IST (UTC 20) -> Account 1
-      targetAccount = (utcHour < 16) ? 2 : 1;
+      targetCohort = (utcHour < 16) ? 2 : 1;
     }
 
-    if (targetAccount === 1 || targetAccount === 2) {
-      ctx.waitUntil(pingSpecificAccount(env, targetAccount));
+    let cohortA, cohortB;
+    if (accounts.length <= 1) {
+      cohortA = accounts;
+      cohortB = accounts;
     } else {
-      ctx.waitUntil(pingAllClaudeAccounts(env));
+      const mid = Math.floor(accounts.length / 2);
+      cohortA = accounts.slice(0, mid);
+      cohortB = accounts.slice(mid);
     }
+
+    const accountsToPing = (targetCohort === 1) ? cohortA : cohortB;
+    ctx.waitUntil(pingAccountsList(env, accountsToPing));
   },
 
   async fetch(request, env) {
@@ -37,7 +88,6 @@ export default {
     const pathname = url.pathname;
     const accountParam = url.searchParams.get('account');
 
-    // Serve PWA Manifest
     if (pathname === '/manifest.json') {
       const manifest = {
         name: "Claude Pulse",
@@ -59,11 +109,21 @@ export default {
       });
     }
 
-    // Diagnostic & Health API Endpoint (/api/health)
     if (pathname === '/api/health') {
       const now = new Date();
-      const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const istDate = new Date(utcMs + (5.5 * 3600000));
+      const istDate = new Date(now.getTime() + (5.5 * 3600000));
+      const accounts = getAllAccounts(env);
+
+      const accountsDiagnostic = {};
+      accounts.forEach(acc => {
+        accountsDiagnostic[acc.name] = {
+          id: acc.id,
+          configured: true,
+          themeColor: acc.themeColor,
+          sessionKeyLength: acc.key.length,
+          hasDirectUrlHint: !!acc.chatUrl
+        };
+      });
 
       const diagnostics = {
         status: 'healthy',
@@ -73,19 +133,12 @@ export default {
         },
         worker: {
           online: true,
-          region: request.cf?.colo || 'Local / Dev'
+          region: request.cf?.colo || 'Local / Dev',
+          totalAccounts: accounts.length
         },
+        accounts: accounts.map(a => ({ id: a.id, name: a.name, themeColor: a.themeColor })),
         credentials: {
-          shlokshah412: {
-            configured: !!(env.CLAUDE_SESSION_KEY && env.CLAUDE_CHAT_URL_1),
-            sessionKeyConfigured: !!env.CLAUDE_SESSION_KEY,
-            chatUrlConfigured: !!env.CLAUDE_CHAT_URL_1
-          },
-          pcgpt: {
-            configured: !!(env.CLAUDE_SESSION_KEY_2 && env.CLAUDE_CHAT_URL_2),
-            sessionKeyConfigured: !!env.CLAUDE_SESSION_KEY_2,
-            chatUrlConfigured: !!env.CLAUDE_CHAT_URL_2
-          },
+          ...accountsDiagnostic,
           browserlessApiKey: !!(env.BROWSERLESS_TOKEN || env.BROWSERLESS_API_KEY)
         },
         browserless: {
@@ -96,7 +149,6 @@ export default {
 
       const bToken = env.BROWSERLESS_TOKEN || env.BROWSERLESS_API_KEY;
 
-      // Test Browserless connection without launching full browser or touching Claude
       if (bToken) {
         try {
           const bRes = await fetch(`https://production-sfo.browserless.io/version?token=${bToken}`, {
@@ -111,7 +163,7 @@ export default {
             diagnostics.browserless.status = 'connected';
             diagnostics.browserless.message = 'Token Authenticated';
           }
-        } catch (err) {
+        } catch {
           diagnostics.browserless.status = 'connected';
           diagnostics.browserless.message = 'Token Configured';
         }
@@ -130,13 +182,11 @@ export default {
       });
     }
 
-    // Ping API Endpoint (GET/POST /api/ping or /ping)
-    if (pathname.startsWith('/api/ping') || pathname === '/ping') {
+    if (pathname.startsWith('/api/ping') || pathname === '/ping' || request.method === 'POST') {
       let results;
-      if (accountParam === '1') {
-        results = await pingSpecificAccount(env, 1);
-      } else if (accountParam === '2') {
-        results = await pingSpecificAccount(env, 2);
+      if (accountParam) {
+        const accNum = parseInt(accountParam, 10);
+        results = await pingSpecificAccount(env, accNum);
       } else {
         results = await pingAllClaudeAccounts(env);
       }
@@ -149,40 +199,7 @@ export default {
       });
     }
 
-    // Legacy POST to root /
-    if (request.method === 'POST') {
-      let results;
-      if (accountParam === '1') {
-        results = await pingSpecificAccount(env, 1);
-      } else if (accountParam === '2') {
-        results = await pingSpecificAccount(env, 2);
-      } else {
-        results = await pingAllClaudeAccounts(env);
-      }
-      return new Response(JSON.stringify({ message: 'Ping finished!', results }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-      });
-    }
-
-    // Serve Dashboard Web App on GET /
     if (request.method === 'GET') {
-      // If user passed ?account=1 directly via GET, maintain backward compatibility
-      if (accountParam) {
-        let results;
-        if (accountParam === '1') {
-          results = await pingSpecificAccount(env, 1);
-        } else if (accountParam === '2') {
-          results = await pingSpecificAccount(env, 2);
-        } else {
-          results = await pingAllClaudeAccounts(env);
-        }
-        return new Response(JSON.stringify({ message: 'Ping finished!', results }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-        });
-      }
-
       const html = renderDashboardHTML();
       return new Response(html, {
         status: 200,
@@ -198,70 +215,50 @@ export default {
 };
 
 async function pingSpecificAccount(env, accountNum) {
-  let acc = null;
-  if (accountNum === 1 && env.CLAUDE_SESSION_KEY) {
-    acc = { 
-      name: 'shlokshah412', 
-      key: env.CLAUDE_SESSION_KEY, 
-      chatUrl: env.CLAUDE_CHAT_URL_1 
-    };
-  } else if (accountNum === 2 && env.CLAUDE_SESSION_KEY_2) {
-    acc = { 
-      name: 'pcgpt', 
-      key: env.CLAUDE_SESSION_KEY_2, 
-      chatUrl: env.CLAUDE_CHAT_URL_2 
-    };
-  }
+  const acc = getAccountCredentials(env, accountNum);
 
   if (!acc) {
     console.error(`Account ${accountNum} credentials not found in env.`);
     return [{ success: false, error: `Account ${accountNum} credentials not found.` }];
   }
 
-  console.log(`Pinging specific account: ${acc.name}...`);
+  console.log(`Pinging ${acc.name}...`);
   const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl);
   return [{ account: acc.name, result: res }];
 }
 
-async function pingAllClaudeAccounts(env) {
-  const accounts = [];
-  if (env.CLAUDE_SESSION_KEY) {
-    accounts.push({ 
-      name: 'shlokshah412', 
-      key: env.CLAUDE_SESSION_KEY, 
-      chatUrl: env.CLAUDE_CHAT_URL_1 
-    });
-  }
-  if (env.CLAUDE_SESSION_KEY_2) {
-    accounts.push({ 
-      name: 'pcgpt', 
-      key: env.CLAUDE_SESSION_KEY_2, 
-      chatUrl: env.CLAUDE_CHAT_URL_2 
-    });
-  }
-
-  for (let i = 3; env[`CLAUDE_SESSION_KEY_${i}`]; i++) {
-    accounts.push({ 
-      name: `Account ${i}`, 
-      key: env[`CLAUDE_SESSION_KEY_${i}`], 
-      chatUrl: env[`CLAUDE_CHAT_URL_${i}`] 
-    });
-  }
-
-  if (accounts.length === 0) {
-    return [{ success: false, error: 'No CLAUDE_SESSION_KEY secrets found.' }];
+async function pingAccountsList(env, accounts) {
+  if (!accounts || accounts.length === 0) {
+    return [{ success: false, error: 'No accounts provided to ping.' }];
   }
 
   const results = [];
   for (const acc of accounts) {
     console.log(`Pinging ${acc.name}...`);
-    const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl);
-    results.push({ account: acc.name, result: res });
+    try {
+      const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl);
+      results.push({ account: acc.name, result: res });
+    } catch (err) {
+      results.push({ account: acc.name, result: { success: false, error: err.message } });
+    }
+    if (accounts.length > 1) {
+      await new Promise(r => setTimeout(r, 2500));
+    }
   }
   return results;
 }
 
-async function pingClaudeAccount(env, accountName, sessionKey, chatUrl) {
+async function pingAllClaudeAccounts(env) {
+  const accounts = getAllAccounts(env);
+
+  if (accounts.length === 0) {
+    return [{ success: false, error: 'No CLAUDE_SESSION_KEY secrets found.' }];
+  }
+
+  return pingAccountsList(env, accounts);
+}
+
+async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
   const TOKEN = env && env.BROWSERLESS_TOKEN;
   if (!TOKEN) {
     return { success: false, error: 'BROWSERLESS_TOKEN secret is not set.' };
@@ -270,7 +267,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrl) {
   const browserlessCode = `
     export default async ({ page, browser }) => {
       const sessionKey = ${JSON.stringify(sessionKey)};
-      const directChatUrl = ${JSON.stringify(chatUrl || null)};
+      const directChatUrlHint = ${JSON.stringify(chatUrlHint || null)};
       const p = page || (browser ? await browser.newPage() : null);
       if (!p) {
         throw new Error('No browser page available');
@@ -298,65 +295,173 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrl) {
         });
       }
 
+      let targetChatUrl = null;
+      let cleanedUpSpamCount = 0;
+      let threadDiscoveryMethod = 'none';
       let pageTitle = '';
-      let pageSnippet = '';
       let accountSnippet = '';
       let stepError = null;
       let actionExecuted = false;
 
       try {
-        if (directChatUrl) {
-          await p.goto(directChatUrl, { waitUntil: 'domcontentloaded' });
-          await new Promise(resolve => setTimeout(resolve, 3000));
-        } else {
-          await p.goto('https://claude.ai/recents', { waitUntil: 'domcontentloaded' });
-          await new Promise(resolve => setTimeout(resolve, 4000));
+        await p.goto('https://claude.ai/', { waitUntil: 'domcontentloaded', timeout: 25000 });
+        await new Promise(r => setTimeout(r, 3500));
+      } catch (navErr) {
+        console.warn('Initial root load warning:', navErr.message);
+      }
 
-          const existingChatUrl = await p.evaluate(() => {
-            const candidates = Array.from(document.querySelectorAll('a[href*="/chat/"]'));
-            const pingerLink = candidates.find(el => {
-              const text = el.innerText ? el.innerText.toLowerCase().trim() : '';
-              return /\b(ping|pinger|keepalive|greeting)\b/i.test(text);
+      try {
+        const discoveryResult = await p.evaluate(async () => {
+          let discoveredUrl = null;
+          let deletedCount = 0;
+          let orgId = null;
+
+          try {
+            const orgsRes = await fetch('/api/organizations', {
+              headers: { 'Accept': 'application/json' },
+              credentials: 'include'
             });
-            return pingerLink ? pingerLink.href : null;
-          });
 
-          if (existingChatUrl) {
-            await p.goto(existingChatUrl, { waitUntil: 'domcontentloaded' });
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            if (orgsRes.ok) {
+              const orgs = await orgsRes.json();
+              if (Array.isArray(orgs) && orgs.length > 0) {
+                orgId = orgs[0].uuid;
+
+                const convRes = await fetch('/api/organizations/' + orgId + '/chat_conversations', {
+                  headers: { 'Accept': 'application/json' },
+                  credentials: 'include'
+                });
+
+                if (convRes.ok) {
+                  const conversations = await convRes.json();
+                  if (Array.isArray(conversations) && conversations.length > 0) {
+                    const pingChats = conversations.filter(c => {
+                      const name = (c.name || '').toLowerCase().trim();
+                      return /\\b(ping|pinger|keepalive|greeting)\\b/i.test(name) || name === 'untitled';
+                    });
+
+                    if (pingChats.length > 0) {
+                      pingChats.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+                      const activePingChat = pingChats[0];
+                      discoveredUrl = 'https://claude.ai/chat/' + activePingChat.uuid;
+
+                      const duplicatesToDelete = pingChats.slice(1, 6);
+                      for (const dup of duplicatesToDelete) {
+                        try {
+                          await fetch('/api/organizations/' + orgId + '/chat_conversations/' + dup.uuid, {
+                            method: 'DELETE',
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'include'
+                          });
+                          deletedCount++;
+                        } catch (delErr) {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } catch (apiErr) {
+            console.warn('Internal API discovery error:', apiErr.message);
           }
+
+          if (!discoveredUrl) {
+            const sidebarLinks = Array.from(document.querySelectorAll('a[href*="/chat/"]'));
+            const pingLink = sidebarLinks.find(el => {
+              const text = (el.innerText || '').toLowerCase().trim();
+              return /\\b(ping|pinger|keepalive)\\b/i.test(text);
+            });
+            if (pingLink && pingLink.href) {
+              discoveredUrl = pingLink.href;
+            }
+          }
+
+          return {
+            url: discoveredUrl,
+            deletedCount: deletedCount,
+            method: discoveredUrl ? (orgId ? 'internal_api' : 'dom_sidebar') : 'none'
+          };
+        });
+
+        if (discoveryResult && discoveryResult.url) {
+          targetChatUrl = discoveryResult.url;
+          cleanedUpSpamCount = discoveryResult.deletedCount || 0;
+          threadDiscoveryMethod = discoveryResult.method || 'detected';
         }
+      } catch (discErr) {
+        console.warn('Thread discovery exception:', discErr.message);
+      }
 
-        pageTitle = await p.title();
+      const destination = targetChatUrl || 'https://claude.ai/new';
+      try {
+        await p.goto(destination, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        await new Promise(r => setTimeout(r, 3000));
+      } catch (navErr) {
+        console.warn('Navigation warning to ' + destination + ':', navErr.message);
+      }
 
-        // Extract account profile name
-        try {
-          accountSnippet = await p.evaluate(() => {
-            const btn = document.querySelector('button[aria-haspopup="menu"]');
-            return btn ? btn.innerText : '';
-          });
-        } catch (e) {}
+      pageTitle = await p.title();
+      const currentLoc = p.url();
 
-        const inputSelector = 'div[contenteditable="true"], div[role="textbox"], textarea, p[data-placeholder], .ProseMirror';
+      if (currentLoc.includes('/login') || pageTitle.includes('Sign in') || pageTitle.includes('Log in')) {
+        return {
+          success: false,
+          url: currentLoc,
+          pageTitle,
+          accountSnippet: '',
+          actionExecuted: false,
+          threadDiscoveryMethod: 'none',
+          cleanedUpSpamCount: 0,
+          stepError: 'Session key expired or revoked. Please update your session key in Cloudflare secrets.'
+        };
+      }
+
+      try {
+        accountSnippet = await p.evaluate(() => {
+          const btn = document.querySelector('button[aria-haspopup="menu"]');
+          return btn ? btn.innerText.trim() : '';
+        });
+      } catch (e) {}
+
+      const inputSelector = 'div[contenteditable="true"], div[role="textbox"], textarea, p[data-placeholder], .ProseMirror, [data-testid="chat-input"]';
+      let hasInput = false;
+
+      try {
+        await p.waitForSelector(inputSelector, { timeout: 8000 });
         
-        let hasInput = false;
+        const isExhausted = await p.evaluate(() => {
+          const bodyText = document.body ? document.body.innerText.toLowerCase() : '';
+          return bodyText.includes('conversation has grown too long') || 
+                 bodyText.includes('conversation is too long') ||
+                 bodyText.includes('message limit reached for this chat');
+        });
+
+        if (isExhausted) {
+          hasInput = false;
+        } else {
+          hasInput = true;
+        }
+      } catch (waitErr) {
+        hasInput = false;
+      }
+
+      if (!hasInput) {
         try {
-          await p.waitForSelector(inputSelector, { timeout: 8000 });
+          await p.goto('https://claude.ai/new', { waitUntil: 'domcontentloaded', timeout: 20000 });
+          await p.waitForSelector(inputSelector, { timeout: 12000 });
           hasInput = true;
         } catch (e) {
-          // If chat URL was deleted or invalid, fallback to /new page
-          await p.goto('https://claude.ai/new', { waitUntil: 'domcontentloaded' });
-          await p.waitForSelector(inputSelector, { timeout: 10000 });
-          hasInput = true;
+          stepError = 'Could not locate active chat input box on /new: ' + e.message;
         }
+      }
 
-        if (hasInput) {
+      if (hasInput) {
+        try {
           await p.click(inputSelector);
           await p.focus(inputSelector);
           
-          // Ultra-lightweight prompt (Claude responds with 1 character '.')
           await p.keyboard.type('ping. Reply with "." only.');
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(r => setTimeout(r, 400));
           
           await p.keyboard.press('Enter');
           
@@ -368,24 +473,20 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrl) {
           } catch (btnErr) {}
 
           actionExecuted = true;
+          await new Promise(r => setTimeout(r, 3500));
+        } catch (typeErr) {
+          stepError = 'Failed typing or submitting ping: ' + typeErr.message;
         }
-
-        // Wait 4 seconds for Claude API to start generating response so chat is saved to history
-        await new Promise(resolve => setTimeout(resolve, 4000));
-      } catch (err) {
-        stepError = err.message;
-        try {
-          pageSnippet = await p.evaluate(() => document.body ? document.body.innerText.slice(0, 300) : 'no body');
-        } catch (e) {}
       }
 
       return { 
-        success: true, 
+        success: actionExecuted, 
         url: p.url(),
         pageTitle,
         accountSnippet,
-        pageSnippet,
         actionExecuted,
+        threadDiscoveryMethod,
+        cleanedUpSpamCount,
         stepError
       };
     };
