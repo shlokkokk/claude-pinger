@@ -246,11 +246,6 @@ export function renderDashboardHTML() {
       flex-shrink: 0;
     }
 
-    .rec-badge.pcgpt-badge {
-      background: rgba(192, 132, 252, 0.1);
-      color: var(--acc2-purple);
-      border: 1px solid rgba(192, 132, 252, 0.25);
-    }
 
     .rec-next-reset-text {
       font-family: var(--font-mono);
@@ -292,12 +287,6 @@ export function renderDashboardHTML() {
       cursor: pointer;
       text-decoration: none;
       transition: all 0.15s ease;
-    }
-
-    .launch-cta.pcgpt-cta {
-      background: linear-gradient(135deg, rgba(192, 132, 252, 0.14) 0%, rgba(168, 85, 247, 0.06) 100%);
-      border: 1px solid rgba(192, 132, 252, 0.35);
-      color: #ffffff;
     }
 
     .launch-cta:active {
@@ -1023,7 +1012,7 @@ export function renderDashboardHTML() {
         </div>
         <div class="brand-text">
           <h1>Claude Pulse</h1>
-          <p>shlokshah412 &bull; pcgpt</p>
+          <p id="headerSub">Autopilot Active</p>
         </div>
       </div>
       <div class="header-right">
@@ -1070,97 +1059,13 @@ export function renderDashboardHTML() {
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
         </svg>
-        <span id="heroCtaText">Open Claude as pcgpt</span>
+        <span id="heroCtaText">Open Claude</span>
       </button>
     </section>
 
-    <!-- DUAL ACCOUNT TELEMETRY GAUGES (SIDE-BY-SIDE ON ALL SCREENS) -->
-    <section class="accounts-grid">
-      
-      <!-- ACCOUNT 1: SHLOKSHAH412 -->
-      <div class="account-card acc1-theme">
-        <div class="card-head">
-          <span class="acc-tag">shlokshah412</span>
-          <span class="acc-status-tag" id="acc1StatusTag">ACTIVE</span>
-        </div>
-
-        <div class="ring-wrapper">
-          <div class="progress-circle">
-            <svg viewBox="0 0 80 80">
-              <circle class="progress-bg" cx="40" cy="40" r="34"></circle>
-              <circle class="progress-bar-acc1" id="acc1Circle" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
-            </svg>
-            <div class="ring-center-icon">
-              <!-- User Profile Persona Icon for Account 1 -->
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-              </svg>
-            </div>
-          </div>
-          <div class="ring-meta">
-            <div class="ring-meta-val" id="acc1TimeRemaining">--h --m Left</div>
-            <div class="ring-meta-sub" id="acc1NextPing">Next: --</div>
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <button class="btn-secondary" onclick="openLaunchDialog(1)">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
-            Launch
-          </button>
-          <button class="btn-secondary" onclick="confirmAndPing(1, 'shlokshah412')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.828a5 5 0 010-7.072m7.072 0a5 5 0 010 7.072M12 12h.01"/>
-            </svg>
-            Ping
-          </button>
-        </div>
-      </div>
-
-      <!-- ACCOUNT 2: PCGPT -->
-      <div class="account-card acc2-theme">
-        <div class="card-head">
-          <span class="acc-tag">pcgpt</span>
-          <span class="acc-status-tag" id="acc2StatusTag">ACTIVE</span>
-        </div>
-
-        <div class="ring-wrapper">
-          <div class="progress-circle">
-            <svg viewBox="0 0 80 80">
-              <circle class="progress-bg" cx="40" cy="40" r="34"></circle>
-              <circle class="progress-bar-acc2" id="acc2Circle" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
-            </svg>
-            <div class="ring-center-icon">
-              <!-- Terminal Display Icon for Account 2 -->
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-              </svg>
-            </div>
-          </div>
-          <div class="ring-meta">
-            <div class="ring-meta-val" id="acc2TimeRemaining">--h --m Left</div>
-            <div class="ring-meta-sub" id="acc2NextPing">Next: --</div>
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <button class="btn-secondary" onclick="openLaunchDialog(2)">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
-            Launch
-          </button>
-          <button class="btn-secondary" onclick="confirmAndPing(2, 'pcgpt')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-            </svg>
-            Ping
-          </button>
-        </div>
-      </div>
-
+    <!-- DYNAMIC N-ACCOUNT TELEMETRY GAUGES -->
+    <section class="accounts-grid" id="accountsGrid">
+      <!-- Rendered Dynamically in JS -->
     </section>
 
     <!-- MANUAL PING CONTROLS & DIAGNOSTICS -->
@@ -1189,39 +1094,8 @@ export function renderDashboardHTML() {
         </button>
       </div>
 
-      <div class="controls-grid">
-        <!-- PING SHLOKSHAH412 -->
-        <button class="btn-action btn-ping-acc1" onclick="confirmAndPing(1, 'shlokshah412')">
-          <div class="btn-action-icon-pill">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.828a5 5 0 010-7.072m7.072 0a5 5 0 010 7.072M12 12h.01"/>
-            </svg>
-          </div>
-          <span class="btn-action-title">shlokshah412</span>
-          <span class="btn-action-sub">Account 1</span>
-        </button>
-
-        <!-- PING PCGPT -->
-        <button class="btn-action btn-ping-acc2" onclick="confirmAndPing(2, 'pcgpt')">
-          <div class="btn-action-icon-pill">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-            </svg>
-          </div>
-          <span class="btn-action-title">pcgpt</span>
-          <span class="btn-action-sub">Account 2</span>
-        </button>
-
-        <!-- PING BOTH -->
-        <button class="btn-action btn-ping-all" onclick="confirmAndPing('all', 'Both Accounts')">
-          <div class="btn-action-icon-pill">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-          </div>
-          <span class="btn-action-title">Both</span>
-          <span class="btn-action-sub">All Accounts</span>
-        </button>
+      <div class="controls-grid" id="controlsGrid">
+        <!-- Rendered Dynamically in JS -->
       </div>
 
       <div class="console-drawer" id="consoleLogs">
@@ -1255,34 +1129,12 @@ export function renderDashboardHTML() {
         </div>
       </div>
 
-      <!-- DUAL LANE TRACKS -->
+      <!-- DYNAMIC LANE TRACKS -->
       <div class="dual-lane-timeline" id="timelineContainer">
-        <!-- Lane 1: shlokshah412 -->
-        <div class="timeline-lane-row">
-          <span class="lane-label acc1-label">shlokshah412</span>
-          <div class="lane-track" id="trackAcc1" onclick="handleTrackClick(event)">
-            <div class="timeline-now-cursor-lane" id="cursorLane1" style="left: 50%;" onclick="inspectNow(event)"></div>
-          </div>
-        </div>
-
-        <!-- Lane 2: pcgpt -->
-        <div class="timeline-lane-row">
-          <span class="lane-label acc2-label">pcgpt</span>
-          <div class="lane-track" id="trackAcc2" onclick="handleTrackClick(event)">
-            <div class="timeline-now-cursor-lane" id="cursorLane2" style="left: 50%;" onclick="inspectNow(event)"></div>
-          </div>
-        </div>
-
-        <div class="timeline-labels">
-          <span>00:00</span>
-          <span>06:00</span>
-          <span>12:00</span>
-          <span>18:00</span>
-          <span>24:00</span>
-        </div>
+        <!-- Dynamic Lanes Rendered in JS -->
       </div>
 
-      <!-- COMPREHENSIVE 8-ITEM SCHEDULE MATRIX -->
+      <!-- COMPREHENSIVE SCHEDULE MATRIX -->
       <div class="schedule-list" id="scheduleList">
         <!-- Rendered Dynamically in JS -->
       </div>
@@ -1290,7 +1142,7 @@ export function renderDashboardHTML() {
 
     <!-- FOOTER -->
     <footer class="footer">
-      <p>Claude Pulse &bull; shlokshah412 &amp; pcgpt 2.5h Staggered Engine</p>
+      <p id="footerText">Claude Pulse &bull; Intelligent Multi-Account Rate-Limit Autopilot</p>
     </footer>
 
   </div>
@@ -1327,6 +1179,59 @@ export function renderDashboardHTML() {
     let selectedScheduleItem = null;
     let pinnedItem = null;
 
+    let ACCOUNTS = [
+      { id: 1, name: 'Account 1', color: '#00f2fe' },
+      { id: 2, name: 'Account 2', color: '#c084fc' }
+    ];
+
+    function generateScheduleForAccounts(accounts) {
+      if (!accounts || accounts.length === 0) return [];
+
+      const fixedSlots = [
+        { slot: 1, hour: 1, min: 34, minsOfDay: 1 * 60 + 34, display: '01:34 AM', tag: 'Late Night Ping' },
+        { slot: 2, hour: 7, min: 30, minsOfDay: 7 * 60 + 30, display: '07:30 AM', tag: 'Morning Ping' },
+        { slot: 3, hour: 10, min: 28, minsOfDay: 10 * 60 + 28, display: '10:28 AM', tag: 'Workday Ping' },
+        { slot: 4, hour: 12, min: 32, minsOfDay: 12 * 60 + 32, display: '12:32 PM', tag: 'Midday Ping' },
+        { slot: 5, hour: 15, min: 30, minsOfDay: 15 * 60 + 30, display: '03:30 PM', tag: 'Afternoon Ping' },
+        { slot: 6, hour: 17, min: 34, minsOfDay: 17 * 60 + 34, display: '05:34 PM', tag: 'Evening Ping' },
+        { slot: 7, hour: 20, min: 32, minsOfDay: 20 * 60 + 32, display: '08:32 PM', tag: 'Night Ping' },
+        { slot: 8, hour: 22, min: 36, minsOfDay: 22 * 60 + 36, display: '10:36 PM', tag: 'Midnight Ping' }
+      ];
+
+      let cohortA, cohortB;
+      if (accounts.length <= 1) {
+        cohortA = accounts;
+        cohortB = accounts;
+      } else {
+        const mid = Math.floor(accounts.length / 2);
+        cohortA = accounts.slice(0, mid);
+        cohortB = accounts.slice(mid);
+      }
+
+      const items = [];
+      fixedSlots.forEach(s => {
+        const cohort = (s.slot % 2 !== 0) ? cohortA : cohortB;
+        cohort.forEach(acc => {
+          items.push({
+            id: 'ping-' + s.slot + '-' + acc.id,
+            account: acc.id,
+            name: acc.name,
+            hour: s.hour,
+            min: s.min,
+            minsOfDay: s.minsOfDay,
+            display: s.display,
+            tag: s.tag
+          });
+        });
+      });
+
+      return items.sort((a, b) => a.minsOfDay - b.minsOfDay);
+    }
+
+    let SCHEDULE = generateScheduleForAccounts(ACCOUNTS);
+
+    const WINDOW_DURATION_MINS = 300; // 5 hours
+
     function setTaskMode(mode) {
       currentTaskMode = mode;
       document.getElementById('modeQuick').className = 'mode-btn ' + (mode === 'quick' ? 'active quick-mode' : '');
@@ -1334,22 +1239,7 @@ export function renderDashboardHTML() {
       updateUI();
     }
 
-    const SCHEDULE = [
-      { id: 'ping-1', account: 1, name: 'shlokshah412', hour: 1, min: 34, minsOfDay: 1 * 60 + 34, display: '01:34 AM', tag: 'Late Night Ping' },
-      { id: 'ping-2', account: 2, name: 'pcgpt', hour: 7, min: 30, minsOfDay: 7 * 60 + 30, display: '07:30 AM', tag: 'Morning Ping' },
-      { id: 'ping-3', account: 1, name: 'shlokshah412', hour: 10, min: 28, minsOfDay: 10 * 60 + 28, display: '10:28 AM', tag: 'Workday Ping' },
-      { id: 'ping-4', account: 2, name: 'pcgpt', hour: 12, min: 32, minsOfDay: 12 * 60 + 32, display: '12:32 PM', tag: 'Midday Ping' },
-      { id: 'ping-5', account: 1, name: 'shlokshah412', hour: 15, min: 30, minsOfDay: 15 * 60 + 30, display: '03:30 PM', tag: 'Afternoon Ping' },
-      { id: 'ping-6', account: 2, name: 'pcgpt', hour: 17, min: 34, minsOfDay: 17 * 60 + 34, display: '05:34 PM', tag: 'Evening Ping' },
-      { id: 'ping-7', account: 1, name: 'shlokshah412', hour: 20, min: 32, minsOfDay: 20 * 60 + 32, display: '08:32 PM', tag: 'Night Ping' },
-      { id: 'ping-8', account: 2, name: 'pcgpt', hour: 22, min: 36, minsOfDay: 22 * 60 + 36, display: '10:36 PM', tag: 'Midnight Ping' }
-    ].sort((a, b) => a.minsOfDay - b.minsOfDay);
-
-    const WINDOW_DURATION_MINS = 300; // 5 hours
-
     function getNowIST() {
-      // Always derive IST from UTC epoch — never use getTimezoneOffset() which
-      // returns the *local* offset and would double-shift on IST machines.
       const utcMs = Date.now();
       const istMs = utcMs + (5.5 * 3600000);
       return new Date(istMs);
@@ -1384,15 +1274,122 @@ export function renderDashboardHTML() {
       return date.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
+    function renderAccountCards() {
+      const grid = document.getElementById('accountsGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      ACCOUNTS.forEach(acc => {
+        const card = document.createElement('div');
+        card.className = 'account-card';
+        card.style.borderColor = acc.color ? acc.color + '33' : 'var(--border-subtle)';
+        
+        card.innerHTML = 
+          '<div class="card-head">' +
+            '<span class="acc-tag" style="color: ' + (acc.color || '#00f2fe') + '; background: ' + (acc.color ? acc.color + '1a' : 'rgba(0,242,254,0.1)') + ';">' + acc.name + '</span>' +
+            '<span class="acc-status-tag" id="accStatusTag_' + acc.id + '">STANDBY</span>' +
+          '</div>' +
+          '<div class="ring-wrapper">' +
+            '<div class="progress-circle">' +
+              '<svg viewBox="0 0 80 80">' +
+                '<circle class="progress-bg" cx="40" cy="40" r="34"></circle>' +
+                '<circle class="progress-bar-dynamic" id="accCircle_' + acc.id + '" cx="40" cy="40" r="34" stroke="' + (acc.color || '#00f2fe') + '" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>' +
+              '</svg>' +
+              '<div class="ring-center-icon">' +
+                '<svg fill="none" stroke="' + (acc.color || '#00f2fe') + '" viewBox="0 0 24 24" stroke-width="2.2">' +
+                  '<path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>' +
+                '</svg>' +
+              '</div>' +
+            '</div>' +
+            '<div class="ring-meta">' +
+              '<div class="ring-meta-val" id="accTimeRemaining_' + acc.id + '">--h --m Left</div>' +
+              '<div class="ring-meta-sub" id="accNextPing_' + acc.id + '">Next: --</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="card-actions">' +
+            '<button class="btn-secondary" onclick="openLaunchDialog(' + acc.id + ', \'' + acc.name + '\')">' +
+              '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>' +
+              '</svg>' +
+              'Launch' +
+            '</button>' +
+            '<button class="btn-secondary" onclick="confirmAndPing(' + acc.id + ', \'' + acc.name + '\')">' +
+              '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>' +
+              '</svg>' +
+              'Ping' +
+            '</button>' +
+          '</div>';
+        grid.appendChild(card);
+      });
+    }
+
+    function renderManualControls() {
+      const grid = document.getElementById('controlsGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      ACCOUNTS.forEach(acc => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-action';
+        btn.onclick = () => confirmAndPing(acc.id, acc.name);
+        btn.innerHTML = 
+          '<div class="btn-action-icon-pill" style="border-color: ' + (acc.color || '#00f2fe') + '44;">' +
+            '<svg fill="none" stroke="' + (acc.color || '#00f2fe') + '" viewBox="0 0 24 24" stroke-width="2.2">' +
+              '<path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>' +
+            '</svg>' +
+          '</div>' +
+          '<span class="btn-action-title">' + acc.name + '</span>' +
+          '<span class="btn-action-sub">Account ' + acc.id + '</span>';
+        grid.appendChild(btn);
+      });
+
+      const allBtn = document.createElement('button');
+      allBtn.className = 'btn-action btn-ping-all';
+      allBtn.onclick = () => confirmAndPing('all', 'All Accounts');
+      allBtn.innerHTML = 
+        '<div class="btn-action-icon-pill">' +
+          '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>' +
+          '</svg>' +
+        '</div>' +
+        '<span class="btn-action-title">All</span>' +
+        '<span class="btn-action-sub">Ping Everything</span>';
+      grid.appendChild(allBtn);
+    }
+
+    function renderTimelineTracks() {
+      const container = document.getElementById('timelineContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      ACCOUNTS.forEach(acc => {
+        const laneRow = document.createElement('div');
+        laneRow.className = 'timeline-lane-row';
+        laneRow.innerHTML = 
+          '<span class="lane-label" style="color: ' + (acc.color || '#00f2fe') + ';">' + acc.name + '</span>' +
+          '<div class="lane-track" id="trackAcc_' + acc.id + '" onclick="handleTrackClick(event)">' +
+            '<div class="timeline-now-cursor-lane" id="cursorLane_' + acc.id + '" style="left: 50%;" onclick="inspectNow(event)"></div>' +
+          '</div>';
+        container.appendChild(laneRow);
+      });
+
+      const labels = document.createElement('div');
+      labels.className = 'timeline-labels';
+      labels.innerHTML = '<span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>';
+      container.appendChild(labels);
+    }
+
     function calculateTelemetry() {
       const nowIST = getNowIST();
       const currentSecondsOfDay = nowIST.getHours() * 3600 + nowIST.getMinutes() * 60 + nowIST.getSeconds();
       const currentMinsOfDay = currentSecondsOfDay / 60;
+      const WINDOW_DURATION_SECONDS = WINDOW_DURATION_MINS * 60;
 
-      function getAccountState(accNum, accName) {
-        const accPings = SCHEDULE.filter(s => s.account === accNum);
+      const accountStates = ACCOUNTS.map(acc => {
+        const accPings = SCHEDULE.filter(s => s.account === acc.id);
         
-        let mostRecent = null;
+        let mostRecent = accPings[0] || { hour: 0, min: 0, minsOfDay: 0, display: '--' };
         let elapsedSinceRecentSeconds = Infinity;
 
         for (const p of accPings) {
@@ -1405,7 +1402,7 @@ export function renderDashboardHTML() {
           }
         }
 
-        let nextPing = null;
+        let nextPing = accPings[0] || { hour: 0, min: 0, minsOfDay: 0, display: '--' };
         let secondsUntilNext = Infinity;
         for (const p of accPings) {
           const pingSeconds = p.hour * 3600 + p.min * 60;
@@ -1417,7 +1414,6 @@ export function renderDashboardHTML() {
           }
         }
 
-        const WINDOW_DURATION_SECONDS = WINDOW_DURATION_MINS * 60;
         const isActive = elapsedSinceRecentSeconds < WINDOW_DURATION_SECONDS;
         const secondsLeftInWindow = isActive ? (WINDOW_DURATION_SECONDS - elapsedSinceRecentSeconds) : 0;
         const minsLeftInWindow = Math.floor(secondsLeftInWindow / 60);
@@ -1427,8 +1423,9 @@ export function renderDashboardHTML() {
         const windowEndDisplay = formatMinsToDisplayTime(windowEndMins);
 
         return {
-          account: accNum,
-          name: accName,
+          id: acc.id,
+          name: acc.name,
+          color: acc.color,
           mostRecent,
           nextPing,
           windowEndDisplay,
@@ -1440,117 +1437,111 @@ export function renderDashboardHTML() {
           percentLeft,
           isActive
         };
-      }
+      });
 
-      const acc1 = getAccountState(1, 'shlokshah412');
-      const acc2 = getAccountState(2, 'pcgpt');
-
-      let recommendedAcc = 1;
+      const activeAccounts = accountStates.filter(a => a.isActive);
+      let recommendedAcc = accountStates[0] || null;
       let reason = '';
       let isStandby = false;
 
-      if (acc1.isActive && acc2.isActive) {
-        const soonest = (acc1.secondsLeftInWindow <= acc2.secondsLeftInWindow) ? acc1 : acc2;
-        const longest = (acc1.secondsLeftInWindow >= acc2.secondsLeftInWindow) ? acc1 : acc2;
-
+      if (activeAccounts.length > 0) {
         if (currentTaskMode === 'quick') {
-          recommendedAcc = soonest.account;
-          reason = soonest.name + ' resets sooner (' + formatHoursMinsSeconds(soonest.secondsLeftInWindow) + ' left vs ' + formatHoursMinsSeconds(longest.secondsLeftInWindow) + ' on ' + longest.name + ').';
+          recommendedAcc = activeAccounts.reduce((min, a) => a.secondsLeftInWindow < min.secondsLeftInWindow ? a : min, activeAccounts[0]);
+          reason = recommendedAcc.name + ' resets sooner (' + formatHoursMinsSeconds(recommendedAcc.secondsLeftInWindow) + ' left until ' + recommendedAcc.windowEndDisplay + ').';
         } else {
-          recommendedAcc = longest.account;
-          reason = longest.name + ' has more time left (' + formatHoursMinsSeconds(longest.secondsLeftInWindow) + ' vs ' + formatHoursMinsSeconds(soonest.secondsLeftInWindow) + ' on ' + soonest.name + ').';
+          recommendedAcc = activeAccounts.reduce((max, a) => a.secondsLeftInWindow > max.secondsLeftInWindow ? a : max, activeAccounts[0]);
+          reason = recommendedAcc.name + ' has the most time left (' + formatHoursMinsSeconds(recommendedAcc.secondsLeftInWindow) + ' remaining).';
         }
-      } else if (acc1.isActive && !acc2.isActive) {
-        recommendedAcc = 1;
-        reason = 'shlokshah412 is active (' + formatHoursMinsSeconds(acc1.secondsLeftInWindow) + ' left until ' + acc1.windowEndDisplay + '). pcgpt is in standby until ' + acc2.nextPing.display + '.';
-      } else if (!acc1.isActive && acc2.isActive) {
-        recommendedAcc = 2;
-        reason = 'pcgpt is active (' + formatHoursMinsSeconds(acc2.secondsLeftInWindow) + ' left until ' + acc2.windowEndDisplay + '). shlokshah412 is in standby until ' + acc1.nextPing.display + '.';
       } else {
         isStandby = true;
-        recommendedAcc = (acc1.secondsUntilNext <= acc2.secondsUntilNext) ? 1 : 2;
-        const nextTargetName = (recommendedAcc === 1 ? 'shlokshah412' : 'pcgpt');
-        const nextTargetTime = (recommendedAcc === 1 ? acc1.nextPing.display : acc2.nextPing.display);
-        const nextTargetDiff = (recommendedAcc === 1 ? acc1.secondsUntilNext : acc2.secondsUntilNext);
-        reason = 'Both accounts in standby. Next window opens on ' + nextTargetName + ' at ' + nextTargetTime + ' (in ' + formatHoursMinsSeconds(nextTargetDiff) + ').';
+        recommendedAcc = accountStates.reduce((min, a) => a.secondsUntilNext < min.secondsUntilNext ? a : min, accountStates[0]);
+        reason = 'All accounts in standby. Next window opens on ' + recommendedAcc.name + ' at ' + recommendedAcc.nextPing.display + ' (in ' + formatHoursMinsSeconds(recommendedAcc.secondsUntilNext) + ').';
       }
 
-      recommendedTargetAccount = recommendedAcc;
-      return { nowIST, currentMinsOfDay, acc1, acc2, recommendedAcc, reason, isStandby };
+      recommendedTargetAccount = recommendedAcc ? recommendedAcc.id : 1;
+      return { nowIST, currentMinsOfDay, accountStates, recommendedAcc, reason, isStandby };
     }
 
     function updateUI() {
       const data = calculateTelemetry();
 
-      document.getElementById('headerClock').innerText = formatTimeDisplay(data.nowIST);
+      const clockEl = document.getElementById('headerClock');
+      if (clockEl) clockEl.innerText = formatTimeDisplay(data.nowIST);
 
-      const isAcc1 = data.recommendedAcc === 1;
       const recBadge = document.getElementById('recBadge');
       const heroCta = document.getElementById('heroCta');
-      
-      const nextPingOverall = (data.acc1.secondsUntilNext < data.acc2.secondsUntilNext) ? data.acc1 : data.acc2;
+      const rec = data.recommendedAcc;
 
-      if (data.isStandby) {
-        recBadge.className = 'rec-badge standby-badge';
-        document.getElementById('recBadgeText').innerText = 'STANDBY: NEXT IN ' + formatHoursMinsSeconds(nextPingOverall.secondsUntilNext).toUpperCase();
-        document.getElementById('heroTitle').innerText = 'System Standby';
-        document.getElementById('heroReason').innerText = data.reason;
-        heroCta.className = 'launch-cta ' + (isAcc1 ? '' : 'pcgpt-cta');
-        document.getElementById('heroCtaText').innerText = 'Open Claude (' + (isAcc1 ? 'shlokshah412' : 'pcgpt') + ')';
-        document.getElementById('recNextReset').innerText = 'Next ping in ' + formatHoursMinsSeconds(nextPingOverall.secondsUntilNext);
-      } else {
-        recBadge.className = 'rec-badge ' + (isAcc1 ? '' : 'pcgpt-badge');
-        document.getElementById('recBadgeText').innerText = isAcc1 ? 'OPTIMAL: SHLOKSHAH412' : 'OPTIMAL: PCGPT';
-        document.getElementById('heroTitle').innerText = isAcc1 ? 'Use shlokshah412' : 'Use pcgpt';
-        document.getElementById('heroReason').innerText = data.reason;
-        heroCta.className = 'launch-cta ' + (isAcc1 ? '' : 'pcgpt-cta');
-        document.getElementById('heroCtaText').innerText = 'Open Claude as ' + (isAcc1 ? 'shlokshah412' : 'pcgpt');
-        
-        const activeAccs = [data.acc1, data.acc2].filter(a => a.isActive);
-        const soonest = activeAccs.reduce((min, a) => a.secondsLeftInWindow < min.secondsLeftInWindow ? a : min, activeAccs[0]);
-        document.getElementById('recNextReset').innerText = 'Limit reset in ' + formatHoursMinsSeconds(soonest.secondsLeftInWindow);
+      if (rec) {
+        if (data.isStandby) {
+          if (recBadge) {
+            recBadge.className = 'rec-badge standby-badge';
+            document.getElementById('recBadgeText').innerText = 'STANDBY: NEXT IN ' + formatHoursMinsSeconds(rec.secondsUntilNext).toUpperCase();
+          }
+          document.getElementById('heroTitle').innerText = 'System Standby';
+          document.getElementById('heroReason').innerText = data.reason;
+          if (heroCta) heroCta.onclick = () => openLaunchDialog(rec.id, rec.name);
+          document.getElementById('heroCtaText').innerText = 'Open Claude (' + rec.name + ')';
+          document.getElementById('recNextReset').innerText = 'Next ping in ' + formatHoursMinsSeconds(rec.secondsUntilNext);
+        } else {
+          if (recBadge) {
+            recBadge.className = 'rec-badge';
+            recBadge.style.color = rec.color || '#00f2fe';
+            recBadge.style.borderColor = (rec.color || '#00f2fe') + '55';
+            recBadge.style.background = (rec.color || '#00f2fe') + '1a';
+            document.getElementById('recBadgeText').innerText = 'OPTIMAL: ' + rec.name.toUpperCase();
+          }
+          document.getElementById('heroTitle').innerText = 'Use ' + rec.name;
+          document.getElementById('heroReason').innerText = data.reason;
+          if (heroCta) heroCta.onclick = () => openLaunchDialog(rec.id, rec.name);
+          document.getElementById('heroCtaText').innerText = 'Open Claude as ' + rec.name;
+          document.getElementById('recNextReset').innerText = 'Limit reset in ' + formatHoursMinsSeconds(rec.secondsLeftInWindow);
+        }
       }
 
       const fullCircumference = 213.6;
-      
-      // Update shlokshah412
-      document.getElementById('acc1Circle').style.strokeDashoffset = fullCircumference * (1 - data.acc1.percentLeft / 100);
-      document.getElementById('acc1TimeRemaining').innerText = data.acc1.isActive ? (formatHoursMinsSeconds(data.acc1.secondsLeftInWindow) + ' Left') : 'Standby';
-      document.getElementById('acc1NextPing').innerText = data.acc1.isActive ? ('Resets at ' + data.acc1.windowEndDisplay + ' • Next: ' + data.acc1.nextPing.display) : ('Next: ' + data.acc1.nextPing.display);
 
-      const acc1StatusTag = document.getElementById('acc1StatusTag');
-      if (data.acc1.isActive) {
-        acc1StatusTag.className = (data.acc1.minsLeftInWindow <= 45) ? 'acc-status-tag warning' : 'acc-status-tag active';
-        acc1StatusTag.innerText = (data.acc1.minsLeftInWindow <= 45) ? 'EXPIRING' : 'ACTIVE';
-      } else {
-        acc1StatusTag.className = 'acc-status-tag';
-        acc1StatusTag.innerText = 'STANDBY';
-      }
+      // Update Dynamic Account Cards
+      data.accountStates.forEach(acc => {
+        const circle = document.getElementById('accCircle_' + acc.id);
+        if (circle) circle.style.strokeDashoffset = fullCircumference * (1 - acc.percentLeft / 100);
 
-      // Update pcgpt
-      document.getElementById('acc2Circle').style.strokeDashoffset = fullCircumference * (1 - data.acc2.percentLeft / 100);
-      document.getElementById('acc2TimeRemaining').innerText = data.acc2.isActive ? (formatHoursMinsSeconds(data.acc2.secondsLeftInWindow) + ' Left') : 'Standby';
-      document.getElementById('acc2NextPing').innerText = data.acc2.isActive ? ('Resets at ' + data.acc2.windowEndDisplay + ' • Next: ' + data.acc2.nextPing.display) : ('Next: ' + data.acc2.nextPing.display);
+        const timeRem = document.getElementById('accTimeRemaining_' + acc.id);
+        if (timeRem) timeRem.innerText = acc.isActive ? (formatHoursMinsSeconds(acc.secondsLeftInWindow) + ' Left') : 'Standby';
 
-      const acc2StatusTag = document.getElementById('acc2StatusTag');
-      if (data.acc2.isActive) {
-        acc2StatusTag.className = (data.acc2.minsLeftInWindow <= 45) ? 'acc-status-tag warning' : 'acc-status-tag active';
-        acc2StatusTag.innerText = (data.acc2.minsLeftInWindow <= 45) ? 'EXPIRING' : 'ACTIVE';
-      } else {
-        acc2StatusTag.className = 'acc-status-tag';
-        acc2StatusTag.innerText = 'STANDBY';
-      }
+        const nextPingEl = document.getElementById('accNextPing_' + acc.id);
+        if (nextPingEl) {
+          nextPingEl.innerText = acc.isActive 
+            ? ('Resets at ' + acc.windowEndDisplay + ' • Next: ' + acc.nextPing.display) 
+            : ('Next: ' + acc.nextPing.display);
+        }
 
-      // Update Dual-Lane Cursor
-      const percentOfDay = (data.currentMinsOfDay / 1440) * 100;
-      document.getElementById('cursorLane1').style.left = percentOfDay + '%';
-      document.getElementById('cursorLane2').style.left = percentOfDay + '%';
+        const statusTag = document.getElementById('accStatusTag_' + acc.id);
+        if (statusTag) {
+          if (acc.isActive) {
+            statusTag.className = (acc.minsLeftInWindow <= 45) ? 'acc-status-tag warning' : 'acc-status-tag active';
+            statusTag.innerText = (acc.minsLeftInWindow <= 45) ? 'EXPIRING' : 'ACTIVE';
+          } else {
+            statusTag.className = 'acc-status-tag';
+            statusTag.innerText = 'STANDBY';
+          }
+        }
 
-      if (!selectedScheduleItem) {
-        document.getElementById('bubbleAccPill').className = 'inspect-acc-pill now';
-        document.getElementById('bubbleAccPill').innerText = 'LIVE NOW';
+        const cursor = document.getElementById('cursorLane_' + acc.id);
+        if (cursor) {
+          const percentOfDay = (data.currentMinsOfDay / 1440) * 100;
+          cursor.style.left = percentOfDay + '%';
+        }
+      });
+
+      if (!selectedScheduleItem && data.recommendedAcc) {
+        const pill = document.getElementById('bubbleAccPill');
+        if (pill) {
+          pill.className = 'inspect-acc-pill now';
+          pill.innerText = 'LIVE NOW';
+        }
         document.getElementById('bubbleTime').innerText = formatTimeDisplay(data.nowIST);
-        document.getElementById('bubbleDiff').innerText = 'Next: ' + nextPingOverall.name + ' in ' + formatHoursMinsSeconds(nextPingOverall.secondsUntilNext);
+        document.getElementById('bubbleDiff').innerText = 'Tracking active: ' + data.recommendedAcc.name;
       }
     }
 
@@ -1565,10 +1556,8 @@ export function renderDashboardHTML() {
       if (diffSeconds > 0) {
         diffText = 'in ' + formatHoursMinsSeconds(diffSeconds);
       } else if (diffSeconds < 0) {
-        // Could have wrapped to previous day — show elapsed since today's occurrence
         let passed = currentSecondsOfDay - pingSeconds;
         if (passed > 86400 / 2) {
-          // Ping is actually tomorrow; show time until
           diffText = 'in ' + formatHoursMinsSeconds(diffSeconds + 86400);
         } else {
           diffText = formatHoursMinsSeconds(passed) + ' ago';
@@ -1577,10 +1566,12 @@ export function renderDashboardHTML() {
         diffText = 'Right now';
       }
 
-      const isAcc1 = (item.account === 1);
       const pill = document.getElementById('bubbleAccPill');
-      pill.className = 'inspect-acc-pill ' + (isAcc1 ? 'acc1' : 'acc2');
-      pill.innerText = item.name;
+      if (pill) {
+        pill.className = 'inspect-acc-pill';
+        pill.style.background = '#1e293b';
+        pill.innerText = item.name;
+      }
 
       document.getElementById('bubbleTime').innerText = item.display + ' (' + item.tag + ')';
       document.getElementById('bubbleDiff').innerText = diffText;
@@ -1595,7 +1586,7 @@ export function renderDashboardHTML() {
 
       document.querySelectorAll('.schedule-item').forEach(row => {
         if (row.dataset.id === item.id) {
-          row.className = 'schedule-item highlighted ' + (isAcc1 ? 'acc1-item' : 'acc2-item');
+          row.className = 'schedule-item highlighted';
           row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
           row.className = 'schedule-item';
@@ -1617,99 +1608,82 @@ export function renderDashboardHTML() {
     }
 
     function renderScheduleList() {
-      const track1 = document.getElementById('trackAcc1');
-      const track2 = document.getElementById('trackAcc2');
       const list = document.getElementById('scheduleList');
+      if (!list) return;
       list.innerHTML = '';
 
-      track1.querySelectorAll('.lane-node, .lane-band').forEach(n => n.remove());
-      track2.querySelectorAll('.lane-node, .lane-band').forEach(n => n.remove());
+      ACCOUNTS.forEach(acc => {
+        const track = document.getElementById('trackAcc_' + acc.id);
+        if (track) {
+          track.querySelectorAll('.lane-node, .lane-band').forEach(n => n.remove());
+        }
+      });
 
       // 1. Render 5-Hour Active Window Highlight Bands
       SCHEDULE.forEach((item) => {
         const startMin = item.minsOfDay;
-        const endMin = startMin + 300; // 5 hours (300 mins)
-        const track = (item.account === 1) ? track1 : track2;
-        const accClass = (item.account === 1) ? 'acc1' : 'acc2';
+        const endMin = startMin + 300; // 5 hours
+        const track = document.getElementById('trackAcc_' + item.account);
+        const accInfo = ACCOUNTS.find(a => a.id === item.account) || { color: '#00f2fe' };
 
-        if (endMin <= 1440) {
-          const band = document.createElement('div');
-          band.className = 'lane-band ' + accClass;
-          band.style.left = (startMin / 1440 * 100) + '%';
-          band.style.width = ((endMin - startMin) / 1440 * 100) + '%';
-          track.appendChild(band);
-        } else {
-          // Midnight wrap-around: Segment A (start to 1440)
-          const bandA = document.createElement('div');
-          bandA.className = 'lane-band ' + accClass;
-          bandA.style.left = (startMin / 1440 * 100) + '%';
-          bandA.style.width = ((1440 - startMin) / 1440 * 100) + '%';
-          track.appendChild(bandA);
-
-          // Segment B (0 to endMin - 1440)
-          const bandB = document.createElement('div');
-          bandB.className = 'lane-band ' + accClass;
-          bandB.style.left = '0%';
-          bandB.style.width = ((endMin - 1440) / 1440 * 100) + '%';
-          track.appendChild(bandB);
-        }
-      });
-
-      // 2. Render Interactive Ping Nodes
-      SCHEDULE.forEach((item) => {
-        const node = document.createElement('div');
-        node.className = 'lane-node ' + (item.account === 1 ? 'acc1' : 'acc2');
-        node.dataset.id = item.id;
-        node.style.left = (item.minsOfDay / 1440 * 100) + '%';
-        node.title = item.name + ' @ ' + item.display + ' (' + item.tag + ')';
-        
-        node.onclick = (e) => {
-          e.stopPropagation();
-          if (pinnedItem && pinnedItem.id === item.id) {
-            pinnedItem = null;
-            inspectNow();
+        if (track) {
+          if (endMin <= 1440) {
+            const band = document.createElement('div');
+            band.className = 'lane-band';
+            band.style.background = (accInfo.color || '#00f2fe') + '26';
+            band.style.borderTop = '1px solid ' + (accInfo.color || '#00f2fe') + '66';
+            band.style.borderBottom = '1px solid ' + (accInfo.color || '#00f2fe') + '66';
+            band.style.left = (startMin / 1440 * 100) + '%';
+            band.style.width = ((endMin - startMin) / 1440 * 100) + '%';
+            track.appendChild(band);
           } else {
-            pinnedItem = item;
-            inspectScheduleItem(item);
-          }
-        };
-        node.onmouseenter = () => {
-          if (!pinnedItem) inspectScheduleItem(item);
-        };
-        node.onmouseleave = () => {
-          if (!pinnedItem) inspectNow();
-        };
+            const bandA = document.createElement('div');
+            bandA.className = 'lane-band';
+            bandA.style.background = (accInfo.color || '#00f2fe') + '26';
+            bandA.style.left = (startMin / 1440 * 100) + '%';
+            bandA.style.width = ((1440 - startMin) / 1440 * 100) + '%';
+            track.appendChild(bandA);
 
-        if (item.account === 1) {
-          track1.appendChild(node);
-        } else {
-          track2.appendChild(node);
+            const bandB = document.createElement('div');
+            bandB.className = 'lane-band';
+            bandB.style.background = (accInfo.color || '#00f2fe') + '26';
+            bandB.style.left = '0%';
+            bandB.style.width = ((endMin - 1440) / 1440 * 100) + '%';
+            track.appendChild(bandB);
+          }
+
+          // Ping node point
+          const node = document.createElement('div');
+          node.className = 'lane-node';
+          node.style.background = accInfo.color || '#00f2fe';
+          node.style.boxShadow = '0 0 6px ' + (accInfo.color || '#00f2fe');
+          node.style.left = (startMin / 1440 * 100) + '%';
+          node.dataset.id = item.id;
+          node.onclick = (e) => {
+            e.stopPropagation();
+            pinnedItem = (pinnedItem === item.id) ? null : item.id;
+            inspectScheduleItem(item);
+          };
+          node.onmouseenter = () => { if (!pinnedItem) inspectScheduleItem(item); };
+          node.onmouseleave = () => { if (!pinnedItem) inspectNow(); };
+          track.appendChild(node);
         }
 
+        // Schedule list item
         const row = document.createElement('div');
         row.className = 'schedule-item';
         row.dataset.id = item.id;
-        row.onclick = (e) => {
-          e.stopPropagation();
-          if (pinnedItem && pinnedItem.id === item.id) {
-            pinnedItem = null;
-            inspectNow();
-          } else {
-            pinnedItem = item;
-            inspectScheduleItem(item);
-          }
+        row.onclick = () => {
+          pinnedItem = (pinnedItem === item.id) ? null : item.id;
+          inspectScheduleItem(item);
         };
-        row.onmouseenter = () => {
-          if (!pinnedItem) inspectScheduleItem(item);
-        };
-        row.onmouseleave = () => {
-          if (!pinnedItem) inspectNow();
-        };
-        row.innerHTML =
+        row.onmouseenter = () => { if (!pinnedItem) inspectScheduleItem(item); };
+        row.onmouseleave = () => { if (!pinnedItem) inspectNow(); };
+        row.innerHTML = 
           '<div class="schedule-left">' +
-            '<div class="schedule-acc-dot ' + (item.account === 1 ? 'acc1' : 'acc2') + '"></div>' +
+            '<div class="schedule-acc-dot" style="background: ' + (accInfo.color || '#00f2fe') + ';"></div>' +
             '<span class="schedule-time">' + item.display + '</span>' +
-            '<span class="schedule-name-tag ' + (item.account === 1 ? 'acc1-name' : 'acc2-name') + '">' + item.name + '</span>' +
+            '<span class="schedule-name-tag" style="color: ' + (accInfo.color || '#00f2fe') + ';">' + item.name + '</span>' +
           '</div>' +
           '<div class="schedule-right">' +
             '<span class="safe-buffer-badge">+2m</span>' +
@@ -1721,23 +1695,25 @@ export function renderDashboardHTML() {
 
     function addConsoleLog(msg, type = 'normal') {
       const consoleBox = document.getElementById('consoleLogs');
+      if (!consoleBox) return;
       const line = document.createElement('div');
       line.className = 'log-line';
       const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-      line.innerHTML = \`<span class="log-time">[\${time}]</span><span class="log-msg \${type}">\${msg}</span>\`;
+      line.innerHTML = '<span class="log-time">[' + time + ']</span><span class="log-msg ' + type + '">' + msg + '</span>';
       consoleBox.appendChild(line);
       consoleBox.scrollTop = consoleBox.scrollHeight;
     }
 
     function closeModal() {
-      document.getElementById('confirmModal').classList.remove('open');
+      const modal = document.getElementById('confirmModal');
+      if (modal) modal.classList.remove('open');
       const cancelBtn = document.querySelector('.btn-modal-cancel');
       if (cancelBtn) cancelBtn.style.display = '';
       const modalActions = document.getElementById('modalActions');
       if (modalActions) modalActions.style.gridTemplateColumns = '1fr 1fr';
     }
 
-    // LIVE DIAGNOSTICS CHECK (NO PING)
+    // LIVE DIAGNOSTICS CHECK
     async function runDiagnostics() {
       addConsoleLog('Running live system diagnostic check (0 pings sent)...', 'info');
       const modal = document.getElementById('confirmModal');
@@ -1757,15 +1733,18 @@ export function renderDashboardHTML() {
         const data = await res.json();
 
         const bConnected = data.browserless?.status === 'connected';
-        const acc1Ok = data.credentials?.shlokshah412?.configured;
-        const acc2Ok = data.credentials?.pcgpt?.configured;
 
         let html = '<div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.84rem;">';
         html += '<div style="display:flex; justify-content:space-between; align-items:center;"><span>Cloudflare Edge Worker:</span> <strong style="color: var(--success-green);">ONLINE (' + latency + 'ms)</strong></div>';
         html += '<div style="display:flex; justify-content:space-between; align-items:center;"><span>Browserless API:</span> <strong style="color: ' + (bConnected ? 'var(--success-green)' : 'var(--danger-red)') + ';">' + (bConnected ? 'CONNECTED' : 'ERROR') + '</strong></div>';
-        html += '<div style="display:flex; justify-content:space-between; align-items:center;"><span>shlokshah412 Secret:</span> <strong style="color: ' + (acc1Ok ? 'var(--acc1-cyan)' : 'var(--danger-red)') + ';">' + (acc1Ok ? 'READY' : 'MISSING') + '</strong></div>';
-        html += '<div style="display:flex; justify-content:space-between; align-items:center;"><span>pcgpt Secret:</span> <strong style="color: ' + (acc2Ok ? 'var(--acc2-purple)' : 'var(--danger-red)') + ';">' + (acc2Ok ? 'READY' : 'MISSING') + '</strong></div>';
-        html += '<div style="display:flex; justify-content:space-between; align-items:center;"><span>Server IST Time:</span> <strong style="color: #fff; font-family: monospace;">' + data.timestamp.ist.split(',')[1] + '</strong></div>';
+        
+        if (data.accounts && Array.isArray(data.accounts)) {
+          data.accounts.forEach(a => {
+            html += '<div style="display:flex; justify-content:space-between; align-items:center;"><span>' + a.name + ':</span> <strong style="color: ' + (a.themeColor || 'var(--acc1-cyan)') + ';">ACTIVE</strong></div>';
+          });
+        }
+
+        html += '<div style="display:flex; justify-content:space-between; align-items:center;"><span>Server IST Time:</span> <strong style="color: #fff; font-family: monospace;">' + (data.timestamp?.ist ? data.timestamp.ist.split(',')[1] : '--') + '</strong></div>';
         html += '</div>';
 
         body.innerHTML = html;
@@ -1792,7 +1771,7 @@ export function renderDashboardHTML() {
       title.innerText = 'Ping ' + label + '?';
       body.innerHTML = 'Sends a 1-character keep-alive message (<code style="color: #fff; font-family: monospace;">.</code>) via Browserless to refresh your 5-hour limit window on Claude.';
 
-      confirmBtn.className = 'btn-modal btn-modal-confirm ' + (target === 2 ? 'acc2-confirm' : '');
+      confirmBtn.className = 'btn-modal btn-modal-confirm';
       confirmBtn.innerText = 'Send Ping';
       confirmBtn.onclick = () => {
         closeModal();
@@ -1802,18 +1781,16 @@ export function renderDashboardHTML() {
       modal.classList.add('open');
     }
 
-    function openLaunchDialog(accNum) {
-      const accName = (accNum === 1) ? 'shlokshah412' : 'pcgpt';
-      const isAcc2 = (accNum === 2);
+    function openLaunchDialog(accNum, accName) {
       const modal = document.getElementById('confirmModal');
       const title = document.getElementById('modalTitle');
       const body = document.getElementById('modalBody');
       const confirmBtn = document.getElementById('modalConfirmBtn');
 
       title.innerText = 'Open Claude as ' + accName;
-      body.innerHTML = 'Ensure your active browser tab or Claude app is signed into <strong style="color: ' + (isAcc2 ? 'var(--acc2-purple)' : 'var(--acc1-cyan)') + ';">' + accName + '</strong>.';
+      body.innerHTML = 'Ensure your active browser tab or Claude app is signed into <strong style="color: var(--acc1-cyan);">' + accName + '</strong>.';
 
-      confirmBtn.className = 'btn-modal btn-modal-confirm ' + (isAcc2 ? 'acc2-confirm' : '');
+      confirmBtn.className = 'btn-modal btn-modal-confirm';
       confirmBtn.innerText = 'Open Claude.ai';
       confirmBtn.onclick = () => {
         closeModal();
@@ -1825,11 +1802,13 @@ export function renderDashboardHTML() {
 
     async function triggerPing(target) {
       const statusText = document.getElementById('pingStatusText');
-      statusText.innerText = 'Pinging...';
-      statusText.style.color = 'var(--warning-amber)';
+      if (statusText) {
+        statusText.innerText = 'Pinging...';
+        statusText.style.color = 'var(--warning-amber)';
+      }
 
       const endpoint = (target === 'all') ? '/api/ping' : ('/api/ping?account=' + target);
-      const targetLabel = (target === 'all') ? 'Both Accounts' : (target === 1 ? 'shlokshah412' : 'pcgpt');
+      const targetLabel = (target === 'all') ? 'All Accounts' : ('Account ' + target);
 
       addConsoleLog('Dispatching headless browser request for ' + targetLabel + '...', 'normal');
 
@@ -1840,7 +1819,8 @@ export function renderDashboardHTML() {
         if (data.results && data.results.length > 0) {
           data.results.forEach(r => {
             if (r.result && r.result.success) {
-              addConsoleLog('SUCCESS: ' + r.account + ' ➔ ' + (r.result.pageTitle || 'Ping sent'), 'success');
+              const cleanedText = r.result.cleanedUpSpamCount > 0 ? (' [Cleaned ' + r.result.cleanedUpSpamCount + ' duplicate chats]') : '';
+              addConsoleLog('SUCCESS: ' + r.account + ' ➔ ' + (r.result.pageTitle || 'Ping sent') + cleanedText, 'success');
             } else {
               addConsoleLog('ERROR: ' + r.account + ' ➔ ' + (r.result?.error || 'Execution failed'), 'error');
             }
@@ -1849,13 +1829,54 @@ export function renderDashboardHTML() {
           addConsoleLog('Response: ' + JSON.stringify(data), 'normal');
         }
 
-        statusText.innerText = 'Success';
-        statusText.style.color = 'var(--success-green)';
-        setTimeout(() => { statusText.innerText = 'Ready'; }, 3000);
+        if (statusText) {
+          statusText.innerText = 'Success';
+          statusText.style.color = 'var(--success-green)';
+          setTimeout(() => { statusText.innerText = 'Ready'; }, 3000);
+        }
       } catch (err) {
         addConsoleLog('Network / Worker Error: ' + err.message, 'error');
-        statusText.innerText = 'Failed';
-        statusText.style.color = 'var(--danger-red)';
+        if (statusText) {
+          statusText.innerText = 'Failed';
+          statusText.style.color = 'var(--danger-red)';
+        }
+      }
+    }
+
+    // Dynamic Account Sync from Health API
+    async function syncAccountsFromEdge() {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
+            ACCOUNTS = data.accounts.map(a => ({
+              id: a.id,
+              name: a.name,
+              color: a.themeColor || (a.id === 1 ? '#00f2fe' : (a.id === 2 ? '#c084fc' : '#10b981'))
+            }));
+
+            const headerSub = document.getElementById('headerSub');
+            if (headerSub) {
+              headerSub.innerText = ACCOUNTS.map(a => a.name).join(' • ');
+            }
+
+            const footer = document.getElementById('footerText');
+            if (footer) {
+              footer.innerText = 'Claude Pulse • ' + ACCOUNTS.map(a => a.name).join(' & ') + ' Autopilot';
+            }
+
+            SCHEDULE = generateScheduleForAccounts(ACCOUNTS);
+
+            renderAccountCards();
+            renderManualControls();
+            renderTimelineTracks();
+            renderScheduleList();
+            updateUI();
+          }
+        }
+      } catch (e) {
+        console.warn('Accounts edge sync skipped:', e.message);
       }
     }
 
@@ -1868,9 +1889,13 @@ export function renderDashboardHTML() {
     });
 
     // Init
+    renderAccountCards();
+    renderManualControls();
+    renderTimelineTracks();
     renderScheduleList();
     updateUI();
     setInterval(updateUI, 1000);
+    syncAccountsFromEdge();
   </script>
 </body>
 </html>`;
