@@ -1307,13 +1307,13 @@ export function renderDashboardHTML() {
             '</div>' +
           '</div>' +
           '<div class="card-actions">' +
-            '<button class="btn-secondary" onclick="openLaunchDialog(' + acc.id + ', \'' + acc.name + '\')">' +
+            '<button class="btn-secondary" onclick="openLaunchDialog(' + acc.id + ')">' +
               '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
                 '<path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>' +
               '</svg>' +
               'Launch' +
             '</button>' +
-            '<button class="btn-secondary" onclick="confirmAndPing(' + acc.id + ', \'' + acc.name + '\')">' +
+            '<button class="btn-secondary" onclick="confirmAndPing(' + acc.id + ')">' +
               '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
                 '<path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>' +
               '</svg>' +
@@ -1763,6 +1763,14 @@ export function renderDashboardHTML() {
     }
 
     function confirmAndPing(target, label) {
+      if (!label) {
+        if (target === 'all') {
+          label = 'All Accounts';
+        } else {
+          const found = ACCOUNTS.find(a => a.id === target);
+          label = found ? found.name : ('Account ' + target);
+        }
+      }
       const modal = document.getElementById('confirmModal');
       const title = document.getElementById('modalTitle');
       const body = document.getElementById('modalBody');
@@ -1782,6 +1790,10 @@ export function renderDashboardHTML() {
     }
 
     function openLaunchDialog(accNum, accName) {
+      if (!accName) {
+        const found = ACCOUNTS.find(a => a.id === accNum);
+        accName = found ? found.name : ('Account ' + accNum);
+      }
       const modal = document.getElementById('confirmModal');
       const title = document.getElementById('modalTitle');
       const body = document.getElementById('modalBody');
