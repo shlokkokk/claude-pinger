@@ -10,5 +10,11 @@
       "4 12,20 * * *",
       "6 17 * * *"
     ]
-  }
+  },
+  "kv_namespaces": [
+    {
+      "binding": "TASK_QUEUE",
+      "id": "a2ac1be761554159b1e385e50360ddb1"
+    }
+  ]
 }

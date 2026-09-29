@@ -630,6 +630,148 @@ export function renderDashboardHTML() {
     .log-msg.info { color: var(--acc1-cyan); }
     .log-msg.error { color: var(--danger-red); }
 
+    /* OVERNIGHT TASK AUTOPILOT */
+    .queue-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .queue-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .queue-select, .queue-input {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 8px 10px;
+      font-size: 0.76rem;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .queue-select {
+      font-family: var(--font-main);
+      font-weight: 600;
+      min-width: 130px;
+      background: #0f131c;
+      cursor: pointer;
+    }
+
+    .queue-select:focus, .queue-input:focus {
+      border-color: var(--acc1-cyan);
+    }
+
+    .queue-input {
+      flex: 1;
+    }
+
+    .queue-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .btn-queue {
+      flex: 1;
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      color: var(--acc1-cyan);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.76rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-queue:hover {
+      background: rgba(0, 242, 254, 0.2);
+      border-color: var(--acc1-cyan);
+    }
+
+    .btn-queue-now {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.74rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-queue-now:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+    }
+
+    .active-tasks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .task-item-card {
+      background: rgba(0, 242, 254, 0.04);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 9px;
+      padding: 9px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 0.74rem;
+    }
+
+    .task-item-card.completed {
+      background: rgba(16, 185, 129, 0.04);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .task-item-card.failed {
+      background: rgba(239, 68, 68, 0.04);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task-badge {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.64rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .task-badge.queued { background: rgba(0, 242, 254, 0.15); color: var(--acc1-cyan); }
+    .task-badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--success-green); }
+    .task-badge.failed { background: rgba(239, 68, 68, 0.15); color: var(--danger-red); }
+
+    .task-cancel-btn {
+      background: none;
+      border: none;
+      color: var(--danger-red);
+      font-size: 0.68rem;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+
     /* DUAL-LANE 24H MASTER TIMELINE */
     .timeline-inspect-bubble {
       background: #131722;
@@ -1103,6 +1245,44 @@ export function renderDashboardHTML() {
           <span class="log-time">[System]</span>
           <span class="log-msg">Autopilot active on Cloudflare</span>
         </div>
+      </div>
+    </section>
+
+    <!-- OVERNIGHT TASK AUTOPILOT -->
+    <section class="section-card">
+      <div class="section-head">
+        <h2>
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Overnight Task Autopilot
+        </h2>
+        <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);" id="taskQueueStatus">Dynamic Queue</span>
+      </div>
+
+      <div class="queue-form">
+        <div class="queue-row">
+          <select class="queue-select" id="queueAccountSelect"></select>
+          <input type="text" class="queue-input" id="queueChatUrl" placeholder="Claude Chat URL (e.g. https://claude.ai/chat/...)">
+        </div>
+        <div class="queue-row">
+          <input type="text" class="queue-input" id="queuePrompt" value="continue" placeholder="Prompt to send (e.g. continue)">
+        </div>
+        <div class="queue-btn-row">
+          <button class="btn-queue" id="btnQueueTask" onclick="submitQueuedTask(false)">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Queue for Next Ping
+          </button>
+          <button class="btn-queue-now" onclick="submitQueuedTask(true)">
+            Dispatch Now
+          </button>
+        </div>
+      </div>
+
+      <div class="active-tasks-list" id="activeTasksList">
+        <!-- Rendered dynamically -->
       </div>
     </section>
 
@@ -1855,6 +2035,134 @@ export function renderDashboardHTML() {
       }
     }
 
+    // Task Queue Management
+    function populateQueueAccountSelect() {
+      const select = document.getElementById('queueAccountSelect');
+      if (!select) return;
+      const currentVal = select.value;
+      select.innerHTML = '';
+      ACCOUNTS.forEach(acc => {
+        const opt = document.createElement('option');
+        opt.value = acc.id;
+        opt.innerText = acc.name;
+        select.appendChild(opt);
+      });
+      if (currentVal && ACCOUNTS.some(a => a.id === parseInt(currentVal, 10))) {
+        select.value = currentVal;
+      }
+    }
+
+    async function fetchQueueTasks() {
+      const container = document.getElementById('activeTasksList');
+      if (!container) return;
+
+      try {
+        const res = await fetch('/api/queue');
+        if (!res.ok) return;
+        const data = await res.json();
+        const tasks = data.tasks || {};
+
+        const taskEntries = Object.entries(tasks);
+        if (taskEntries.length === 0) {
+          container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.72rem; text-align: center; padding: 6px;">No overnight tasks currently queued.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+        taskEntries.forEach(([accId, task]) => {
+          const acc = ACCOUNTS.find(a => a.id === parseInt(accId, 10)) || { name: 'Account ' + accId, color: '#00f2fe' };
+          const card = document.createElement('div');
+          card.className = 'task-item-card ' + (task.status || 'queued');
+          
+          let statusBadge = '<span class="task-badge queued">Queued</span>';
+          if (task.status === 'completed') statusBadge = '<span class="task-badge completed">Completed</span>';
+          if (task.status === 'failed') statusBadge = '<span class="task-badge failed">Failed</span>';
+
+          const timeText = task.status === 'completed'
+            ? ('Finished at ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : ''))
+            : (task.status === 'failed' ? ('Failed: ' + (task.error || 'Execution error')) : 'Fires on next scheduled ping');
+
+          const cancelAction = (task.status === 'queued')
+            ? ('<button class="task-cancel-btn" onclick="cancelQueuedTask(' + accId + ')">Cancel</button>')
+            : ('<button class="task-cancel-btn" onclick="cancelQueuedTask(' + accId + ')">Clear</button>');
+
+          card.innerHTML = 
+            '<div class="task-header">' +
+              '<div style="display:flex; align-items:center; gap:6px;">' +
+                '<span style="font-weight:700; color:' + (acc.color || '#00f2fe') + ';">' + acc.name + '</span>' +
+                statusBadge +
+              '</div>' +
+              cancelAction +
+            '</div>' +
+            '<div style="font-family: var(--font-mono); font-size: 0.72rem; color: #cbd5e1; word-break: break-all;">' +
+              '<strong>Prompt:</strong> &ldquo;' + (task.prompt || 'continue') + '&rdquo;' +
+            '</div>' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);">' +
+              '<a href="' + (task.chatUrl || '#') + '" target="_blank" style="color:var(--acc1-cyan); text-decoration:none; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + (task.chatUrl || 'Claude Chat') + '</a>' +
+              '<span>' + timeText + '</span>' +
+            '</div>';
+
+          container.appendChild(card);
+        });
+      } catch (e) {
+        console.warn('Queue fetch skipped:', e.message);
+      }
+    }
+
+    async function submitQueuedTask(runNow) {
+      const select = document.getElementById('queueAccountSelect');
+      const chatUrlInput = document.getElementById('queueChatUrl');
+      const promptInput = document.getElementById('queuePrompt');
+
+      const accountId = select ? parseInt(select.value, 10) : 1;
+      const chatUrl = chatUrlInput ? chatUrlInput.value.trim() : '';
+      const prompt = promptInput ? promptInput.value.trim() : 'continue';
+
+      if (!chatUrl) {
+        alert('Please paste your Claude Chat URL first!');
+        if (chatUrlInput) chatUrlInput.focus();
+        return;
+      }
+
+      const acc = ACCOUNTS.find(a => a.id === accountId) || { name: 'Account ' + accountId };
+      addConsoleLog('Queueing prompt for ' + acc.name + '...', 'info');
+
+      try {
+        const res = await fetch('/api/queue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, chatUrl, prompt })
+        });
+        const data = await res.json();
+        if (data.success) {
+          addConsoleLog('SUCCESS: Task queued for ' + acc.name + ' ("' + prompt + '")', 'success');
+          if (chatUrlInput) chatUrlInput.value = '';
+          fetchQueueTasks();
+
+          if (runNow) {
+            confirmAndPing(accountId, acc.name);
+          }
+        } else {
+          addConsoleLog('Queue Error: ' + (data.error || 'Failed to queue'), 'error');
+        }
+      } catch (err) {
+        addConsoleLog('Network Error queueing task: ' + err.message, 'error');
+      }
+    }
+
+    async function cancelQueuedTask(accountId) {
+      try {
+        const res = await fetch('/api/queue?accountId=' + accountId, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          addConsoleLog('Cancelled task for Account ' + accountId, 'normal');
+          fetchQueueTasks();
+        }
+      } catch (err) {
+        console.error('Cancel task error:', err);
+      }
+    }
+
     // Dynamic Account Sync from Health API
     async function syncAccountsFromEdge() {
       try {
@@ -1884,6 +2192,8 @@ export function renderDashboardHTML() {
             renderManualControls();
             renderTimelineTracks();
             renderScheduleList();
+            populateQueueAccountSelect();
+            fetchQueueTasks();
             updateUI();
           }
         }
@@ -1905,8 +2215,11 @@ export function renderDashboardHTML() {
     renderManualControls();
     renderTimelineTracks();
     renderScheduleList();
+    populateQueueAccountSelect();
+    fetchQueueTasks();
     updateUI();
     setInterval(updateUI, 1000);
+    setInterval(fetchQueueTasks, 15000);
     syncAccountsFromEdge();
   </script>
 </body>

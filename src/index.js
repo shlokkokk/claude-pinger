@@ -139,7 +139,8 @@ export default {
         accounts: accounts.map(a => ({ id: a.id, name: a.name, themeColor: a.themeColor })),
         credentials: {
           ...accountsDiagnostic,
-          browserlessApiKey: !!(env.BROWSERLESS_TOKEN || env.BROWSERLESS_API_KEY)
+          browserlessApiKey: !!(env.BROWSERLESS_TOKEN || env.BROWSERLESS_API_KEY),
+          taskQueueConfigured: !!env.TASK_QUEUE
         },
         browserless: {
           status: 'unknown',
@@ -180,6 +181,113 @@ export default {
           'Cache-Control': 'no-cache'
         }
       });
+    }
+
+    // TASK QUEUE API: SCHEDULED OVERNIGHT PROMPTS
+    if (pathname === '/api/queue') {
+      const corsHeaders = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Cache-Control': 'no-cache'
+      };
+
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { headers: corsHeaders });
+      }
+
+      if (!env.TASK_QUEUE) {
+        return new Response(JSON.stringify({ 
+          error: 'TASK_QUEUE KV namespace is not configured on Cloudflare.',
+          tasks: {}
+        }), { status: 200, headers: corsHeaders });
+      }
+
+      // GET: List all tasks
+      if (request.method === 'GET') {
+        const accounts = getAllAccounts(env);
+        const tasks = {};
+        for (const a of accounts) {
+          try {
+            const raw = await env.TASK_QUEUE.get(`task_account_${a.id}`);
+            if (raw) {
+              tasks[a.id] = JSON.parse(raw);
+            }
+          } catch (e) {
+            console.warn(`Error reading queue for account ${a.id}:`, e.message);
+          }
+        }
+        return new Response(JSON.stringify({ success: true, tasks }), {
+          status: 200,
+          headers: corsHeaders
+        });
+      }
+
+      // POST: Queue a new task
+      if (request.method === 'POST') {
+        try {
+          const body = await request.json();
+          const accountId = parseInt(body.accountId || body.account, 10);
+          if (isNaN(accountId) || accountId < 1) {
+            return new Response(JSON.stringify({ error: 'Valid accountId is required.' }), { status: 400, headers: corsHeaders });
+          }
+
+          let chatUrl = (body.chatUrl || '').trim();
+          if (!chatUrl) {
+            return new Response(JSON.stringify({ error: 'Chat URL is required.' }), { status: 400, headers: corsHeaders });
+          }
+
+          // Format clean full chat url if user just provided UUID or relative path
+          if (!chatUrl.startsWith('http://') && !chatUrl.startsWith('https://')) {
+            if (chatUrl.startsWith('/chat/')) {
+              chatUrl = 'https://claude.ai' + chatUrl;
+            } else if (chatUrl.startsWith('chat/')) {
+              chatUrl = 'https://claude.ai/' + chatUrl;
+            } else {
+              chatUrl = 'https://claude.ai/chat/' + chatUrl;
+            }
+          }
+
+          const prompt = (body.prompt || 'continue').trim() || 'continue';
+
+          const task = {
+            id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            accountId,
+            chatUrl,
+            prompt,
+            status: 'queued',
+            queuedAt: new Date().toISOString(),
+            queuedAtTimestamp: Date.now()
+          };
+
+          await env.TASK_QUEUE.put(`task_account_${accountId}`, JSON.stringify(task));
+
+          return new Response(JSON.stringify({ 
+            success: true, 
+            message: `Task queued for Account ${accountId}. Will execute on next scheduled ping.`,
+            task 
+          }), { status: 200, headers: corsHeaders });
+        } catch (err) {
+          return new Response(JSON.stringify({ error: 'Invalid JSON payload: ' + err.message }), { status: 400, headers: corsHeaders });
+        }
+      }
+
+      // DELETE: Cancel queued task
+      if (request.method === 'DELETE') {
+        const accId = parseInt(accountParam || url.searchParams.get('accountId'), 10);
+        if (isNaN(accId)) {
+          return new Response(JSON.stringify({ error: 'accountId parameter is required to delete.' }), { status: 400, headers: corsHeaders });
+        }
+
+        await env.TASK_QUEUE.delete(`task_account_${accId}`);
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: `Queued task removed for Account ${accId}.` 
+        }), { status: 200, headers: corsHeaders });
+      }
+
+      return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
     }
 
     if (pathname.startsWith('/api/ping') || pathname === '/ping' || request.method === 'POST') {
@@ -223,7 +331,7 @@ async function pingSpecificAccount(env, accountNum) {
   }
 
   console.log(`Pinging ${acc.name}...`);
-  const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl);
+  const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl, acc.id);
   return [{ account: acc.name, result: res }];
 }
 
@@ -236,7 +344,7 @@ async function pingAccountsList(env, accounts) {
   for (const acc of accounts) {
     console.log(`Pinging ${acc.name}...`);
     try {
-      const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl);
+      const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl, acc.id);
       results.push({ account: acc.name, result: res });
     } catch (err) {
       results.push({ account: acc.name, result: { success: false, error: err.message } });
@@ -258,16 +366,41 @@ async function pingAllClaudeAccounts(env) {
   return pingAccountsList(env, accounts);
 }
 
-async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
+async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, accountId) {
   const TOKEN = env && env.BROWSERLESS_TOKEN;
   if (!TOKEN) {
     return { success: false, error: 'BROWSERLESS_TOKEN secret is not set.' };
   }
 
+  // 1. Check if a task is queued in KV for this account
+  let queuedTask = null;
+  if (env && env.TASK_QUEUE && accountId) {
+    try {
+      const raw = await env.TASK_QUEUE.get(`task_account_${accountId}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.status === 'queued') {
+          queuedTask = parsed;
+          console.log(`Executing queued task for ${accountName} (Account ${accountId}): "${queuedTask.prompt}" -> ${queuedTask.chatUrl}`);
+        }
+      }
+    } catch (kvErr) {
+      console.warn(`KV read error for account ${accountId}:`, kvErr.message);
+    }
+  }
+
+  const targetCustomUrl = queuedTask ? queuedTask.chatUrl : null;
+  const promptToSend = queuedTask ? queuedTask.prompt : 'ping. Reply with "." only.';
+  const isCustomTask = Boolean(queuedTask);
+
   const browserlessCode = `
     export default async ({ page, browser }) => {
       const sessionKey = ${JSON.stringify(sessionKey)};
       const directChatUrlHint = ${JSON.stringify(chatUrlHint || null)};
+      const targetCustomUrl = ${JSON.stringify(targetCustomUrl)};
+      const promptToSend = ${JSON.stringify(promptToSend)};
+      const isCustomTask = ${isCustomTask};
+
       const p = page || (browser ? await browser.newPage() : null);
       if (!p) {
         throw new Error('No browser page available');
@@ -295,107 +428,110 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
         });
       }
 
-      let targetChatUrl = null;
+      let targetChatUrl = targetCustomUrl;
       let cleanedUpSpamCount = 0;
-      let threadDiscoveryMethod = 'none';
+      let threadDiscoveryMethod = targetCustomUrl ? 'custom_task_url' : 'none';
       let pageTitle = '';
       let accountSnippet = '';
       let stepError = null;
       let actionExecuted = false;
 
-      try {
-        await p.goto('https://claude.ai/', { waitUntil: 'domcontentloaded', timeout: 25000 });
-        await new Promise(r => setTimeout(r, 3500));
-      } catch (navErr) {
-        console.warn('Initial root load warning:', navErr.message);
-      }
+      // Only perform discovery/cleanup if NOT executing a custom queued assignment chat
+      if (!targetCustomUrl) {
+        try {
+          await p.goto('https://claude.ai/', { waitUntil: 'domcontentloaded', timeout: 25000 });
+          await new Promise(r => setTimeout(r, 3500));
+        } catch (navErr) {
+          console.warn('Initial root load warning:', navErr.message);
+        }
 
-      try {
-        const discoveryResult = await p.evaluate(async () => {
-          let discoveredUrl = null;
-          let deletedCount = 0;
-          let orgId = null;
+        try {
+          const discoveryResult = await p.evaluate(async () => {
+            let discoveredUrl = null;
+            let deletedCount = 0;
+            let orgId = null;
 
-          try {
-            const orgsRes = await fetch('/api/organizations', {
-              headers: { 'Accept': 'application/json' },
-              credentials: 'include'
-            });
+            try {
+              const orgsRes = await fetch('/api/organizations', {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'include'
+              });
 
-            if (orgsRes.ok) {
-              const orgs = await orgsRes.json();
-              if (Array.isArray(orgs) && orgs.length > 0) {
-                orgId = orgs[0].uuid;
+              if (orgsRes.ok) {
+                const orgs = await orgsRes.json();
+                if (Array.isArray(orgs) && orgs.length > 0) {
+                  orgId = orgs[0].uuid;
 
-                const convRes = await fetch('/api/organizations/' + orgId + '/chat_conversations', {
-                  headers: { 'Accept': 'application/json' },
-                  credentials: 'include'
-                });
+                  const convRes = await fetch('/api/organizations/' + orgId + '/chat_conversations', {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                  });
 
-                if (convRes.ok) {
-                  const conversations = await convRes.json();
-                  if (Array.isArray(conversations) && conversations.length > 0) {
-                    const pingChats = conversations.filter(c => {
-                      const name = (c.name || '').toLowerCase().trim();
-                      return /\\b(ping|pinger|keepalive|greeting)\\b/i.test(name) || name === 'untitled';
-                    });
+                  if (convRes.ok) {
+                    const conversations = await convRes.json();
+                    if (Array.isArray(conversations) && conversations.length > 0) {
+                      const pingChats = conversations.filter(c => {
+                        const name = (c.name || '').toLowerCase().trim();
+                        return /\\b(ping|pinger|keepalive|greeting)\\b/i.test(name) || name === 'untitled';
+                      });
 
-                    if (pingChats.length > 0) {
-                      pingChats.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
-                      const activePingChat = pingChats[0];
-                      discoveredUrl = 'https://claude.ai/chat/' + activePingChat.uuid;
+                      if (pingChats.length > 0) {
+                        pingChats.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+                        const activePingChat = pingChats[0];
+                        discoveredUrl = 'https://claude.ai/chat/' + activePingChat.uuid;
 
-                      const duplicatesToDelete = pingChats.slice(1, 6);
-                      for (const dup of duplicatesToDelete) {
-                        try {
-                          await fetch('/api/organizations/' + orgId + '/chat_conversations/' + dup.uuid, {
-                            method: 'DELETE',
-                            headers: { 'Accept': 'application/json' },
-                            credentials: 'include'
-                          });
-                          deletedCount++;
-                        } catch (delErr) {}
+                        const duplicatesToDelete = pingChats.slice(1, 6);
+                        for (const dup of duplicatesToDelete) {
+                          try {
+                            await fetch('/api/organizations/' + orgId + '/chat_conversations/' + dup.uuid, {
+                              method: 'DELETE',
+                              headers: { 'Accept': 'application/json' },
+                              credentials: 'include'
+                            });
+                            deletedCount++;
+                          } catch (delErr) {}
+                        }
                       }
                     }
                   }
                 }
               }
+            } catch (apiErr) {
+              console.warn('Internal API discovery error:', apiErr.message);
             }
-          } catch (apiErr) {
-            console.warn('Internal API discovery error:', apiErr.message);
-          }
 
-          if (!discoveredUrl) {
-            const sidebarLinks = Array.from(document.querySelectorAll('a[href*="/chat/"]'));
-            const pingLink = sidebarLinks.find(el => {
-              const text = (el.innerText || '').toLowerCase().trim();
-              return /\\b(ping|pinger|keepalive)\\b/i.test(text);
-            });
-            if (pingLink && pingLink.href) {
-              discoveredUrl = pingLink.href;
+            if (!discoveredUrl) {
+              const sidebarLinks = Array.from(document.querySelectorAll('a[href*="/chat/"]'));
+              const pingLink = sidebarLinks.find(el => {
+                const text = (el.innerText || '').toLowerCase().trim();
+                return /\\b(ping|pinger|keepalive)\\b/i.test(text);
+              });
+              if (pingLink && pingLink.href) {
+                discoveredUrl = pingLink.href;
+              }
             }
+
+            return {
+              url: discoveredUrl,
+              deletedCount: deletedCount,
+              method: discoveredUrl ? (orgId ? 'internal_api' : 'dom_sidebar') : 'none'
+            };
+          });
+
+          if (discoveryResult && discoveryResult.url) {
+            targetChatUrl = discoveryResult.url;
+            cleanedUpSpamCount = discoveryResult.deletedCount || 0;
+            threadDiscoveryMethod = discoveryResult.method || 'detected';
           }
-
-          return {
-            url: discoveredUrl,
-            deletedCount: deletedCount,
-            method: discoveredUrl ? (orgId ? 'internal_api' : 'dom_sidebar') : 'none'
-          };
-        });
-
-        if (discoveryResult && discoveryResult.url) {
-          targetChatUrl = discoveryResult.url;
-          cleanedUpSpamCount = discoveryResult.deletedCount || 0;
-          threadDiscoveryMethod = discoveryResult.method || 'detected';
+        } catch (discErr) {
+          console.warn('Thread discovery exception:', discErr.message);
         }
-      } catch (discErr) {
-        console.warn('Thread discovery exception:', discErr.message);
       }
 
-      const destination = targetChatUrl || 'https://claude.ai/new';
+      const destination = targetChatUrl || directChatUrlHint || 'https://claude.ai/new';
       try {
-        await p.goto(destination, { waitUntil: 'domcontentloaded', timeout: 20000 });
-        await new Promise(r => setTimeout(r, 3000));
+        await p.goto(destination, { waitUntil: 'domcontentloaded', timeout: 25000 });
+        await new Promise(r => setTimeout(r, 3500));
       } catch (navErr) {
         console.warn('Navigation warning to ' + destination + ':', navErr.message);
       }
@@ -412,6 +548,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
           actionExecuted: false,
           threadDiscoveryMethod: 'none',
           cleanedUpSpamCount: 0,
+          isCustomTask,
           stepError: 'Session key expired or revoked. Please update your session key in Cloudflare secrets.'
         };
       }
@@ -438,6 +575,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
 
         if (isExhausted) {
           hasInput = false;
+          stepError = 'Conversation context limit reached on Claude.';
         } else {
           hasInput = true;
         }
@@ -445,7 +583,8 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
         hasInput = false;
       }
 
-      if (!hasInput) {
+      // If generic ping and no input, fallback to /new. If custom task and no input, report error
+      if (!hasInput && !isCustomTask) {
         try {
           await p.goto('https://claude.ai/new', { waitUntil: 'domcontentloaded', timeout: 20000 });
           await p.waitForSelector(inputSelector, { timeout: 12000 });
@@ -453,6 +592,8 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
         } catch (e) {
           stepError = 'Could not locate active chat input box on /new: ' + e.message;
         }
+      } else if (!hasInput && isCustomTask) {
+        stepError = stepError || ('Input box not found or disabled in custom chat URL (' + destination + ').');
       }
 
       if (hasInput) {
@@ -460,7 +601,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
           await p.click(inputSelector);
           await p.focus(inputSelector);
           
-          await p.keyboard.type('ping. Reply with "." only.');
+          await p.keyboard.type(promptToSend);
           await new Promise(r => setTimeout(r, 400));
           
           await p.keyboard.press('Enter');
@@ -473,9 +614,10 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
           } catch (btnErr) {}
 
           actionExecuted = true;
-          await new Promise(r => setTimeout(r, 3500));
+          // Hold session for 4.5 seconds so Anthropic receives payload and starts generation
+          await new Promise(r => setTimeout(r, 4500));
         } catch (typeErr) {
-          stepError = 'Failed typing or submitting ping: ' + typeErr.message;
+          stepError = 'Failed typing or submitting message: ' + typeErr.message;
         }
       }
 
@@ -487,6 +629,8 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
         actionExecuted,
         threadDiscoveryMethod,
         cleanedUpSpamCount,
+        isCustomTask,
+        promptSent: promptToSend,
         stepError
       };
     };
@@ -509,9 +653,53 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint) {
 
     const result = await response.json();
     console.log(`Ping result for ${accountName}:`, result);
+
+    // Update KV task status and handle fallback if needed
+    if (queuedTask && env && env.TASK_QUEUE && accountId) {
+      try {
+        if (result && result.success) {
+          await env.TASK_QUEUE.put(`task_account_${accountId}`, JSON.stringify({
+            ...queuedTask,
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+            lastResult: `Successfully sent "${promptToSend}" to ${result.url || queuedTask.chatUrl}`
+          }), { expirationTtl: 86400 * 3 });
+        } else {
+          await env.TASK_QUEUE.put(`task_account_${accountId}`, JSON.stringify({
+            ...queuedTask,
+            status: 'failed',
+            failedAt: new Date().toISOString(),
+            error: result?.stepError || result?.error || 'Execution failed'
+          }), { expirationTtl: 86400 * 3 });
+
+          // Resilience Fallback: run normal ping so account 5-hour window is preserved
+          console.warn(`Custom task failed for ${accountName}. Dispatching fallback keep-alive ping...`);
+          try {
+            await pingClaudeAccount(env, accountName, sessionKey, null, null);
+          } catch (fbErr) {
+            console.error(`Fallback ping failed:`, fbErr.message);
+          }
+        }
+      } catch (kvWriteErr) {
+        console.warn(`Error updating KV task status:`, kvWriteErr.message);
+      }
+    }
+
     return result;
   } catch (err) {
     console.error(`Ping exception for ${accountName}:`, err.message);
+
+    if (queuedTask && env && env.TASK_QUEUE && accountId) {
+      try {
+        await env.TASK_QUEUE.put(`task_account_${accountId}`, JSON.stringify({
+          ...queuedTask,
+          status: 'failed',
+          failedAt: new Date().toISOString(),
+          error: err.message
+        }), { expirationTtl: 86400 * 3 });
+      } catch (e) {}
+    }
+
     return { success: false, error: err.message };
   }
 }
