@@ -1,4 +1,4 @@
-export function renderDashboardHTML() {
+export function renderDashboardHTML(initialAccounts = []) {
   return `<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -631,116 +631,303 @@ export function renderDashboardHTML() {
     .log-msg.error { color: var(--danger-red); }
 
     /* OVERNIGHT TASK AUTOPILOT */
+    .section-subtext {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
+
+    .autopilot-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--acc1-cyan);
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
     .queue-form {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 16px;
+      margin-top: 10px;
     }
 
-    .queue-row {
+    .form-group {
       display: flex;
-      gap: 8px;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .queue-select, .queue-input {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      color: var(--text-primary);
-      padding: 8px 10px;
-      font-size: 0.76rem;
-      font-family: var(--font-mono);
-      outline: none;
-      transition: border-color 0.15s ease;
+    .form-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.70rem;
+      font-weight: 800;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-label svg {
+      color: var(--acc1-cyan);
+    }
+
+    .form-hint {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-family: var(--font-main);
+      padding-left: 2px;
+    }
+
+    .custom-select-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .select-left-icon {
+      position: absolute;
+      left: 13px;
+      pointer-events: none;
+      color: var(--acc1-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
     }
 
     .queue-select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      color: var(--text-primary);
+      padding: 11px 40px 11px 40px;
+      font-size: 0.82rem;
       font-family: var(--font-main);
-      font-weight: 600;
-      min-width: 130px;
-      background: #0f131c;
+      font-weight: 700;
       cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .queue-select:focus, .queue-input:focus {
+    .queue-select:hover {
+      border-color: var(--border-focus);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .queue-select:focus {
       border-color: var(--acc1-cyan);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.15);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .queue-select option {
+      background: #0f131d;
+      color: var(--text-primary);
+      font-size: 0.82rem;
+      padding: 8px 12px;
+    }
+
+    .select-chevron {
+      position: absolute;
+      right: 14px;
+      pointer-events: none;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, color 0.2s ease;
+      z-index: 1;
+    }
+
+    .custom-select-wrap:hover .select-chevron {
+      color: var(--text-primary);
+    }
+
+    .input-with-icon {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 13px;
+      pointer-events: none;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      z-index: 1;
     }
 
     .queue-input {
-      flex: 1;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      color: var(--text-primary);
+      padding: 11px 14px 11px 40px;
+      font-size: 0.80rem;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .queue-input:hover {
+      border-color: var(--border-focus);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .queue-input:focus {
+      border-color: var(--acc1-cyan);
+      background: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.15);
     }
 
     .queue-btn-row {
       display: flex;
-      gap: 8px;
-      margin-top: 2px;
+      gap: 10px;
+      margin-top: 6px;
+      flex-wrap: wrap;
     }
 
     .btn-queue {
       flex: 1;
-      background: rgba(0, 242, 254, 0.12);
-      border: 1px solid rgba(0, 242, 254, 0.35);
+      min-width: 180px;
+      min-height: 44px;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.18) 0%, rgba(16, 185, 129, 0.15) 100%);
+      border: 1px solid rgba(0, 242, 254, 0.4);
       color: var(--acc1-cyan);
-      padding: 9px 12px;
-      border-radius: 8px;
+      padding: 10px 18px;
+      border-radius: 10px;
       font-weight: 700;
-      font-size: 0.76rem;
+      font-size: 0.80rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-queue:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.28) 0%, rgba(16, 185, 129, 0.25) 100%);
+      border-color: var(--acc1-cyan);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .btn-queue:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-queue:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-queue-now {
+      min-height: 44px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.78rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: all 0.15s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .btn-queue:hover {
-      background: rgba(0, 242, 254, 0.2);
-      border-color: var(--acc1-cyan);
-    }
-
-    .btn-queue-now {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.74rem;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .btn-queue-now:hover {
+    .btn-queue-now:hover:not(:disabled) {
       background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      border-color: var(--border-focus);
+      transform: translateY(-1px);
+    }
+
+    .btn-queue-now:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-queue-now:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .queue-active-wrapper {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .queue-active-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .task-count-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.07);
       color: var(--text-primary);
     }
 
     .active-tasks-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-top: 6px;
+      gap: 10px;
     }
 
     .task-item-card {
-      background: rgba(0, 242, 254, 0.04);
-      border: 1px solid rgba(0, 242, 254, 0.2);
-      border-radius: 9px;
-      padding: 9px 12px;
+      background: rgba(15, 19, 29, 0.9);
+      border: 1px solid rgba(0, 242, 254, 0.22);
+      border-radius: 12px;
+      padding: 13px 15px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      font-size: 0.74rem;
+      gap: 8px;
+      font-size: 0.76rem;
+      transition: all 0.2s ease;
     }
 
     .task-item-card.completed {
-      background: rgba(16, 185, 129, 0.04);
-      border-color: rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.25);
     }
 
     .task-item-card.failed {
-      background: rgba(239, 68, 68, 0.04);
-      border-color: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.25);
     }
 
     .task-header {
@@ -749,27 +936,107 @@ export function renderDashboardHTML() {
       align-items: center;
     }
 
+    .task-acc-title {
+      font-weight: 800;
+      font-size: 0.82rem;
+      letter-spacing: -0.01em;
+    }
+
     .task-badge {
       font-family: var(--font-mono);
       font-weight: 800;
-      font-size: 0.64rem;
-      padding: 2px 6px;
-      border-radius: 4px;
+      font-size: 0.62rem;
+      padding: 2px 8px;
+      border-radius: 5px;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    .task-badge.queued { background: rgba(0, 242, 254, 0.15); color: var(--acc1-cyan); }
-    .task-badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--success-green); }
-    .task-badge.failed { background: rgba(239, 68, 68, 0.15); color: var(--danger-red); }
+    .task-badge.queued {
+      background: rgba(0, 242, 254, 0.12);
+      color: var(--acc1-cyan);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+    }
+
+    .task-badge.completed {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--success-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .task-badge.failed {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--danger-red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .task-prompt-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: #e2e8f0;
+      word-break: break-all;
+      display: flex;
+      gap: 6px;
+    }
+
+    .task-prompt-box strong {
+      color: var(--acc1-cyan);
+    }
+
+    .task-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .task-chat-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--acc1-cyan);
+      text-decoration: none;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: color 0.15s ease;
+    }
+
+    .task-chat-link:hover {
+      text-decoration: underline;
+    }
 
     .task-cancel-btn {
-      background: none;
-      border: none;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 6px;
       color: var(--danger-red);
       font-size: 0.68rem;
+      font-weight: 700;
       cursor: pointer;
-      text-decoration: underline;
-      padding: 0;
+      padding: 4px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .task-cancel-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--danger-red);
+      transform: translateY(-1px);
     }
 
     /* DUAL-LANE 24H MASTER TIMELINE */
@@ -1257,32 +1524,102 @@ export function renderDashboardHTML() {
           </svg>
           Overnight Task Autopilot
         </h2>
-        <span style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);" id="taskQueueStatus">Dynamic Queue</span>
+        <span class="autopilot-badge" id="taskQueueStatus">Dynamic Queue</span>
       </div>
+
+      <p class="section-subtext">
+        Queue a chat link and prompt to wake up with your assignments completed. Claude Pulse automatically navigates directly to your conversation and continues your work when the rate limit resets (+2m safety buffer).
+      </p>
 
       <div class="queue-form">
-        <div class="queue-row">
-          <select class="queue-select" id="queueAccountSelect"></select>
-          <input type="text" class="queue-input" id="queueChatUrl" placeholder="Claude Chat URL (e.g. https://claude.ai/chat/...)">
+        <!-- Target Account Selection -->
+        <div class="form-group">
+          <label class="form-label" for="queueAccountSelect">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            Target Claude Account
+          </label>
+          <div class="custom-select-wrap">
+            <div class="select-left-icon">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <select class="queue-select" id="queueAccountSelect"></select>
+            <div class="select-chevron">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </div>
+          </div>
+          <span class="form-hint">Select which account will run this prompt when its rate limit resets.</span>
         </div>
-        <div class="queue-row">
-          <input type="text" class="queue-input" id="queuePrompt" value="continue" placeholder="Prompt to send (e.g. continue)">
+
+        <!-- Claude Conversation URL -->
+        <div class="form-group">
+          <label class="form-label" for="queueChatUrl">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            Claude Chat URL
+          </label>
+          <div class="input-with-icon">
+            <div class="input-icon">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+            </div>
+            <input type="text" class="queue-input" id="queueChatUrl" placeholder="https://claude.ai/chat/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+          </div>
+          <span class="form-hint">Copy from your browser address bar while inside the target conversation.</span>
         </div>
+
+        <!-- Prompt to Send -->
+        <div class="form-group">
+          <label class="form-label" for="queuePrompt">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+            </svg>
+            Autopilot Prompt
+          </label>
+          <div class="input-with-icon">
+            <div class="input-icon">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </div>
+            <input type="text" class="queue-input" id="queuePrompt" value="continue" placeholder="e.g. continue with section 4" autocomplete="off">
+          </div>
+          <span class="form-hint">Message sent to Claude immediately when the reset buffer fires.</span>
+        </div>
+
+        <!-- Action Buttons -->
         <div class="queue-btn-row">
           <button class="btn-queue" id="btnQueueTask" onclick="submitQueuedTask(false)">
-            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
             </svg>
-            Queue for Next Ping
+            <span id="btnQueueText">Queue for Next Reset Ping</span>
           </button>
-          <button class="btn-queue-now" onclick="submitQueuedTask(true)">
-            Dispatch Now
+          <button class="btn-queue-now" id="btnQueueNow" onclick="submitQueuedTask(true)">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span id="btnQueueNowText">Dispatch Now</span>
           </button>
         </div>
       </div>
 
-      <div class="active-tasks-list" id="activeTasksList">
-        <!-- Rendered dynamically -->
+      <!-- Active Tasks Container -->
+      <div class="queue-active-wrapper">
+        <div class="queue-active-header">
+          <span>Active Queued Tasks</span>
+          <span class="task-count-badge" id="taskCountBadge">0</span>
+        </div>
+        <div class="active-tasks-list" id="activeTasksList">
+          <!-- Rendered dynamically -->
+        </div>
       </div>
     </section>
 
@@ -1359,10 +1696,10 @@ export function renderDashboardHTML() {
     let selectedScheduleItem = null;
     let pinnedItem = null;
 
-    let ACCOUNTS = [
+    let ACCOUNTS = ${JSON.stringify(initialAccounts && initialAccounts.length > 0 ? initialAccounts : [
       { id: 1, name: 'Account 1', color: '#00f2fe' },
       { id: 2, name: 'Account 2', color: '#c084fc' }
-    ];
+    ])};
 
     function generateScheduleForAccounts(accounts) {
       if (!accounts || accounts.length === 0) return [];
@@ -2035,16 +2372,27 @@ export function renderDashboardHTML() {
       }
     }
 
+    // HTML Sanitizer for XSS Protection
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     // Task Queue Management
     function populateQueueAccountSelect() {
-      const select = document.getElementById('queueAccountSelect');
+      const select = document.getElementById("queueAccountSelect");
       if (!select) return;
       const currentVal = select.value;
-      select.innerHTML = '';
+      select.innerHTML = "";
       ACCOUNTS.forEach(acc => {
-        const opt = document.createElement('option');
+        const opt = document.createElement("option");
         opt.value = acc.id;
-        opt.innerText = acc.name;
+        opt.innerText = acc.name + " (Account " + acc.id + ")";
         select.appendChild(opt);
       });
       if (currentVal && ACCOUNTS.some(a => a.id === parseInt(currentVal, 10))) {
@@ -2053,113 +2401,163 @@ export function renderDashboardHTML() {
     }
 
     async function fetchQueueTasks() {
-      const container = document.getElementById('activeTasksList');
+      const container = document.getElementById("activeTasksList");
+      const countBadge = document.getElementById("taskCountBadge");
       if (!container) return;
 
       try {
-        const res = await fetch('/api/queue');
+        const res = await fetch("/api/queue");
         if (!res.ok) return;
         const data = await res.json();
         const tasks = data.tasks || {};
 
         const taskEntries = Object.entries(tasks);
+        if (countBadge) {
+          countBadge.innerText = String(taskEntries.length);
+        }
+
         if (taskEntries.length === 0) {
-          container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.72rem; text-align: center; padding: 6px;">No overnight tasks currently queued.</div>';
+          container.innerHTML = 
+            '<div style="color: var(--text-muted); font-size: 0.74rem; text-align: center; padding: 18px 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.08); border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px;">' +
+              '<svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" style="opacity: 0.5;">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>' +
+              '</svg>' +
+              '<span>No overnight tasks queued. Set a chat URL and prompt above to let Claude work while you sleep.</span>' +
+            '</div>';
           return;
         }
 
-        container.innerHTML = '';
+        container.innerHTML = "";
         taskEntries.forEach(([accId, task]) => {
-          const acc = ACCOUNTS.find(a => a.id === parseInt(accId, 10)) || { name: 'Account ' + accId, color: '#00f2fe' };
-          const card = document.createElement('div');
-          card.className = 'task-item-card ' + (task.status || 'queued');
+          const acc = ACCOUNTS.find(a => a.id === parseInt(accId, 10)) || { name: "Account " + accId, color: "#00f2fe" };
+          const card = document.createElement("div");
+          card.className = "task-item-card " + (task.status || "queued");
           
-          let statusBadge = '<span class="task-badge queued">Queued</span>';
-          if (task.status === 'completed') statusBadge = '<span class="task-badge completed">Completed</span>';
-          if (task.status === 'failed') statusBadge = '<span class="task-badge failed">Failed</span>';
+          let statusBadge = '<span class="task-badge queued"><span style="width:6px; height:6px; border-radius:50%; background:var(--acc1-cyan); display:inline-block; box-shadow:0 0 6px var(--acc1-cyan);"></span>Queued</span>';
+          if (task.status === "completed") {
+            statusBadge = '<span class="task-badge completed"><span style="width:6px; height:6px; border-radius:50%; background:var(--success-green); display:inline-block;"></span>Completed</span>';
+          }
+          if (task.status === "failed") {
+            statusBadge = '<span class="task-badge failed"><span style="width:6px; height:6px; border-radius:50%; background:var(--danger-red); display:inline-block;"></span>Failed</span>';
+          }
 
-          const timeText = task.status === 'completed'
-            ? ('Finished at ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : ''))
-            : (task.status === 'failed' ? ('Failed: ' + (task.error || 'Execution error')) : 'Fires on next scheduled ping');
+          const timeText = task.status === "completed"
+            ? ("Finished at " + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString("en-US") : "recently"))
+            : (task.status === "failed" ? ("Failed: " + escapeHtml(task.error || "Execution error")) : "Fires on next scheduled reset ping");
 
-          const cancelAction = (task.status === 'queued')
-            ? ('<button class="task-cancel-btn" onclick="cancelQueuedTask(' + accId + ')">Cancel</button>')
-            : ('<button class="task-cancel-btn" onclick="cancelQueuedTask(' + accId + ')">Clear</button>');
+          const cancelAction = (task.status === "queued")
+            ? ('<button class="task-cancel-btn" onclick="cancelQueuedTask(' + accId + ')"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel Task</button>')
+            : ('<button class="task-cancel-btn" onclick="cancelQueuedTask(' + accId + ')"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Clear</button>');
+
+          const safeUrl = (task.chatUrl && (task.chatUrl.startsWith("http://") || task.chatUrl.startsWith("https://")))
+            ? escapeHtml(task.chatUrl)
+            : "#";
 
           card.innerHTML = 
             '<div class="task-header">' +
-              '<div style="display:flex; align-items:center; gap:6px;">' +
-                '<span style="font-weight:700; color:' + (acc.color || '#00f2fe') + ';">' + acc.name + '</span>' +
+              '<div style="display:flex; align-items:center; gap:8px;">' +
+                '<span class="task-acc-title" style="color:' + (acc.color || '#00f2fe') + ';">' + escapeHtml(acc.name) + '</span>' +
                 statusBadge +
               '</div>' +
               cancelAction +
             '</div>' +
-            '<div style="font-family: var(--font-mono); font-size: 0.72rem; color: #cbd5e1; word-break: break-all;">' +
-              '<strong>Prompt:</strong> &ldquo;' + (task.prompt || 'continue') + '&rdquo;' +
+            '<div class="task-prompt-box">' +
+              '<strong>Prompt:</strong>' +
+              '<span>&ldquo;' + escapeHtml(task.prompt || "continue") + '&rdquo;</span>' +
             '</div>' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);">' +
-              '<a href="' + (task.chatUrl || '#') + '" target="_blank" style="color:var(--acc1-cyan); text-decoration:none; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + (task.chatUrl || 'Claude Chat') + '</a>' +
-              '<span>' + timeText + '</span>' +
+            '<div class="task-meta-row">' +
+              '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="task-chat-link" title="' + safeUrl + '">' +
+                '<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
+                '<span>' + safeUrl + '</span>' +
+              '</a>' +
+              '<span>' + escapeHtml(timeText) + '</span>' +
             '</div>';
 
           container.appendChild(card);
         });
       } catch (e) {
-        console.warn('Queue fetch skipped:', e.message);
+        console.warn("Queue fetch skipped:", e.message);
       }
     }
 
     async function submitQueuedTask(runNow) {
-      const select = document.getElementById('queueAccountSelect');
-      const chatUrlInput = document.getElementById('queueChatUrl');
-      const promptInput = document.getElementById('queuePrompt');
+      const select = document.getElementById("queueAccountSelect");
+      const chatUrlInput = document.getElementById("queueChatUrl");
+      const promptInput = document.getElementById("queuePrompt");
+      const btnQueue = document.getElementById("btnQueueTask");
+      const btnNow = document.getElementById("btnQueueNow");
+      const textQueue = document.getElementById("btnQueueText");
+      const textNow = document.getElementById("btnQueueNowText");
 
       const accountId = select ? parseInt(select.value, 10) : 1;
-      const chatUrl = chatUrlInput ? chatUrlInput.value.trim() : '';
-      const prompt = promptInput ? promptInput.value.trim() : 'continue';
+      const chatUrl = chatUrlInput ? chatUrlInput.value.trim() : "";
+      const prompt = promptInput ? promptInput.value.trim() : "continue";
 
       if (!chatUrl) {
-        alert('Please paste your Claude Chat URL first!');
+        alert("Please paste your Claude Chat URL first!");
         if (chatUrlInput) chatUrlInput.focus();
         return;
       }
 
-      const acc = ACCOUNTS.find(a => a.id === accountId) || { name: 'Account ' + accountId };
-      addConsoleLog('Queueing prompt for ' + acc.name + '...', 'info');
+      // Quick client-side URL sanity check
+      if (!chatUrl.includes("claude.ai") && !chatUrl.match(/^[a-zA-Z0-9_-]{8,}$/)) {
+        alert("Please enter a valid Claude conversation URL (e.g. https://claude.ai/chat/...)");
+        if (chatUrlInput) chatUrlInput.focus();
+        return;
+      }
+
+      // Anti-spam double click protection
+      if (btnQueue) btnQueue.disabled = true;
+      if (btnNow) btnNow.disabled = true;
+      const originalText = runNow ? (textNow ? textNow.innerText : "") : (textQueue ? textQueue.innerText : "");
+      if (runNow && textNow) textNow.innerText = "Dispatching...";
+      if (!runNow && textQueue) textQueue.innerText = "Queueing...";
+
+      const acc = ACCOUNTS.find(a => a.id === accountId) || { name: "Account " + accountId };
+      addConsoleLog("Queueing prompt for " + acc.name + "...", "info");
 
       try {
-        const res = await fetch('/api/queue', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/queue", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ accountId, chatUrl, prompt })
         });
         const data = await res.json();
         if (data.success) {
-          addConsoleLog('SUCCESS: Task queued for ' + acc.name + ' ("' + prompt + '")', 'success');
-          if (chatUrlInput) chatUrlInput.value = '';
-          fetchQueueTasks();
+          addConsoleLog("SUCCESS: Task queued for " + acc.name + ' ("' + prompt + '")', "success");
+          if (chatUrlInput) chatUrlInput.value = "";
+          await fetchQueueTasks();
 
           if (runNow) {
             confirmAndPing(accountId, acc.name);
           }
         } else {
-          addConsoleLog('Queue Error: ' + (data.error || 'Failed to queue'), 'error');
+          addConsoleLog("Queue Error: " + (data.error || "Failed to queue"), "error");
+          alert("Could not queue task: " + (data.error || "Unknown error"));
         }
       } catch (err) {
-        addConsoleLog('Network Error queueing task: ' + err.message, 'error');
+        addConsoleLog("Network Error queueing task: " + err.message, "error");
+        alert("Network error: " + err.message);
+      } finally {
+        if (btnQueue) btnQueue.disabled = false;
+        if (btnNow) btnNow.disabled = false;
+        if (runNow && textNow) textNow.innerText = originalText || "Dispatch Now";
+        if (!runNow && textQueue) textQueue.innerText = originalText || "Queue for Next Reset Ping";
       }
     }
 
     async function cancelQueuedTask(accountId) {
       try {
-        const res = await fetch('/api/queue?accountId=' + accountId, { method: 'DELETE' });
+        const res = await fetch("/api/queue?accountId=" + accountId, { method: "DELETE" });
         const data = await res.json();
         if (data.success) {
-          addConsoleLog('Cancelled task for Account ' + accountId, 'normal');
+          addConsoleLog("Cancelled task for Account " + accountId, "normal");
           fetchQueueTasks();
+        } else {
+          addConsoleLog("Error removing task: " + (data.error || "Failed"), "error");
         }
       } catch (err) {
-        console.error('Cancel task error:', err);
+        console.error("Cancel task error:", err);
       }
     }
 

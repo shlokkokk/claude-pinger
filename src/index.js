@@ -233,13 +233,34 @@ export default {
             return new Response(JSON.stringify({ error: 'Valid accountId is required.' }), { status: 400, headers: corsHeaders });
           }
 
+          // Anti-spam & Account existence check
+          const accounts = getAllAccounts(env);
+          const matchedAcc = accounts.find(a => a.id === accountId);
+          if (!matchedAcc) {
+            return new Response(JSON.stringify({ error: `Account ${accountId} is not configured.` }), { status: 400, headers: corsHeaders });
+          }
+
           let chatUrl = (body.chatUrl || '').trim();
           if (!chatUrl) {
             return new Response(JSON.stringify({ error: 'Chat URL is required.' }), { status: 400, headers: corsHeaders });
           }
 
-          // Format clean full chat url if user just provided UUID or relative path
+          if (chatUrl.length > 500) {
+            return new Response(JSON.stringify({ error: 'Chat URL is too long (max 500 characters).' }), { status: 400, headers: corsHeaders });
+          }
+
+          // Format clean full chat url if user provided UUID or relative path
           if (!chatUrl.startsWith('http://') && !chatUrl.startsWith('https://')) {
+            // Reject dangerous schemes like javascript:, data:, file:, etc.
+            if (chatUrl.includes(':')) {
+              return new Response(JSON.stringify({ error: 'Security constraint: Only official HTTPS claude.ai URLs are permitted.' }), { status: 400, headers: corsHeaders });
+            }
+
+            // Allow only valid relative path or UUID (alphanumeric, hyphens, slashes)
+            if (!/^[a-zA-Z0-9_\-\/]+$/.test(chatUrl)) {
+              return new Response(JSON.stringify({ error: 'Invalid Claude chat identifier format.' }), { status: 400, headers: corsHeaders });
+            }
+
             if (chatUrl.startsWith('/chat/')) {
               chatUrl = 'https://claude.ai' + chatUrl;
             } else if (chatUrl.startsWith('chat/')) {
@@ -249,11 +270,44 @@ export default {
             }
           }
 
-          const prompt = (body.prompt || 'continue').trim() || 'continue';
+          // Strict Security Check: Verify domain belongs to claude.ai
+          let parsedUrl;
+          try {
+            parsedUrl = new URL(chatUrl);
+          } catch (e) {
+            return new Response(JSON.stringify({ error: 'Invalid URL format.' }), { status: 400, headers: corsHeaders });
+          }
+
+          if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
+            return new Response(JSON.stringify({ error: 'Security constraint: Only HTTPS/HTTP URLs are allowed.' }), { status: 400, headers: corsHeaders });
+          }
+
+          if (!parsedUrl.hostname.endsWith('claude.ai')) {
+            return new Response(JSON.stringify({ error: 'Security constraint: Chat URL must be an official claude.ai address.' }), { status: 400, headers: corsHeaders });
+          }
+
+          const rawPrompt = (body.prompt || 'continue').trim() || 'continue';
+          // Sanitize prompt: strip non-printable control characters
+          const prompt = rawPrompt.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+          if (prompt.length > 1000) {
+            return new Response(JSON.stringify({ error: 'Prompt is too long (max 1000 characters).' }), { status: 400, headers: corsHeaders });
+          }
+
+          // Anti-spam cooldown: prevent rapid re-queueing (must wait at least 3 seconds)
+          try {
+            const existingRaw = await env.TASK_QUEUE.get(`task_account_${accountId}`);
+            if (existingRaw) {
+              const existing = JSON.parse(existingRaw);
+              if (existing && existing.queuedAtTimestamp && (Date.now() - existing.queuedAtTimestamp < 3000)) {
+                return new Response(JSON.stringify({ error: 'Rate limit: Please wait a moment before updating this task.' }), { status: 429, headers: corsHeaders });
+              }
+            }
+          } catch (e) {}
 
           const task = {
             id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             accountId,
+            accountName: matchedAcc.name,
             chatUrl,
             prompt,
             status: 'queued',
@@ -265,7 +319,7 @@ export default {
 
           return new Response(JSON.stringify({ 
             success: true, 
-            message: `Task queued for Account ${accountId}. Will execute on next scheduled ping.`,
+            message: `Task queued for ${matchedAcc.name}. Will execute on next scheduled ping.`,
             task 
           }), { status: 200, headers: corsHeaders });
         } catch (err) {
@@ -308,7 +362,12 @@ export default {
     }
 
     if (request.method === 'GET') {
-      const html = renderDashboardHTML();
+      const accounts = getAllAccounts(env).map(a => ({
+        id: a.id,
+        name: a.name,
+        color: a.themeColor || (a.id === 1 ? '#00f2fe' : (a.id === 2 ? '#c084fc' : '#10b981'))
+      }));
+      const html = renderDashboardHTML(accounts);
       return new Response(html, {
         status: 200,
         headers: {
