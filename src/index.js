@@ -183,6 +183,118 @@ export default {
       });
     }
 
+    // TASK QUEUE URL VERIFICATION API: Inspect & verify Claude conversation links
+    if (pathname === '/api/queue/verify') {
+      const corsHeaders = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Cache-Control': 'no-cache'
+      };
+
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { headers: corsHeaders });
+      }
+
+      let chatUrl = '';
+      let accountId = 1;
+
+      if (request.method === 'POST') {
+        try {
+          const body = await request.json();
+          chatUrl = (body.chatUrl || '').trim();
+          accountId = parseInt(body.accountId || 1, 10);
+        } catch (e) {}
+      } else {
+        chatUrl = (url.searchParams.get('chatUrl') || '').trim();
+        accountId = parseInt(url.searchParams.get('accountId') || 1, 10);
+      }
+
+      if (!chatUrl) {
+        return new Response(JSON.stringify({ 
+          valid: false, 
+          error: 'Please enter a Claude conversation URL to verify.' 
+        }), { status: 400, headers: corsHeaders });
+      }
+
+      // Reject non-http schemes
+      if (!chatUrl.startsWith('http://') && !chatUrl.startsWith('https://')) {
+        if (chatUrl.includes(':')) {
+          return new Response(JSON.stringify({ 
+            valid: false, 
+            error: 'Disallowed protocol scheme. Only official https://claude.ai URLs are permitted.' 
+          }), { status: 400, headers: corsHeaders });
+        }
+        if (!/^[a-zA-Z0-9_\-\/]+$/.test(chatUrl)) {
+          return new Response(JSON.stringify({ 
+            valid: false, 
+            error: 'Invalid chat identifier characters.' 
+          }), { status: 400, headers: corsHeaders });
+        }
+        if (chatUrl.startsWith('/chat/')) {
+          chatUrl = 'https://claude.ai' + chatUrl;
+        } else if (chatUrl.startsWith('chat/')) {
+          chatUrl = 'https://claude.ai/' + chatUrl;
+        } else {
+          chatUrl = 'https://claude.ai/chat/' + chatUrl;
+        }
+      }
+
+      let parsed;
+      try {
+        parsed = new URL(chatUrl);
+      } catch (e) {
+        return new Response(JSON.stringify({ valid: false, error: 'Malformed URL format.' }), { status: 400, headers: corsHeaders });
+      }
+
+      if (!parsed.hostname.endsWith('claude.ai')) {
+        return new Response(JSON.stringify({ 
+          valid: false, 
+          error: `Invalid domain (${parsed.hostname}). URL must belong to claude.ai.` 
+        }), { status: 400, headers: corsHeaders });
+      }
+
+      const path = parsed.pathname;
+      let chatType = 'Claude Conversation';
+      let chatId = null;
+
+      const directMatch = path.match(/\/chat\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
+      const projectMatch = path.match(/\/project\/[^\/]+\/chat\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
+      const genericChatMatch = path.match(/\/chat\/([a-zA-Z0-9_-]+)/);
+
+      if (directMatch) {
+        chatType = 'Standard Chat (UUID v4 Verified)';
+        chatId = directMatch[1];
+      } else if (projectMatch) {
+        chatType = 'Project Chat (UUID v4 Verified)';
+        chatId = projectMatch[1];
+      } else if (genericChatMatch) {
+        chatType = 'Custom Claude Chat';
+        chatId = genericChatMatch[1];
+      } else if (path === '/new' || path === '/new/') {
+        chatType = 'New Chat Creation Endpoint';
+      } else {
+        return new Response(JSON.stringify({ 
+          valid: false, 
+          error: 'URL is on claude.ai but does not point to a specific chat (expected /chat/<uuid>).' 
+        }), { status: 400, headers: corsHeaders });
+      }
+
+      const accounts = getAllAccounts(env);
+      const matchedAcc = accounts.find(a => a.id === accountId) || accounts[0];
+
+      return new Response(JSON.stringify({
+        valid: true,
+        chatId,
+        chatType,
+        normalizedUrl: parsed.origin + parsed.pathname,
+        fullUrl: parsed.href,
+        targetAccount: matchedAcc ? matchedAcc.name : null,
+        message: `Verified: ${chatType} is valid.`
+      }), { status: 200, headers: corsHeaders });
+    }
+
     // TASK QUEUE API: SCHEDULED OVERNIGHT PROMPTS
     if (pathname === '/api/queue') {
       const corsHeaders = {

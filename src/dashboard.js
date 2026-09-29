@@ -799,6 +799,160 @@ export function renderDashboardHTML(initialAccounts = []) {
       box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.15);
     }
 
+    .queue-input.has-actions {
+      padding-right: 185px;
+    }
+
+    @media (max-width: 480px) {
+      .input-with-icon {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .queue-input.has-actions {
+        padding-right: 14px;
+      }
+      .url-input-actions {
+        position: static;
+        margin-top: 6px;
+        justify-content: flex-end;
+      }
+    }
+
+    .form-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .url-verify-badge {
+      font-size: 0.64rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      padding: 2px 8px;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .url-verify-badge.idle {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .url-verify-badge.valid {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success-green);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .url-verify-badge.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning-amber);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .url-verify-badge.invalid {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger-red);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .url-verify-badge.checking {
+      background: rgba(0, 242, 254, 0.12);
+      color: var(--acc1-cyan);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+    }
+
+    .url-input-actions {
+      position: absolute;
+      right: 7px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      z-index: 2;
+    }
+
+    .btn-verify-action {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: 7px;
+      padding: 5px 9px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      font-family: var(--font-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-verify-action:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--border-focus);
+    }
+
+    .btn-test-action {
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      color: var(--acc1-cyan);
+      border-radius: 7px;
+      padding: 5px 9px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      font-family: var(--font-main);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-test-action:hover {
+      background: rgba(0, 242, 254, 0.22);
+      border-color: var(--acc1-cyan);
+    }
+
+    .url-preview-card {
+      background: rgba(13, 17, 26, 0.85);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 9px;
+      padding: 9px 12px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .url-preview-card.error {
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .url-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+
+    .url-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 0.68rem;
+      word-break: break-all;
+    }
+
     .queue-btn-row {
       display: flex;
       gap: 10px;
@@ -1558,20 +1712,38 @@ export function renderDashboardHTML(initialAccounts = []) {
 
         <!-- Claude Conversation URL -->
         <div class="form-group">
-          <label class="form-label" for="queueChatUrl">
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-            </svg>
-            Claude Chat URL
-          </label>
+          <div class="form-label-row">
+            <label class="form-label" for="queueChatUrl">
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+              </svg>
+              Claude Chat URL
+            </label>
+            <span class="url-verify-badge idle" id="urlVerifyBadge">Awaiting URL</span>
+          </div>
           <div class="input-with-icon">
             <div class="input-icon">
               <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
               </svg>
             </div>
-            <input type="text" class="queue-input" id="queueChatUrl" placeholder="https://claude.ai/chat/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+            <input type="text" class="queue-input has-actions" id="queueChatUrl" placeholder="https://claude.ai/chat/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+            <div class="url-input-actions" id="urlInputActions">
+              <button type="button" class="btn-verify-action" id="btnVerifyUrl" onclick="verifyChatUrl(true)" title="Verify URL format and destination">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Verify
+              </button>
+              <a href="#" target="_blank" rel="noopener noreferrer" class="btn-test-action" id="btnTestUrlLink" style="display:none;" title="Open conversation in new tab to test if chat loads in browser">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+                Test Link
+              </a>
+            </div>
           </div>
+          <div class="url-preview-card" id="urlPreviewCard" style="display:none;"></div>
           <span class="form-hint">Copy from your browser address bar while inside the target conversation.</span>
         </div>
 
@@ -2400,6 +2572,121 @@ export function renderDashboardHTML(initialAccounts = []) {
       }
     }
 
+    // Live URL Verification & Auto-Formatting
+    let verifyDebounceTimer = null;
+
+    async function verifyChatUrl(interactive = false) {
+      const input = document.getElementById("queueChatUrl");
+      const badge = document.getElementById("urlVerifyBadge");
+      const testLink = document.getElementById("btnTestUrlLink");
+      const previewCard = document.getElementById("urlPreviewCard");
+      const select = document.getElementById("queueAccountSelect");
+
+      if (!input || !badge) return;
+
+      let rawVal = input.value.trim();
+
+      if (!rawVal) {
+        badge.className = "url-verify-badge idle";
+        badge.innerText = "Awaiting URL";
+        if (testLink) testLink.style.display = "none";
+        if (previewCard) previewCard.style.display = "none";
+        return;
+      }
+
+      // Smart auto-formatter: if user pasted just a UUID
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/i;
+      if (uuidRegex.test(rawVal)) {
+        rawVal = "https://claude.ai/chat/" + rawVal;
+        input.value = rawVal;
+      } else if (rawVal.startsWith("claude.ai/")) {
+        rawVal = "https://" + rawVal;
+        input.value = rawVal;
+      } else if (rawVal.startsWith("/chat/")) {
+        rawVal = "https://claude.ai" + rawVal;
+        input.value = rawVal;
+      }
+
+      badge.className = "url-verify-badge checking";
+      badge.innerText = "Verifying...";
+
+      const accountId = select ? parseInt(select.value, 10) : 1;
+
+      try {
+        const res = await fetch("/api/queue/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chatUrl: rawVal, accountId })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.valid) {
+          badge.className = "url-verify-badge valid";
+          badge.innerHTML = 
+            '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' +
+            'Verified Claude Link';
+
+          if (testLink) {
+            testLink.href = data.fullUrl || rawVal;
+            testLink.style.display = "inline-flex";
+          }
+
+          if (previewCard) {
+            previewCard.className = "url-preview-card";
+            previewCard.style.display = "flex";
+            const shortId = data.chatId ? (data.chatId.substring(0, 13) + "...") : "Identified";
+            previewCard.innerHTML = 
+              '<div class="url-preview-header">' +
+                '<span style="color:var(--success-green); display:flex; align-items:center; gap:5px;">' +
+                  '<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+                  escapeHtml(data.chatType) +
+                '</span>' +
+                '<span style="color:var(--text-muted); font-size:0.64rem;">ID: ' + escapeHtml(shortId) + '</span>' +
+              '</div>' +
+              '<div class="url-preview-row">' +
+                '<span style="color:var(--text-muted);">Target:</span>' +
+                '<a href="' + escapeHtml(data.fullUrl || rawVal) + '" target="_blank" rel="noopener noreferrer" style="color:var(--acc1-cyan); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escapeHtml(data.normalizedUrl) + '</a>' +
+              '</div>' +
+              '<div style="font-size:0.64rem; color:var(--text-muted); margin-top:1px;">' +
+                'Ready for ' + escapeHtml(data.targetAccount || "Claude account") + '. Click "Test Link" to verify conversation in browser.' +
+              '</div>';
+          }
+
+          if (interactive) {
+            addConsoleLog("Chat URL Verified: " + data.chatType + " (" + (data.chatId || "OK") + ")", "success");
+          }
+        } else {
+          badge.className = "url-verify-badge invalid";
+          badge.innerHTML = 
+            '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>' +
+            'Invalid Link';
+
+          if (testLink) testLink.style.display = "none";
+          if (previewCard) {
+            previewCard.className = "url-preview-card error";
+            previewCard.style.display = "flex";
+            previewCard.innerHTML = 
+              '<div style="color:var(--danger-red); font-weight:700; display:flex; align-items:center; gap:5px;">' +
+                '<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>' +
+                'URL Verification Notice' +
+              '</div>' +
+              '<div style="color:#fca5a5; font-size:0.68rem;">' + escapeHtml(data.error || "Please enter a valid Claude conversation URL.") + '</div>';
+          }
+
+          if (interactive) {
+            alert("URL Verification: " + (data.error || "Please enter a valid Claude URL (e.g. https://claude.ai/chat/...)"));
+          }
+        }
+      } catch (err) {
+        badge.className = "url-verify-badge warning";
+        badge.innerText = "Format Accepted";
+        if (testLink) {
+          testLink.href = rawVal;
+          testLink.style.display = "inline-flex";
+        }
+      }
+    }
+
     async function fetchQueueTasks() {
       const container = document.getElementById("activeTasksList");
       const countBadge = document.getElementById("taskCountBadge");
@@ -2526,6 +2813,12 @@ export function renderDashboardHTML(initialAccounts = []) {
         if (data.success) {
           addConsoleLog("SUCCESS: Task queued for " + acc.name + ' ("' + prompt + '")', "success");
           if (chatUrlInput) chatUrlInput.value = "";
+          const badge = document.getElementById("urlVerifyBadge");
+          if (badge) { badge.className = "url-verify-badge idle"; badge.innerText = "Awaiting URL"; }
+          const testLink = document.getElementById("btnTestUrlLink");
+          if (testLink) testLink.style.display = "none";
+          const previewCard = document.getElementById("urlPreviewCard");
+          if (previewCard) previewCard.style.display = "none";
           await fetchQueueTasks();
 
           if (runNow) {
@@ -2607,6 +2900,30 @@ export function renderDashboardHTML(initialAccounts = []) {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeModal();
     });
+
+    // Setup URL live verification listeners
+    const urlInputEl = document.getElementById("queueChatUrl");
+    if (urlInputEl) {
+      urlInputEl.addEventListener("input", () => {
+        clearTimeout(verifyDebounceTimer);
+        verifyDebounceTimer = setTimeout(() => verifyChatUrl(false), 350);
+      });
+      urlInputEl.addEventListener("paste", () => {
+        setTimeout(() => verifyChatUrl(false), 60);
+      });
+      urlInputEl.addEventListener("blur", () => {
+        verifyChatUrl(false);
+      });
+    }
+
+    const queueSelectEl = document.getElementById("queueAccountSelect");
+    if (queueSelectEl) {
+      queueSelectEl.addEventListener("change", () => {
+        if (urlInputEl && urlInputEl.value.trim()) {
+          verifyChatUrl(false);
+        }
+      });
+    }
 
     // Init
     renderAccountCards();
