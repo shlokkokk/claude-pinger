@@ -1249,7 +1249,7 @@ export function renderDashboardHTML() {
     </section>
 
     <!-- OVERNIGHT TASK AUTOPILOT -->
-    <section class="section-card">
+    <section class="section-card" id="taskQueueSection">
       <div class="section-head">
         <h2>
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
