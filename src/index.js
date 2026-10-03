@@ -96,12 +96,12 @@ export function normalizeClaudeChatUrl(rawUrl) {
   const projectMatch = path.match(/\/project\/[^\/]+\/chat\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
   const genericChatMatch = path.match(/\/chat\/([a-zA-Z0-9_-]+)/);
 
-  if (directMatch) {
-    chatType = 'Standard Chat (UUID v4 Verified)';
-    chatId = directMatch[1];
-  } else if (projectMatch) {
+  if (projectMatch) {
     chatType = 'Project Chat (UUID v4 Verified)';
     chatId = projectMatch[1];
+  } else if (directMatch) {
+    chatType = 'Standard Chat (UUID v4 Verified)';
+    chatId = directMatch[1];
   } else if (genericChatMatch) {
     chatType = 'Custom Claude Chat';
     chatId = genericChatMatch[1];
