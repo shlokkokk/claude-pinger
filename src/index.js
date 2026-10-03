@@ -44,6 +44,85 @@ export function getAllAccounts(env) {
   return accounts;
 }
 
+export function normalizeClaudeChatUrl(rawUrl) {
+  let chatUrl = (rawUrl || '').trim();
+  if (!chatUrl) {
+    return { valid: false, error: 'Please enter a Claude conversation URL.' };
+  }
+
+  // Reject dangerous schemes
+  if (chatUrl.includes(':') && !chatUrl.startsWith('http://') && !chatUrl.startsWith('https://')) {
+    return { valid: false, error: 'Disallowed protocol scheme. Only official https://claude.ai URLs are permitted.' };
+  }
+
+  // Normalize protocol & domain if omitted
+  if (chatUrl.startsWith('claude.ai/')) {
+    chatUrl = 'https://' + chatUrl;
+  } else if (chatUrl.startsWith('www.claude.ai/')) {
+    chatUrl = 'https://' + chatUrl.substring(4);
+  } else if (chatUrl.startsWith('/chat/')) {
+    chatUrl = 'https://claude.ai' + chatUrl;
+  } else if (chatUrl.startsWith('chat/')) {
+    chatUrl = 'https://claude.ai/' + chatUrl;
+  } else if (!chatUrl.startsWith('http://') && !chatUrl.startsWith('https://')) {
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (uuidRegex.test(chatUrl) || /^[a-zA-Z0-9_-]{8,}$/.test(chatUrl)) {
+      chatUrl = 'https://claude.ai/chat/' + chatUrl;
+    } else {
+      return { valid: false, error: 'Invalid Claude chat identifier format.' };
+    }
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(chatUrl);
+  } catch (e) {
+    return { valid: false, error: 'Malformed URL format.' };
+  }
+
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    return { valid: false, error: 'Only HTTPS and HTTP URLs are allowed.' };
+  }
+
+  if (!parsed.hostname.endsWith('claude.ai')) {
+    return { valid: false, error: `Invalid domain (${parsed.hostname}). URL must belong to claude.ai.` };
+  }
+
+  const path = parsed.pathname;
+  let chatType = 'Claude Conversation';
+  let chatId = null;
+
+  const directMatch = path.match(/\/chat\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
+  const projectMatch = path.match(/\/project\/[^\/]+\/chat\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
+  const genericChatMatch = path.match(/\/chat\/([a-zA-Z0-9_-]+)/);
+
+  if (directMatch) {
+    chatType = 'Standard Chat (UUID v4 Verified)';
+    chatId = directMatch[1];
+  } else if (projectMatch) {
+    chatType = 'Project Chat (UUID v4 Verified)';
+    chatId = projectMatch[1];
+  } else if (genericChatMatch) {
+    chatType = 'Custom Claude Chat';
+    chatId = genericChatMatch[1];
+  } else if (path === '/new' || path === '/new/') {
+    chatType = 'New Chat Creation Endpoint';
+  } else {
+    return { 
+      valid: false, 
+      error: 'URL is on claude.ai but does not point to a specific chat (expected /chat/<uuid>).' 
+    };
+  }
+
+  return {
+    valid: true,
+    chatId,
+    chatType,
+    normalizedUrl: parsed.origin + parsed.pathname,
+    fullUrl: parsed.href
+  };
+}
+
 export default {
   async scheduled(event, env, ctx) {
     const cron = event.cron;
@@ -211,73 +290,11 @@ export default {
         accountId = parseInt(url.searchParams.get('accountId') || 1, 10);
       }
 
-      if (!chatUrl) {
+      const norm = normalizeClaudeChatUrl(chatUrl);
+      if (!norm.valid) {
         return new Response(JSON.stringify({ 
           valid: false, 
-          error: 'Please enter a Claude conversation URL to verify.' 
-        }), { status: 400, headers: corsHeaders });
-      }
-
-      // Reject non-http schemes
-      if (!chatUrl.startsWith('http://') && !chatUrl.startsWith('https://')) {
-        if (chatUrl.includes(':')) {
-          return new Response(JSON.stringify({ 
-            valid: false, 
-            error: 'Disallowed protocol scheme. Only official https://claude.ai URLs are permitted.' 
-          }), { status: 400, headers: corsHeaders });
-        }
-        if (!/^[a-zA-Z0-9_\-\/]+$/.test(chatUrl)) {
-          return new Response(JSON.stringify({ 
-            valid: false, 
-            error: 'Invalid chat identifier characters.' 
-          }), { status: 400, headers: corsHeaders });
-        }
-        if (chatUrl.startsWith('/chat/')) {
-          chatUrl = 'https://claude.ai' + chatUrl;
-        } else if (chatUrl.startsWith('chat/')) {
-          chatUrl = 'https://claude.ai/' + chatUrl;
-        } else {
-          chatUrl = 'https://claude.ai/chat/' + chatUrl;
-        }
-      }
-
-      let parsed;
-      try {
-        parsed = new URL(chatUrl);
-      } catch (e) {
-        return new Response(JSON.stringify({ valid: false, error: 'Malformed URL format.' }), { status: 400, headers: corsHeaders });
-      }
-
-      if (!parsed.hostname.endsWith('claude.ai')) {
-        return new Response(JSON.stringify({ 
-          valid: false, 
-          error: `Invalid domain (${parsed.hostname}). URL must belong to claude.ai.` 
-        }), { status: 400, headers: corsHeaders });
-      }
-
-      const path = parsed.pathname;
-      let chatType = 'Claude Conversation';
-      let chatId = null;
-
-      const directMatch = path.match(/\/chat\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
-      const projectMatch = path.match(/\/project\/[^\/]+\/chat\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i);
-      const genericChatMatch = path.match(/\/chat\/([a-zA-Z0-9_-]+)/);
-
-      if (directMatch) {
-        chatType = 'Standard Chat (UUID v4 Verified)';
-        chatId = directMatch[1];
-      } else if (projectMatch) {
-        chatType = 'Project Chat (UUID v4 Verified)';
-        chatId = projectMatch[1];
-      } else if (genericChatMatch) {
-        chatType = 'Custom Claude Chat';
-        chatId = genericChatMatch[1];
-      } else if (path === '/new' || path === '/new/') {
-        chatType = 'New Chat Creation Endpoint';
-      } else {
-        return new Response(JSON.stringify({ 
-          valid: false, 
-          error: 'URL is on claude.ai but does not point to a specific chat (expected /chat/<uuid>).' 
+          error: norm.error 
         }), { status: 400, headers: corsHeaders });
       }
 
@@ -286,12 +303,12 @@ export default {
 
       return new Response(JSON.stringify({
         valid: true,
-        chatId,
-        chatType,
-        normalizedUrl: parsed.origin + parsed.pathname,
-        fullUrl: parsed.href,
+        chatId: norm.chatId,
+        chatType: norm.chatType,
+        normalizedUrl: norm.normalizedUrl,
+        fullUrl: norm.fullUrl,
         targetAccount: matchedAcc ? matchedAcc.name : null,
-        message: `Verified: ${chatType} is valid.`
+        message: `Verified: ${norm.chatType} is valid.`
       }), { status: 200, headers: corsHeaders });
     }
 
@@ -352,51 +369,21 @@ export default {
             return new Response(JSON.stringify({ error: `Account ${accountId} is not configured.` }), { status: 400, headers: corsHeaders });
           }
 
-          let chatUrl = (body.chatUrl || '').trim();
-          if (!chatUrl) {
+          let rawChatUrl = (body.chatUrl || '').trim();
+          if (!rawChatUrl) {
             return new Response(JSON.stringify({ error: 'Chat URL is required.' }), { status: 400, headers: corsHeaders });
           }
 
-          if (chatUrl.length > 500) {
+          if (rawChatUrl.length > 500) {
             return new Response(JSON.stringify({ error: 'Chat URL is too long (max 500 characters).' }), { status: 400, headers: corsHeaders });
           }
 
-          // Format clean full chat url if user provided UUID or relative path
-          if (!chatUrl.startsWith('http://') && !chatUrl.startsWith('https://')) {
-            // Reject dangerous schemes like javascript:, data:, file:, etc.
-            if (chatUrl.includes(':')) {
-              return new Response(JSON.stringify({ error: 'Security constraint: Only official HTTPS claude.ai URLs are permitted.' }), { status: 400, headers: corsHeaders });
-            }
-
-            // Allow only valid relative path or UUID (alphanumeric, hyphens, slashes)
-            if (!/^[a-zA-Z0-9_\-\/]+$/.test(chatUrl)) {
-              return new Response(JSON.stringify({ error: 'Invalid Claude chat identifier format.' }), { status: 400, headers: corsHeaders });
-            }
-
-            if (chatUrl.startsWith('/chat/')) {
-              chatUrl = 'https://claude.ai' + chatUrl;
-            } else if (chatUrl.startsWith('chat/')) {
-              chatUrl = 'https://claude.ai/' + chatUrl;
-            } else {
-              chatUrl = 'https://claude.ai/chat/' + chatUrl;
-            }
+          const norm = normalizeClaudeChatUrl(rawChatUrl);
+          if (!norm.valid) {
+            return new Response(JSON.stringify({ error: norm.error }), { status: 400, headers: corsHeaders });
           }
 
-          // Strict Security Check: Verify domain belongs to claude.ai
-          let parsedUrl;
-          try {
-            parsedUrl = new URL(chatUrl);
-          } catch (e) {
-            return new Response(JSON.stringify({ error: 'Invalid URL format.' }), { status: 400, headers: corsHeaders });
-          }
-
-          if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
-            return new Response(JSON.stringify({ error: 'Security constraint: Only HTTPS/HTTP URLs are allowed.' }), { status: 400, headers: corsHeaders });
-          }
-
-          if (!parsedUrl.hostname.endsWith('claude.ai')) {
-            return new Response(JSON.stringify({ error: 'Security constraint: Chat URL must be an official claude.ai address.' }), { status: 400, headers: corsHeaders });
-          }
+          const chatUrl = norm.fullUrl;
 
           const rawPrompt = (body.prompt || 'continue').trim() || 'continue';
           // Sanitize prompt: strip non-printable control characters
@@ -456,7 +443,7 @@ export default {
       return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
     }
 
-    if (pathname.startsWith('/api/ping') || pathname === '/ping' || request.method === 'POST') {
+    if (pathname.startsWith('/api/ping') || pathname === '/ping' || (pathname === '/' && request.method === 'POST')) {
       let results;
       if (accountParam) {
         const accNum = parseInt(accountParam, 10);
