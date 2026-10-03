@@ -273,9 +273,59 @@ Accessible by navigating to the worker root URL (`/`) in any browser. Features i
 
 ---
 
+---
+
+## Overnight Task Autopilot
+
+The Overnight Task Autopilot allows users to queue prompts for execution at the exact moment their next 5-hour usage limit window resets.
+
+### REST Endpoints
+
+#### 1. Real-Time Chat URL Verification
+- **Path**: `POST /api/queue/verify`
+- **Payload**:
+  ```json
+  { "chatUrl": "https://claude.ai/chat/e48b1111-2222-3333-4444-555566667777", "accountId": 1 }
+  ```
+- **Response**:
+  ```json
+  {
+    "valid": true,
+    "chatId": "e48b1111-2222-3333-4444-555566667777",
+    "chatType": "Standard Chat (UUID v4 Verified)",
+    "normalizedUrl": "https://claude.ai/chat/e48b1111-2222-3333-4444-555566667777",
+    "targetAccount": "Account 1"
+  }
+  ```
+
+#### 2. Queue Task
+- **Path**: `POST /api/queue`
+- **Payload**:
+  ```json
+  { "accountId": 1, "chatUrl": "https://claude.ai/chat/...", "prompt": "continue analysis" }
+  ```
+
+#### 3. List Active Queued Tasks
+- **Path**: `GET /api/queue`
+
+#### 4. Cancel Queued Task
+- **Path**: `DELETE /api/queue?accountId=1`
+
+---
+
+## Running Tests
+
+Run the native test suite using Node:
+```bash
+npm test
+```
+
+---
+
 ## Security and Privacy Considerations
 
 - **Zero Hardcoded Personal Identifiers**: Source code contains no private account handles or static chat IDs. All account metadata is resolved dynamically at runtime from environment secrets.
 - **Session Protection**: Session keys are never transmitted to client browsers; all operations are conducted server-side within isolated Browserless execution containers.
 - **Session Expiry Handling**: Expired session keys trigger structured error reporting to prevent unauthenticated infinite loops or hanging headless sessions.
+
 
