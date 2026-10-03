@@ -1724,10 +1724,6 @@ export function renderDashboardHTML(initialAccounts = []) {
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Verify
               </button>
-              <a href="#" target="_blank" rel="noopener noreferrer" class="btn-link-accent" id="btnTestUrlLink" style="display:none;">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                Test
-              </a>
             </div>
           </div>
           <div class="url-preview" id="urlPreviewCard" style="display:none;"></div>
@@ -2257,8 +2253,6 @@ export function renderDashboardHTML(initialAccounts = []) {
         updateQueueActionButtons();
         const badge = document.getElementById('urlVerifyBadge');
         if (badge) { badge.className = 'verify-badge idle'; badge.innerText = 'Awaiting URL'; }
-        const testLink = document.getElementById('btnTestUrlLink');
-        if (testLink) testLink.style.display = 'none';
         const preview = document.getElementById('urlPreviewCard');
         if (preview) preview.style.display = 'none';
       }
@@ -2285,14 +2279,12 @@ export function renderDashboardHTML(initialAccounts = []) {
     async function verifyChatUrl(interactive) {
       const input = document.getElementById('queueChatUrl');
       const badge = document.getElementById('urlVerifyBadge');
-      const testLink = document.getElementById('btnTestUrlLink');
       const preview = document.getElementById('urlPreviewCard');
       const sel = document.getElementById('queueAccountSelect');
       if (!input || !badge) return;
       let v = input.value.trim();
       if (!v) {
         badge.className = 'verify-badge idle'; badge.innerText = 'Awaiting URL';
-        if (testLink) testLink.style.display = 'none';
         if (preview) preview.style.display = 'none';
         return;
       }
@@ -2308,7 +2300,6 @@ export function renderDashboardHTML(initialAccounts = []) {
         if (res.ok && data.valid) {
           badge.className = 'verify-badge valid';
           badge.innerHTML = '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Verified';
-          if (testLink) { testLink.href = data.fullUrl || v; testLink.style.display = 'inline-flex'; }
           if (preview) {
             preview.className = 'url-preview'; preview.style.display = 'flex';
             const sid = data.chatId ? data.chatId.substring(0, 14) + '...' : 'OK';
@@ -2324,7 +2315,6 @@ export function renderDashboardHTML(initialAccounts = []) {
         } else {
           badge.className = 'verify-badge invalid';
           badge.innerHTML = '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Invalid';
-          if (testLink) testLink.style.display = 'none';
           if (preview) {
             preview.className = 'url-preview error'; preview.style.display = 'flex';
             preview.innerHTML = '<div style="color:var(--red);font-weight:700;display:flex;align-items:center;gap:5px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>Notice</div><div style="color:#fca5a5;font-size:0.66rem;">' + escapeHtml(data.error || 'Enter a valid Claude URL.') + '</div>';
@@ -2333,7 +2323,6 @@ export function renderDashboardHTML(initialAccounts = []) {
         }
       } catch (err) {
         badge.className = 'verify-badge warning'; badge.innerText = 'Format OK';
-        if (testLink) { testLink.href = v; testLink.style.display = 'inline-flex'; }
       }
     }
 
@@ -2443,7 +2432,6 @@ export function renderDashboardHTML(initialAccounts = []) {
           showToast('Task successfully queued for ' + acc.name, 'ok');
           if (ci) ci.value = '';
           const b = document.getElementById('urlVerifyBadge'); if (b) { b.className = 'verify-badge idle'; b.innerText = 'Awaiting URL'; }
-          const tl = document.getElementById('btnTestUrlLink'); if (tl) tl.style.display = 'none';
           const pc = document.getElementById('urlPreviewCard'); if (pc) pc.style.display = 'none';
           await fetchQueueTasks();
           if (runNow) {
