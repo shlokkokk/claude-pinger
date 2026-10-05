@@ -2796,7 +2796,13 @@ export function renderDashboardHTML(initialAccounts = []) {
       const bq = document.getElementById('btnQueueTask'), bn = document.getElementById('btnQueueNow');
       const tq = document.getElementById('btnQueueText'), tn = document.getElementById('btnQueueNowText');
       const aid = sel ? parseInt(sel.value, 10) : 1;
-      const cu = ci ? ci.value.trim() : '', pr = pi ? pi.value.trim() : 'continue';
+      const cu = ci ? ci.value.trim() : '', pr = pi ? pi.value.trim() : '';
+
+      if (!pr) {
+        showToast('Write the instruction to send to Claude.', 'warn');
+        if (pi) pi.focus();
+        return;
+      }
 
       if (!cu) {
         showToast('Please paste your Claude Chat URL first!', 'warn');
@@ -2941,14 +2947,16 @@ export function renderDashboardHTML(initialAccounts = []) {
       const bq = document.getElementById('btnQueueTask');
       const bn = document.getElementById('btnQueueNow');
       const has = ui ? ui.value.trim().length > 0 : false;
+      const promptInput = document.getElementById('queuePrompt');
+      const hasPrompt = promptInput ? promptInput.value.trim().length > 0 : false;
       const hasAccounts = ACCOUNTS.length > 0;
       const slotSelect = document.getElementById('queueSlotSelect');
       const hasScheduledTime = selectedTimingMode !== 'slot' || !!(slotSelect && slotSelect.value);
 
       if (clr) clr.style.display = has ? 'flex' : 'none';
       if (bv) bv.disabled = !has;
-      if (bq) bq.disabled = !has || !hasScheduledTime || !hasAccounts;
-      if (bn) bn.disabled = !has || !hasAccounts;
+      if (bq) bq.disabled = !has || !hasPrompt || !hasScheduledTime || !hasAccounts;
+      if (bn) bn.disabled = !has || !hasPrompt || !hasAccounts;
     }
 
     const urlEl = document.getElementById('queueChatUrl');
@@ -2969,6 +2977,8 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
     const qSlotSel = document.getElementById('queueSlotSelect');
     if (qSlotSel) qSlotSel.addEventListener('change', () => { updateQueueButtonLabels(); updateQueueActionButtons(); });
+    const promptEl = document.getElementById('queuePrompt');
+    if (promptEl) promptEl.addEventListener('input', updateQueueActionButtons);
 
     // Check clipboard support for quick Paste button
     if (navigator.clipboard && navigator.clipboard.readText) {

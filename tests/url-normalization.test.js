@@ -12,7 +12,7 @@ describe('Claude URL Normalization Engine', () => {
 
     assert.equal(result.valid, true);
     assert.equal(result.chatId, validUuid);
-    assert.equal(result.chatType, 'Standard Chat (UUID v4 Verified)');
+    assert.equal(result.chatType, 'Standard Chat (UUID v4 format)');
     assert.equal(result.normalizedUrl, input);
   });
 
@@ -40,7 +40,7 @@ describe('Claude URL Normalization Engine', () => {
 
     assert.equal(result.valid, true);
     assert.equal(result.chatId, validUuid);
-    assert.equal(result.chatType, 'Project Chat (UUID v4 Verified)');
+    assert.equal(result.chatType, 'Project Chat (UUID v4 format)');
     assert.equal(result.normalizedUrl, input);
   });
 
