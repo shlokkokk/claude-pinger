@@ -583,38 +583,6 @@ export default {
       }), { status: 200, headers: corsHeaders });
     }
 
-    // PARSE RATE LIMIT NOTICE API: Extract reset time from Claude banner text
-    if (pathname === '/api/queue/parse-notice') {
-      const corsHeaders = {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      };
-
-      if (request.method === 'OPTIONS') {
-        return new Response(null, { headers: corsHeaders });
-      }
-
-      try {
-        const body = await request.json();
-        const text = (body.text || '').trim();
-        const parsedTime = parseRateLimitNotice(text);
-        if (!parsedTime) {
-          return new Response(JSON.stringify({ success: false, error: 'Could not extract reset time from text.' }), { status: 400, headers: corsHeaders });
-        }
-        const targetTimestamp = calculateTargetTimestamp(parsedTime);
-        return new Response(JSON.stringify({ 
-          success: true, 
-          parsedTime,
-          targetTimestamp,
-          message: `Extracted reset time: ${parsedTime}`
-        }), { status: 200, headers: corsHeaders });
-      } catch (err) {
-        return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400, headers: corsHeaders });
-      }
-    }
-
     // TASK QUEUE API: MULTI-TASK & TIMED OVERNIGHT PROMPTS
     if (pathname === '/api/queue') {
       const corsHeaders = {
