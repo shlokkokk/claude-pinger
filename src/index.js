@@ -195,6 +195,14 @@ export function parseRateLimitNotice(text) {
   return rawTime;
 }
 
+function escapeTelegramHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export async function sendNotification(env, { type, accountName, accountId, prompt, url, pageTitle, error }) {
   if (!env) return;
   const tgToken = env.TELEGRAM_BOT_TOKEN;
@@ -220,10 +228,12 @@ export async function sendNotification(env, { type, accountName, accountId, prom
   }
 
   const hasCustomName = realName && !realName.startsWith('Account ');
+  const safeRealName = escapeTelegramHtml(realName);
   const accountHeader = hasCustomName 
-    ? `<b>${realName}</b> (Account #${accountId || 1})`
+    ? `<b>${safeRealName}</b> (Account #${accountId || 1})`
     : `<b>Account #${accountId || 1}</b>`;
   const shortName = realName || `Account #${accountId || 1}`;
+  const safeShortName = escapeTelegramHtml(shortName);
 
   // Debounce session expired alerts: max 1 alert per 4 hours per account
   if (type === 'session_expired' && env.TASK_QUEUE && accountId) {
@@ -246,27 +256,39 @@ export async function sendNotification(env, { type, accountName, accountId, prom
   let message = '';
   let color = 0x00f2fe;
 
+  // Bound dynamic text sizes to prevent Telegram/Discord 4096-char payload rejections
+  const rawPrompt = String(prompt || 'continue');
+  const displayPrompt = rawPrompt.length > 500 ? (rawPrompt.substring(0, 497) + '...') : rawPrompt;
+  const safePrompt = escapeTelegramHtml(displayPrompt);
+
+  const rawError = String(error || 'Failed to submit prompt');
+  const displayError = rawError.length > 500 ? (rawError.substring(0, 497) + '...') : rawError;
+  const safeError = escapeTelegramHtml(displayError);
+
+  const safeUrl = escapeTelegramHtml(url || 'Claude Chat');
+  const safeTitle = escapeTelegramHtml(pageTitle || 'Message submitted successfully');
+
   if (type === 'session_expired') {
     title = `Session Key Expired: ${shortName}`;
     message = `<b>Claude Pulse Alert</b>\n\n` +
       `⚠️ The authentication session key for ${accountHeader} has expired or been revoked.\n\n` +
-      `Automatic keep-alives and scheduled prompts for <b>${shortName}</b> are paused until updated.\n\n` +
+      `Automatic keep-alives and scheduled prompts for <b>${safeShortName}</b> are paused until updated.\n\n` +
       `<i>Action Required: Update CLAUDE_SESSION_KEY_${accountId || 1} in Cloudflare secrets.</i>`;
     color = 0xf04848;
   } else if (type === 'task_completed') {
     title = `Overnight Task Completed: ${shortName}`;
     message = `<b>Claude Pulse Task Executed</b>\n\n` +
       `<b>Account:</b> ${accountHeader}\n` +
-      `<b>Prompt:</b> "${prompt || 'continue'}"\n` +
-      `<b>Thread:</b> ${url || 'Claude Chat'}\n` +
-      `<b>Status:</b> ${pageTitle || 'Message submitted successfully'}`;
+      `<b>Prompt:</b> "${safePrompt}"\n` +
+      `<b>Thread:</b> ${safeUrl}\n` +
+      `<b>Status:</b> ${safeTitle}`;
     color = 0x00d68f;
   } else if (type === 'task_failed') {
     title = `⚠️ Task Execution Failed: ${shortName}`;
     message = `<b>Claude Pulse Task Error</b>\n\n` +
       `<b>Account:</b> ${accountHeader}\n` +
-      `<b>Prompt:</b> "${prompt || 'continue'}"\n` +
-      `❌ <b>Error:</b> ${error || 'Failed to submit prompt'}\n\n` +
+      `<b>Prompt:</b> "${safePrompt}"\n` +
+      `❌ <b>Error:</b> ${safeError}\n\n` +
       `<i>Dispatched fallback keep-alive ping automatically to preserve rolling 5-hour window.</i>`;
     color = 0xffb020;
   } else {
@@ -276,7 +298,7 @@ export async function sendNotification(env, { type, accountName, accountId, prom
   // 1. Dispatch Telegram Alert
   if (tgToken && tgChatId) {
     try {
-      await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+      const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -286,6 +308,10 @@ export async function sendNotification(env, { type, accountName, accountId, prom
           disable_web_page_preview: false
         })
       });
+      if (!tgRes.ok) {
+        const tgErrText = await tgRes.text().catch(() => '');
+        console.warn(`Telegram API error (${tgRes.status}):`, tgErrText);
+      }
     } catch (tgErr) {
       console.warn('Telegram notification error:', tgErr.message);
     }
@@ -294,8 +320,13 @@ export async function sendNotification(env, { type, accountName, accountId, prom
   // 2. Dispatch Discord Webhook
   if (discordWebhook) {
     try {
-      const cleanDesc = message.replace(/<[^>]*>/g, '');
-      await fetch(discordWebhook, {
+      const cleanDesc = message
+        .replace(/<[^>]*>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+
+      const dcRes = await fetch(discordWebhook, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -312,6 +343,10 @@ export async function sendNotification(env, { type, accountName, accountId, prom
           ]
         })
       });
+      if (!dcRes.ok) {
+        const dcErrText = await dcRes.text().catch(() => '');
+        console.warn(`Discord webhook error (${dcRes.status}):`, dcErrText);
+      }
     } catch (dcErr) {
       console.warn('Discord notification error:', dcErr.message);
     }
@@ -1180,9 +1215,13 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
       });
     }
 
-    // Only send ping_success for custom task completions — routine keep-alive pings
-    // do NOT trigger alerts to avoid spamming Telegram/Discord on every cron tick.
-    // task_completed is sent separately below when a queued task succeeds.
+    // Whenever an account ping succeeds (routine keep-alive or custom task),
+    // clear any session expiry debounce flag so future failures can alert immediately.
+    if (result && result.success && env && env.TASK_QUEUE && accountId) {
+      try {
+        await env.TASK_QUEUE.delete(`alert_session_expired_${accountId}`);
+      } catch (e) {}
+    }
 
     // Update KV task status and handle fallback if needed
     if (queuedTask && env && env.TASK_QUEUE && accountId) {
