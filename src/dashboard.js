@@ -634,7 +634,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     /* ===== MANUAL CONTROLS GRID ===== */
     .controls-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr));
       gap: 8px;
     }
 
@@ -1373,14 +1373,17 @@ export function renderDashboardHTML(initialAccounts = []) {
       display: flex;
       align-items: center;
       gap: 8px;
+      min-width: 0;
     }
 
     .lane-label {
-      width: 82px;
+      flex: 0 1 8ch;
+      max-width: 35%;
       font-size: 0.72rem;
       font-weight: 700;
       font-family: var(--mono);
-      flex-shrink: 0;
+      flex-shrink: 1;
+      min-width: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1440,7 +1443,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       color: var(--text-400);
       font-family: var(--mono);
       margin-top: 2px;
-      padding-left: 90px;
+      padding-left: calc(8ch + 8px);
     }
 
     /* ===== SCHEDULE LIST ===== */
@@ -1461,6 +1464,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       font-size: 0.76rem;
       cursor: pointer;
       gap: 8px;
+      min-width: 0;
       transition: all var(--transition);
     }
 
@@ -1472,6 +1476,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       gap: 8px;
       white-space: nowrap;
       min-width: 0;
+      overflow: hidden;
     }
 
     .sched-dot {
@@ -1492,6 +1497,9 @@ export function renderDashboardHTML(initialAccounts = []) {
       font-size: 0.72rem;
       font-weight: 700;
       margin-left: 2px;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .sched-right {
@@ -1500,8 +1508,15 @@ export function renderDashboardHTML(initialAccounts = []) {
       gap: 6px;
       font-size: 0.68rem;
       color: var(--text-400);
+      min-width: 0;
+      flex: 0 1 auto;
+    }
+
+    .sched-right > span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
-      flex-shrink: 0;
+      min-width: 0;
     }
 
     .sched-badge {
@@ -1651,8 +1666,8 @@ export function renderDashboardHTML(initialAccounts = []) {
     /* ===== ADAPTIVE RESPONSIVENESS ===== */
     @media (max-width: 400px) {
       .header { flex-wrap: wrap; gap: 8px; }
-      .lane-label { width: 64px; font-size: 0.65rem; }
-      .time-axis { padding-left: 72px; }
+      .lane-label { flex-basis: 6ch; width: auto; font-size: 0.65rem; }
+      .time-axis { padding-left: calc(6ch + 8px); }
       .hero-title { font-size: 1.10rem; }
       .task-url-text { max-width: 140px; }
       .sched-right span:not(.sched-badge) { display: none; }
@@ -1986,21 +2001,21 @@ export function renderDashboardHTML(initialAccounts = []) {
               <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></svg>Next Ping</span>
             </button>
             <button type="button" class="timing-pill-btn" id="pillTimingSlot" onclick="setTimingMode('slot')">
-              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path stroke-linecap="round" d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 14 2 2 4-4"/></svg>Target Slot</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path stroke-linecap="round" d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 14 2 2 4-4"/></svg>Scheduled</span>
             </button>
             <button type="button" class="timing-pill-btn" id="pillTimingTime" onclick="setTimingMode('time')">
               <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>Exact Time</span>
             </button>
           </div>
 
-          <!-- SUB-VIEW: TARGET SPECIFIC SLOT -->
+          <!-- SUB-VIEW: ACCOUNT SCHEDULE -->
           <div id="timingSlotWrap" style="display:none;margin-top:8px;">
             <div class="select-wrap">
               <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
               <select class="form-select" id="queueSlotSelect"></select>
               <div class="chevron"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></div>
             </div>
-            <span class="form-hint" style="margin-top:4px;">A slot is one scheduled run for this account. Earlier pings stay unchanged.</span>
+            <span class="form-hint" style="margin-top:4px;">Choose one of this account’s scheduled daily ping times.</span>
           </div>
 
           <!-- SUB-VIEW: EXACT RESET TIME -->
@@ -2126,7 +2141,13 @@ export function renderDashboardHTML(initialAccounts = []) {
       ];
       let cohortA, cohortB;
       if (accounts.length <= 1) { cohortA = accounts; cohortB = accounts; }
-      else { const mid = Math.floor(accounts.length / 2); cohortA = accounts.slice(0, mid); cohortB = accounts.slice(mid); }
+      else {
+        // Account IDs stay stable as accounts are added, so existing schedules never reshuffle.
+        cohortA = accounts.filter(acc => Number(acc.id) % 2 !== 0);
+        cohortB = accounts.filter(acc => Number(acc.id) % 2 === 0);
+        if (cohortA.length === 0) cohortA = accounts;
+        if (cohortB.length === 0) cohortB = accounts;
+      }
       const items = [];
       fixedSlots.forEach(s => {
         const cohort = (s.slot % 2 !== 0) ? cohortA : cohortB;
@@ -2623,6 +2644,7 @@ export function renderDashboardHTML(initialAccounts = []) {
 
       if (mode === 'slot') populateQueueSlotSelect();
       updateQueueButtonLabels();
+      updateQueueActionButtons();
     }
 
     function updateQueueButtonLabels() {
@@ -2632,7 +2654,8 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (selectedTimingMode === 'slot') {
         const slotSelect = document.getElementById('queueSlotSelect');
         const selected = slotSelect && slotSelect.options[slotSelect.selectedIndex];
-        if (selected) label = 'Queue for ' + selected.textContent.replace(/\s*[•·]\s*/, ' · ');
+        if (selected && selected.value) label = 'Queue for ' + selected.textContent;
+        else label = 'No scheduled times';
       } else if (selectedTimingMode === 'time') {
         const timeInput = document.getElementById('queueExactTime');
         const chosenTime = timeInput ? timeInput.value : '';
@@ -2648,14 +2671,22 @@ export function renderDashboardHTML(initialAccounts = []) {
       const targetAccId = accSel ? parseInt(accSel.value, 10) : 1;
       const accSchedule = SCHEDULE.filter(s => s.account === targetAccId);
       sel.innerHTML = '';
-      (accSchedule.length > 0 ? accSchedule : SCHEDULE).forEach(s => {
+      sel.disabled = accSchedule.length === 0;
+      if (accSchedule.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No scheduled times for this account';
+        sel.appendChild(opt);
+      }
+      accSchedule.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.slot;
-        opt.dataset.display = 'Slot ' + s.slot + ' · ' + s.display + ' (' + s.tag + ')';
-        opt.innerText = 'Slot ' + s.slot + ' \u2022 ' + s.display + ' (' + s.tag + ')';
+        opt.dataset.display = s.display + ' · ' + s.tag;
+        opt.innerText = s.display + ' · ' + s.tag;
         sel.appendChild(opt);
       });
       updateQueueButtonLabels();
+      updateQueueActionButtons();
     }
 
     async function fetchQueueTasks() {
@@ -2889,9 +2920,9 @@ export function renderDashboardHTML(initialAccounts = []) {
           if (data.accounts && Array.isArray(data.accounts) && data.accounts.length > 0) {
             ACCOUNTS = data.accounts.map(a => ({ id: a.id, name: a.name, color: a.themeColor || (a.id === 1 ? '#00e5f0' : a.id === 2 ? '#b07df0' : '#00d68f') }));
             const hs = document.getElementById('headerSub');
-            if (hs) hs.innerText = ACCOUNTS.map(a => a.name).join(' \u2022 ');
+            if (hs) hs.innerText = ACCOUNTS.length + (ACCOUNTS.length === 1 ? ' connected account' : ' connected accounts');
             SCHEDULE = generateScheduleForAccounts(ACCOUNTS);
-            renderAccountCards(); renderManualControls(); renderTimelineTracks(); renderScheduleList(); populateQueueAccountSelect(); fetchQueueTasks(); updateUI();
+            renderAccountCards(); renderManualControls(); renderTimelineTracks(); renderScheduleList(); populateQueueAccountSelect(); populateQueueSlotSelect(); fetchQueueTasks(); updateQueueActionButtons(); updateUI();
           }
         }
       } catch (e) { console.warn('Sync skipped:', e.message); }
@@ -2907,11 +2938,14 @@ export function renderDashboardHTML(initialAccounts = []) {
       const bq = document.getElementById('btnQueueTask');
       const bn = document.getElementById('btnQueueNow');
       const has = ui ? ui.value.trim().length > 0 : false;
+      const hasAccounts = ACCOUNTS.length > 0;
+      const slotSelect = document.getElementById('queueSlotSelect');
+      const hasScheduledTime = selectedTimingMode !== 'slot' || !!(slotSelect && slotSelect.value);
 
       if (clr) clr.style.display = has ? 'flex' : 'none';
       if (bv) bv.disabled = !has;
-      if (bq) bq.disabled = !has;
-      if (bn) bn.disabled = !has;
+      if (bq) bq.disabled = !has || !hasScheduledTime || !hasAccounts;
+      if (bn) bn.disabled = !has || !hasAccounts;
     }
 
     const urlEl = document.getElementById('queueChatUrl');
@@ -2926,11 +2960,12 @@ export function renderDashboardHTML(initialAccounts = []) {
       qSel.addEventListener('change', () => { 
         populateQueueSlotSelect();
         updateQueueButtonLabels();
+        updateQueueActionButtons();
         if (urlEl && urlEl.value.trim()) verifyChatUrl(false); 
       }); 
     }
     const qSlotSel = document.getElementById('queueSlotSelect');
-    if (qSlotSel) qSlotSel.addEventListener('change', updateQueueButtonLabels);
+    if (qSlotSel) qSlotSel.addEventListener('change', () => { updateQueueButtonLabels(); updateQueueActionButtons(); });
 
     // Check clipboard support for quick Paste button
     if (navigator.clipboard && navigator.clipboard.readText) {
@@ -2945,6 +2980,8 @@ export function renderDashboardHTML(initialAccounts = []) {
     renderScheduleList();
     populateQueueAccountSelect();
     populateQueueSlotSelect();
+    const initialHeaderSub = document.getElementById('headerSub');
+    if (initialHeaderSub && ACCOUNTS.length > 0) initialHeaderSub.textContent = ACCOUNTS.length + (ACCOUNTS.length === 1 ? ' connected account' : ' connected accounts');
     updateQueueButtonLabels();
     fetchQueueTasks();
     updateQueueActionButtons();

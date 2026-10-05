@@ -416,9 +416,11 @@ export default {
       cohortA = accounts;
       cohortB = accounts;
     } else {
-      const mid = Math.floor(accounts.length / 2);
-      cohortA = accounts.slice(0, mid);
-      cohortB = accounts.slice(mid);
+      // Stable IDs keep existing accounts assigned to the same daily slots as new accounts are added.
+      cohortA = accounts.filter(acc => Number(acc.id) % 2 !== 0);
+      cohortB = accounts.filter(acc => Number(acc.id) % 2 === 0);
+      if (cohortA.length === 0) cohortA = accounts;
+      if (cohortB.length === 0) cohortB = accounts;
     }
 
     const accountsToPing = (targetCohort === 1) ? cohortA : cohortB;
