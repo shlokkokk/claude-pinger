@@ -1118,6 +1118,7 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     .btn-dispatch-task:hover { background: rgba(0, 229, 240, 0.18); border-color: var(--cyan); }
     .btn-dispatch-task svg { width: 12px; height: 12px; flex-shrink: 0; }
+    .task-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
     /* ===== ACTIVE QUEUED TASKS (Redesigned for flawless UX) ===== */
     .tasks-divider {
@@ -1777,6 +1778,8 @@ export function renderDashboardHTML(initialAccounts = []) {
       .timing-pill-group { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .timing-pill-btn { white-space: normal; text-align: center; }
       .diag-status { font-size: .68rem; }
+      .task-actions { width: 100%; }
+      .task-actions > button { flex: 1 1 0; justify-content: center; min-height: 42px; }
     }
 
     @media (min-width: 960px) {
@@ -1984,7 +1987,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           </label>
           <div class="input-wrap">
             <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></div>
-            <input type="text" class="form-input" id="queuePrompt" value="continue" placeholder="e.g. continue with section 4" autocomplete="off">
+            <input type="text" class="form-input" id="queuePrompt" placeholder="Write the next instruction" autocomplete="off">
           </div>
           <span class="form-hint">Message sent to Claude when the reset window opens.</span>
         </div>
@@ -2747,7 +2750,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           if (task.status === 'failed') tt = 'Error: ' + escapeHtml(task.error || 'Execution failed');
 
           const actionBtns = task.status === 'queued'
-            ? '<div style="display:flex;align-items:center;gap:6px;">' +
+            ? '<div class="task-actions">' +
                 '<button class="btn-dispatch-task" onclick="dispatchSingleTask(&quot;' + task.id + '&quot;, ' + task.accountId + ')" title="Execute this prompt immediately"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>Run Now</button>' +
                 '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel</button>' +
               '</div>'
