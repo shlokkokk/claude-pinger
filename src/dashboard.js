@@ -2190,7 +2190,17 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     function timeInputValueToText(value) {
       const match = String(value || '').match(/^(\d{2}):(\d{2})$/);
-      return match ? fmtMinsToTime(Number(match[1]) * 60 + Number(match[2])) : '';
+      return match ? fmtMinsToTime(Number(match[1]) * 60 + Number(match[2])) : (value || '');
+    }
+
+    function getNextPingDisplayForAccount(accountId) {
+      if (!SCHEDULE || SCHEDULE.length === 0) return '';
+      const accSchedule = SCHEDULE.filter(s => s.account === accountId);
+      if (accSchedule.length === 0) return '';
+      const istDate = getISTDate();
+      const currentMins = istDate.getHours() * 60 + istDate.getMinutes();
+      const upcoming = accSchedule.find(s => s.minsOfDay > currentMins);
+      return upcoming ? upcoming.display : accSchedule[0].display;
     }
 
     function fmtTime(d) { return d.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
@@ -2607,7 +2617,8 @@ export function renderDashboardHTML(initialAccounts = []) {
           if (preview) {
             preview.className = 'url-preview'; preview.style.display = 'flex';
             const sid = data.chatId ? data.chatId.substring(0, 14) + '...' : 'OK';
-            const chatTypeLabel = String(data.chatType || 'Claude conversation').replace(/\s*\(UUID v4 (?:Verified|format)\)/i, '');
+            const rawType = String(data.chatType || 'Claude conversation');
+            const chatTypeLabel = rawType.includes('(') ? rawType.split('(')[0].trim() : rawType;
             preview.innerHTML =
               '<div class="url-preview-head"><span style="color:var(--green);display:flex;align-items:center;gap:6px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 01-18 0z"/></svg>' + escapeHtml(chatTypeLabel) + ' format matches</span><span class="url-preview-id">ID ' + escapeHtml(sid) + '</span></div>';
           }
@@ -2735,17 +2746,34 @@ export function renderDashboardHTML(initialAccounts = []) {
           if (task.status === 'completed') sb = '<span class="task-status completed"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Done</span>';
           if (task.status === 'failed') sb = '<span class="task-status failed"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;"></span>Failed</span>';
 
-          // Target badge
+          // Target badge & timing description
           let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping</span>';
-          if (task.targetType === 'slot') {
-            tb = '<span class="target-badge slot"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + escapeHtml(task.targetSlotDisplay || ('Slot ' + task.targetSlot)) + '</span>';
-          } else if (task.targetType === 'time') {
-            tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(task.targetTime || 'Exact Time') + '</span>';
-          }
-
           let tt = 'Fires on next scheduled reset ping';
-          if (task.targetType === 'slot') tt = 'Scheduled for ' + (task.targetSlotDisplay || ('Slot ' + task.targetSlot));
-          else if (task.targetType === 'time') tt = 'Scheduled for exact reset at ' + (task.targetTime || 'custom time');
+
+          if (task.targetType === 'slot') {
+            const slotText = task.targetSlotDisplay || ('Slot ' + task.targetSlot);
+            tb = '<span class="target-badge slot"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + escapeHtml(slotText) + '</span>';
+            tt = 'Scheduled for ' + escapeHtml(slotText);
+          } else if (task.targetType === 'time') {
+            let timeText = 'Exact Time';
+            if (task.targetTime) {
+              timeText = task.targetTime.includes('IST') ? task.targetTime : (task.targetTime + ' IST');
+            } else if (task.targetTimestamp) {
+              try {
+                timeText = new Date(task.targetTimestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
+              } catch (_) {
+                timeText = 'Exact Time';
+              }
+            }
+            tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(timeText) + '</span>';
+            tt = 'Scheduled for exact reset at ' + escapeHtml(timeText);
+          } else {
+            const nextPing = getNextPingDisplayForAccount(task.accountId);
+            if (nextPing) {
+              tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping (' + escapeHtml(nextPing) + ')</span>';
+              tt = 'Fires on next scheduled reset ping at ' + escapeHtml(nextPing) + ' IST';
+            }
+          }
           if (task.status === 'completed') tt = 'Finished ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : 'recently');
           if (task.status === 'failed') tt = 'Error: ' + escapeHtml(task.error || 'Execution failed');
 
