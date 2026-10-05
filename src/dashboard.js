@@ -2757,12 +2757,14 @@ export function renderDashboardHTML(initialAccounts = []) {
               tt = 'Scheduled for ' + escapeHtml(slotText);
             } else if (task.targetType === 'time') {
               let timeText = '';
-              if (task.targetTime) {
-                timeText = task.targetTime.includes('IST') ? task.targetTime : (task.targetTime + ' IST');
-              } else if (task.targetTimestamp) {
+              if (task.targetTimestamp) {
                 try {
                   timeText = new Date(task.targetTimestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
                 } catch (_) {}
+              }
+              if (!timeText && task.targetTime) {
+                const formatted = timeInputValueToText(task.targetTime);
+                timeText = formatted.includes('IST') ? formatted : (formatted + ' IST');
               }
               if (timeText) {
                 tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(timeText) + '</span>';
