@@ -2755,18 +2755,23 @@ export function renderDashboardHTML(initialAccounts = []) {
             tb = '<span class="target-badge slot"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + escapeHtml(slotText) + '</span>';
             tt = 'Scheduled for ' + escapeHtml(slotText);
           } else if (task.targetType === 'time') {
-            let timeText = 'Exact Time';
+            let timeText = '';
             if (task.targetTime) {
               timeText = task.targetTime.includes('IST') ? task.targetTime : (task.targetTime + ' IST');
             } else if (task.targetTimestamp) {
               try {
                 timeText = new Date(task.targetTimestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
-              } catch (_) {
-                timeText = 'Exact Time';
-              }
+              } catch (_) {}
             }
-            tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(timeText) + '</span>';
-            tt = 'Scheduled for exact reset at ' + escapeHtml(timeText);
+            if (timeText) {
+              tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(timeText) + '</span>';
+              tt = 'Scheduled for exact reset at ' + escapeHtml(timeText);
+            } else {
+              const nextPing = getNextPingDisplayForAccount(task.accountId);
+              const npLabel = nextPing ? ('Next Ping (' + escapeHtml(nextPing) + ')') : 'Next Ping';
+              tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' + npLabel + '</span>';
+              tt = 'Fires on next scheduled reset ping' + (nextPing ? (' at ' + escapeHtml(nextPing) + ' IST') : '');
+            }
           } else {
             const nextPing = getNextPingDisplayForAccount(task.accountId);
             if (nextPing) {

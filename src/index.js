@@ -915,7 +915,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
 
         // Priority 3: Next ping tasks (run on immediate next ping, no future lock)
         if (!queuedTask) {
-          queuedTask = queuedTasks.find(t => t.targetType === 'next' || !t.targetType);
+          queuedTask = queuedTasks.find(t => t.targetType === 'next' || !t.targetType || (t.targetType === 'time' && !t.targetTimestamp && !t.targetTime));
         }
 
         // Tasks targeting FUTURE slots or FUTURE timestamps are preserved safely in queue!
