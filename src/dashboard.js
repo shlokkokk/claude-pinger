@@ -730,6 +730,15 @@ export function renderDashboardHTML(initialAccounts = []) {
       margin-top: 4px;
     }
 
+    .queue-form .form-group {
+      min-width:0;
+      padding:clamp(12px, 1.35vw, 17px);
+      border:1px solid var(--border-dim);
+      border-radius:14px;
+      background:linear-gradient(145deg, rgba(255,255,255,.026), rgba(255,255,255,.008));
+      gap:10px;
+    }
+
     .form-group {
       display: flex;
       flex-direction: column;
@@ -953,27 +962,23 @@ export function renderDashboardHTML(initialAccounts = []) {
     .btn-link svg, .btn-link-accent svg { width: 13px; height: 13px; flex-shrink: 0; }
 
     .url-preview {
-      background: rgba(10, 14, 24, 0.9);
+      background: rgba(9, 16, 23, 0.72);
       border: 1px solid rgba(0, 229, 240, 0.2);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      font-size: 0.72rem;
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-size: 0.68rem;
       font-family: var(--mono);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
       animation: fade-in 0.2s ease;
     }
 
     .url-preview.error { border-color: rgba(240, 72, 72, 0.28); background: rgba(240, 72, 72, 0.05); }
 
-    .url-preview-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 700;
-      gap: 8px;
-    }
+    .url-preview-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; gap:8px; min-width:0; }
+    .url-preview-head > span:first-child { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .url-preview-id { color:var(--text-400); font-size:.62rem; white-space:nowrap; }
 
     .url-preview-row {
       display: flex;
@@ -1780,23 +1785,20 @@ export function renderDashboardHTML(initialAccounts = []) {
       .accounts-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
       .hero-card { padding: clamp(22px, 3vw, 34px); }
       .card { padding: clamp(20px, 2vw, 28px); }
-      .queue-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "left right" "actions actions"; gap: clamp(16px, 2vw, 24px); align-items: start; }
-      .queue-column { display:flex; flex-direction:column; gap:clamp(16px, 2vw, 24px); min-width:0; }
-      #queueAccountColumn { grid-area:left; }
-      #queueTimingColumn { grid-area:right; }
-      .queue-form > .queue-btns { grid-area:actions; min-width:0; }
+      .queue-form { display:grid; grid-template-columns:minmax(0, 5fr) minmax(0, 7fr); gap:clamp(12px, 1.4vw, 18px); align-items:stretch; }
+      .queue-column { display:contents; }
+      #queueAccountGroup { grid-column:1; }
+      #queueUrlGroup { grid-column:2; }
+      #queuePromptGroup, #queueTimingGroup, .queue-form > .queue-btns { grid-column:1 / -1; }
+      .queue-form > .queue-btns { min-width:0; }
       .queue-btns button { min-width:0; }
       .queue-btns button span { overflow-wrap:anywhere; text-align:center; }
     }
 
     @media (max-width:959px) {
-      .queue-form { display:grid; grid-template-columns:minmax(0,1fr); grid-template-areas:"account" "url" "prompt" "timing" "actions"; gap:16px; }
+      .queue-form { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
       .queue-column { display:contents; }
-      #queueAccountGroup { grid-area:account; }
-      #queueUrlGroup { grid-area:url; }
-      #queuePromptGroup { grid-area:prompt; }
-      #queueTimingGroup { grid-area:timing; }
-      .queue-form > .queue-btns { grid-area:actions; }
+      #queueAccountGroup, #queueUrlGroup, #queuePromptGroup, #queueTimingGroup, .queue-form > .queue-btns { grid-column:1; }
       .queue-btns { grid-template-columns:repeat(2,minmax(0,1fr)); }
     }
 
@@ -1947,7 +1949,7 @@ export function renderDashboardHTML(initialAccounts = []) {
             </button>
           </div>
           <div class="url-bar">
-            <span class="form-hint">We check the link format only; sign-in and access are not checked.</span>
+            <span class="form-hint">Format only. Sign-in and access are not checked.</span>
             <div class="url-btns">
               <button type="button" class="btn-link" id="btnPasteUrl" onclick="pasteFromClipboard()" style="display:none;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -2601,9 +2603,7 @@ export function renderDashboardHTML(initialAccounts = []) {
             const sid = data.chatId ? data.chatId.substring(0, 14) + '...' : 'OK';
             const chatTypeLabel = String(data.chatType || 'Claude conversation').replace(/\s*\(UUID v4 (?:Verified|format)\)/i, '');
             preview.innerHTML =
-              '<div class="url-preview-head"><span style="color:var(--green);display:flex;align-items:center;gap:5px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 01-18 0z"/></svg>' + escapeHtml(chatTypeLabel) + ' link format</span><span style="color:var(--text-400);font-size:0.62rem;">ID: ' + escapeHtml(sid) + '</span></div>' +
-              '<div class="url-preview-row"><span style="color:var(--text-400);">Target:</span><a href="' + escapeHtml(data.fullUrl || v) + '" target="_blank" rel="noopener noreferrer" style="color:var(--cyan);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(data.normalizedUrl) + '</a></div>' +
-              '<div style="font-size:0.62rem;color:var(--text-400);margin-top:1px;">URL structure and chat ID pattern match. Claude access is not tested.</div>';
+              '<div class="url-preview-head"><span style="color:var(--green);display:flex;align-items:center;gap:6px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 01-18 0z"/></svg>' + escapeHtml(chatTypeLabel) + ' format matches</span><span class="url-preview-id">ID ' + escapeHtml(sid) + '</span></div>';
           }
           if (interactive) {
             addConsoleLog('Claude URL format valid: ' + data.chatType, 'ok');
@@ -2982,13 +2982,6 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
     const qSlotSel = document.getElementById('queueSlotSelect');
     if (qSlotSel) qSlotSel.addEventListener('change', updateQueueButtonLabels);
-
-    const accountColumn = document.getElementById('queueAccountColumn');
-    const timingColumn = document.getElementById('queueTimingColumn');
-    const urlGroup = document.getElementById('queueUrlGroup');
-    const promptGroup = document.getElementById('queuePromptGroup');
-    if (accountColumn && promptGroup) accountColumn.appendChild(promptGroup);
-    if (timingColumn && urlGroup) timingColumn.prepend(urlGroup);
 
     // Check clipboard support for quick Paste button
     if (navigator.clipboard && navigator.clipboard.readText) {
