@@ -1037,6 +1037,79 @@ export function renderDashboardHTML(initialAccounts = []) {
     .btn-queue-secondary:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
     .btn-queue-secondary svg { width: 15px; height: 15px; flex-shrink: 0; }
 
+    /* ===== TIMING MODES & FLEXIBLE SLOTS ===== */
+    .timing-pill-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-dim);
+      padding: 4px;
+      border-radius: var(--radius-sm);
+    }
+
+    .timing-pill-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-300);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all var(--transition);
+      font-family: var(--font);
+      white-space: nowrap;
+    }
+
+    .timing-pill-btn:hover { color: var(--text-100); background: rgba(255, 255, 255, 0.04); }
+    .timing-pill-btn.active {
+      background: rgba(0, 229, 240, 0.12);
+      border-color: rgba(0, 229, 240, 0.35);
+      color: var(--cyan);
+    }
+
+    .target-badge {
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 0.60rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-200);
+      border: 1px solid var(--border-dim);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .target-badge.slot { background: rgba(176, 125, 240, 0.12); color: var(--purple-bright); border-color: rgba(176, 125, 240, 0.3); }
+    .target-badge.time { background: rgba(0, 229, 240, 0.12); color: var(--cyan); border-color: rgba(0, 229, 240, 0.3); }
+
+    .btn-dispatch-task {
+      background: rgba(0, 229, 240, 0.08);
+      border: 1px solid rgba(0, 229, 240, 0.28);
+      color: var(--cyan);
+      border-radius: var(--radius-sm);
+      padding: 5px 9px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all var(--transition);
+      font-family: var(--font);
+    }
+
+    .btn-dispatch-task:hover { background: rgba(0, 229, 240, 0.18); border-color: var(--cyan); }
+    .btn-dispatch-task svg { width: 12px; height: 12px; flex-shrink: 0; }
+
     /* ===== ACTIVE QUEUED TASKS (Redesigned for flawless UX) ===== */
     .tasks-divider {
       margin-top: 14px;
@@ -1741,6 +1814,47 @@ export function renderDashboardHTML(initialAccounts = []) {
           <span class="form-hint">Message sent to Claude when the reset window opens.</span>
         </div>
 
+        <div class="form-group">
+          <label class="form-label">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Execution Schedule
+          </label>
+          <div class="timing-pill-group">
+            <button type="button" class="timing-pill-btn active" id="pillTimingNext" onclick="setTimingMode('next')">
+              <span>⚡ Next Ping</span>
+            </button>
+            <button type="button" class="timing-pill-btn" id="pillTimingSlot" onclick="setTimingMode('slot')">
+              <span>📅 Target Slot</span>
+            </button>
+            <button type="button" class="timing-pill-btn" id="pillTimingTime" onclick="setTimingMode('time')">
+              <span>🎯 Exact Time</span>
+            </button>
+          </div>
+
+          <!-- SUB-VIEW: TARGET SPECIFIC SLOT -->
+          <div id="timingSlotWrap" style="display:none;margin-top:8px;">
+            <div class="select-wrap">
+              <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+              <select class="form-select" id="queueSlotSelect"></select>
+              <div class="chevron"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></div>
+            </div>
+            <span class="form-hint" style="margin-top:4px;">Earlier keep-alives will run normally without using this task.</span>
+          </div>
+
+          <!-- SUB-VIEW: EXACT RESET TIME -->
+          <div id="timingExactWrap" style="display:none;margin-top:8px;">
+            <div class="input-wrap">
+              <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+              <input type="text" class="form-input" id="queueExactTime" placeholder="e.g. 03:42 AM" autocomplete="off">
+              <button type="button" class="btn-clear-input" id="btnPasteNotice" onclick="pasteAndParseNotice()" title="Paste Claude rate limit notice" style="display:flex;width:auto;padding:0 8px;font-size:0.65rem;color:var(--cyan);background:rgba(0,229,240,0.08);border-radius:4px;gap:4px;right:6px;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Paste Notice</span>
+              </button>
+            </div>
+            <span class="form-hint" style="margin-top:4px;">Runs at exact IST reset time (swept by edge & Android exact alarm).</span>
+          </div>
+        </div>
+
         <div class="queue-btns">
           <button class="btn-queue-primary" id="btnQueueTask" onclick="submitQueuedTask(false)" disabled>
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -2326,6 +2440,72 @@ export function renderDashboardHTML(initialAccounts = []) {
       }
     }
 
+    let selectedTimingMode = 'next';
+
+    function setTimingMode(mode) {
+      selectedTimingMode = mode;
+      const pN = document.getElementById('pillTimingNext');
+      const pS = document.getElementById('pillTimingSlot');
+      const pT = document.getElementById('pillTimingTime');
+      if (pN) pN.className = 'timing-pill-btn ' + (mode === 'next' ? 'active' : '');
+      if (pS) pS.className = 'timing-pill-btn ' + (mode === 'slot' ? 'active' : '');
+      if (pT) pT.className = 'timing-pill-btn ' + (mode === 'time' ? 'active' : '');
+
+      const slotWrap = document.getElementById('timingSlotWrap');
+      const timeWrap = document.getElementById('timingExactWrap');
+      if (slotWrap) slotWrap.style.display = mode === 'slot' ? 'block' : 'none';
+      if (timeWrap) timeWrap.style.display = mode === 'time' ? 'block' : 'none';
+
+      if (mode === 'slot') populateQueueSlotSelect();
+    }
+
+    function populateQueueSlotSelect() {
+      const sel = document.getElementById('queueSlotSelect');
+      const accSel = document.getElementById('queueAccountSelect');
+      if (!sel) return;
+      const targetAccId = accSel ? parseInt(accSel.value, 10) : 1;
+      const accSchedule = SCHEDULE.filter(s => s.account === targetAccId);
+      sel.innerHTML = '';
+      (accSchedule.length > 0 ? accSchedule : SCHEDULE).forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.slot;
+        opt.dataset.display = s.display + ' (' + s.tag + ')';
+        opt.innerText = 'Slot ' + s.slot + ' \u2022 ' + s.display + ' (' + s.tag + ')';
+        sel.appendChild(opt);
+      });
+    }
+
+    async function pasteAndParseNotice() {
+      try {
+        let text = '';
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          text = await navigator.clipboard.readText();
+        }
+        if (!text) {
+          text = prompt('Paste Claude rate limit notice text (e.g. "You are out of messages until 3:42 AM"):');
+        }
+        if (text) {
+          const res = await fetch('/api/queue/parse-notice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+          });
+          const data = await res.json();
+          if (data.success && data.parsedTime) {
+            setTimingMode('time');
+            const timeInp = document.getElementById('queueExactTime');
+            if (timeInp) timeInp.value = data.parsedTime;
+            showToast('Extracted reset time: ' + data.parsedTime, 'ok');
+            addConsoleLog('Extracted time from notice: ' + data.parsedTime, 'ok');
+          } else {
+            showToast('Could not extract reset time from text', 'warn');
+          }
+        }
+      } catch (err) {
+        showToast('Error parsing notice: ' + err.message, 'err');
+      }
+    }
+
     async function fetchQueueTasks() {
       const c = document.getElementById('activeTasksList'), cb = document.getElementById('taskCountBadge');
       if (!c) return;
@@ -2333,31 +2513,62 @@ export function renderDashboardHTML(initialAccounts = []) {
         const res = await fetch('/api/queue');
         if (!res.ok) return;
         const data = await res.json();
-        const tasks = data.tasks || {};
-        const entries = Object.entries(tasks);
-        if (cb) cb.innerText = String(entries.length);
-        if (entries.length === 0) {
-          c.innerHTML = '<div class="empty-state"><svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>No tasks queued. Enter a Claude chat link and prompt above to automate your next reset.</span></div>';
+        const rawTasks = data.tasks || {};
+        
+        // Flatten tasks: support both array of tasks and legacy single task object
+        const allItems = [];
+        Object.entries(rawTasks).forEach(([accIdStr, val]) => {
+          const accId = parseInt(accIdStr, 10);
+          if (Array.isArray(val)) {
+            val.forEach(t => allItems.push({ ...t, accountId: accId }));
+          } else if (val && typeof val === 'object') {
+            allItems.push({ ...val, accountId: accId });
+          }
+        });
+
+        if (cb) cb.innerText = String(allItems.length);
+        if (allItems.length === 0) {
+          c.innerHTML = '<div class="empty-state"><svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>No tasks queued. Enter a Claude chat link and prompt above to automate your reset.</span></div>';
           return;
         }
+
+        // Sort: queued first, then by queued timestamp desc
+        allItems.sort((a, b) => {
+          if (a.status === 'queued' && b.status !== 'queued') return -1;
+          if (a.status !== 'queued' && b.status === 'queued') return 1;
+          return (b.queuedAtTimestamp || 0) - (a.queuedAtTimestamp || 0);
+        });
+
         c.innerHTML = '';
-        entries.forEach(([accId, task]) => {
-          const acc = ACCOUNTS.find(a => a.id === parseInt(accId, 10)) || { name: 'Account ' + accId, color: '#00e5f0' };
+        allItems.forEach(task => {
+          const acc = ACCOUNTS.find(a => a.id === task.accountId) || { name: task.accountName || ('Account ' + task.accountId), color: '#00e5f0' };
           const el = document.createElement('div');
           el.className = 'task-card ' + (task.status || 'queued');
+
           let sb = '<span class="task-status queued"><span style="width:6px;height:6px;border-radius:50%;background:var(--cyan);display:inline-block;box-shadow:0 0 5px var(--cyan);"></span>Queued</span>';
           if (task.status === 'completed') sb = '<span class="task-status completed"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Done</span>';
           if (task.status === 'failed') sb = '<span class="task-status failed"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;"></span>Failed</span>';
 
-          const tt = task.status === 'completed'
-            ? 'Finished ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : 'recently')
-            : task.status === 'failed'
-            ? 'Error: ' + escapeHtml(task.error || 'Execution failed')
-            : 'Fires on next scheduled reset ping';
+          // Target badge
+          let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping</span>';
+          if (task.targetType === 'slot') {
+            tb = '<span class="target-badge slot"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + escapeHtml(task.targetSlotDisplay || ('Slot ' + task.targetSlot)) + '</span>';
+          } else if (task.targetType === 'time') {
+            tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(task.targetTime || 'Exact Time') + '</span>';
+          }
 
-          const ca = task.status === 'queued'
-            ? '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + accId + ')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel Task</button>'
-            : '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + accId + ')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Clear</button>';
+          let tt = 'Fires on next scheduled reset ping';
+          if (task.targetType === 'slot') tt = 'Scheduled for ' + (task.targetSlotDisplay || ('Slot ' + task.targetSlot));
+          else if (task.targetType === 'time') tt = 'Scheduled for exact reset at ' + (task.targetTime || 'custom time');
+          if (task.status === 'completed') tt = 'Finished ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : 'recently');
+          if (task.status === 'failed') tt = 'Error: ' + escapeHtml(task.error || 'Execution failed');
+
+          const actionBtns = task.status === 'queued'
+            ? '<div style="display:flex;align-items:center;gap:6px;">' +
+                '<button class="btn-dispatch-task" onclick="dispatchSingleTask(\'' + task.id + '\', ' + task.accountId + ')" title="Execute this prompt immediately"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>Run Now</button>' +
+                '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', \'' + task.id + '\')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel</button>' +
+              '</div>'
+            : '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', \'' + task.id + '\')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Clear</button>';
 
           const su = (task.chatUrl && (task.chatUrl.startsWith('http://') || task.chatUrl.startsWith('https://'))) ? escapeHtml(task.chatUrl) : '#';
           const suClean = su.replace(/^https?:\\/\\//i, '');
@@ -2367,8 +2578,9 @@ export function renderDashboardHTML(initialAccounts = []) {
               '<div class="task-acc-wrap">' +
                 '<span class="task-acc-name" style="color:' + (acc.color || '#00e5f0') + ';">' + escapeHtml(acc.name) + '</span>' +
                 sb +
+                tb +
               '</div>' +
-              ca +
+              actionBtns +
             '</div>' +
             '<div class="task-prompt-box">' +
               '<div class="task-prompt-badge">' +
@@ -2411,6 +2623,31 @@ export function renderDashboardHTML(initialAccounts = []) {
         return;
       }
 
+      const payload = {
+        accountId: aid,
+        chatUrl: cu,
+        prompt: pr,
+        targetType: selectedTimingMode
+      };
+
+      if (selectedTimingMode === 'slot') {
+        const slotEl = document.getElementById('queueSlotSelect');
+        if (slotEl && slotEl.value) {
+          payload.targetSlot = parseInt(slotEl.value, 10);
+          const selOpt = slotEl.options[slotEl.selectedIndex];
+          payload.targetSlotDisplay = selOpt ? selOpt.dataset.display : ('Slot ' + payload.targetSlot);
+        }
+      } else if (selectedTimingMode === 'time') {
+        const timeInp = document.getElementById('queueExactTime');
+        const rawTime = timeInp ? timeInp.value.trim() : '';
+        if (!rawTime) {
+          showToast('Please enter an exact reset time (e.g. 03:42 AM)!', 'warn');
+          if (timeInp) timeInp.focus();
+          return;
+        }
+        payload.targetTime = rawTime;
+      }
+
       if (bq) bq.disabled = true;
       if (bn) bn.disabled = true;
       const ot = runNow ? (tn ? tn.innerText : '') : (tq ? tq.innerText : '');
@@ -2424,7 +2661,7 @@ export function renderDashboardHTML(initialAccounts = []) {
         const res = await fetch('/api/queue', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accountId: aid, chatUrl: cu, prompt: pr })
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.success) {
@@ -2434,9 +2671,9 @@ export function renderDashboardHTML(initialAccounts = []) {
           const b = document.getElementById('urlVerifyBadge'); if (b) { b.className = 'verify-badge idle'; b.innerText = 'Awaiting URL'; }
           const pc = document.getElementById('urlPreviewCard'); if (pc) pc.style.display = 'none';
           await fetchQueueTasks();
-          if (runNow) {
+          if (runNow && data.task && data.task.id) {
             addConsoleLog('Executing queued task for ' + acc.name + ' now...', 'info');
-            triggerPing(aid);
+            dispatchSingleTask(data.task.id, aid);
           }
         } else {
           addConsoleLog('Queue Error: ' + (data.error || 'Failed'), 'err');
@@ -2452,9 +2689,32 @@ export function renderDashboardHTML(initialAccounts = []) {
       }
     }
 
-    async function cancelQueuedTask(aid) {
+    async function dispatchSingleTask(taskId, aid) {
+      const acc = ACCOUNTS.find(a => a.id === aid) || { name: 'Account ' + aid };
+      addConsoleLog('Dispatching task for ' + acc.name + ' now...', 'info');
+      showToast('Dispatching task for ' + acc.name + '...', 'info');
       try {
-        const res = await fetch('/api/queue?accountId=' + aid, { method: 'DELETE' });
+        const res = await fetch('/api/queue/dispatch?taskId=' + encodeURIComponent(taskId) + '&accountId=' + aid, { method: 'POST' });
+        const data = await res.json();
+        if (data.result && data.result.success) {
+          showToast('Task completed for ' + acc.name, 'ok');
+          addConsoleLog('Success: ' + acc.name + ' ➔ ' + (data.result.pageTitle || 'Completed'), 'ok');
+        } else {
+          showToast('Task failed: ' + (data.result?.stepError || data.result?.error || 'Failed'), 'err');
+          addConsoleLog('Failed: ' + acc.name + ' ➔ ' + (data.result?.stepError || 'Error'), 'err');
+        }
+        await fetchQueueTasks();
+      } catch (e) {
+        showToast('Dispatch error: ' + e.message, 'err');
+      }
+    }
+
+    async function cancelQueuedTask(aid, taskId) {
+      try {
+        const url = taskId 
+          ? '/api/queue?accountId=' + aid + '&taskId=' + encodeURIComponent(taskId) 
+          : '/api/queue?accountId=' + aid;
+        const res = await fetch(url, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
           addConsoleLog('Cancelled task for Account ' + aid, '');
@@ -2512,7 +2772,12 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     const qSel = document.getElementById('queueAccountSelect');
-    if (qSel) { qSel.addEventListener('change', () => { if (urlEl && urlEl.value.trim()) verifyChatUrl(false); }); }
+    if (qSel) { 
+      qSel.addEventListener('change', () => { 
+        populateQueueSlotSelect();
+        if (urlEl && urlEl.value.trim()) verifyChatUrl(false); 
+      }); 
+    }
 
     // Check clipboard support for quick Paste button
     if (navigator.clipboard && navigator.clipboard.readText) {
@@ -2526,6 +2791,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     renderTimelineTracks();
     renderScheduleList();
     populateQueueAccountSelect();
+    populateQueueSlotSelect();
     fetchQueueTasks();
     updateQueueActionButtons();
     updateUI();
