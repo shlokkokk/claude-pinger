@@ -716,7 +716,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     .log-text.info { color: var(--cyan); }
     .log-text.err { color: var(--red); }
 
-    /* ===== OVERNIGHT TASK AUTOPILOT FORM ===== */
+    /* ===== SCHEDULED PROMPTS FORM ===== */
     .queue-desc {
       font-size: 0.78rem;
       color: var(--text-200);
@@ -1906,14 +1906,14 @@ export function renderDashboardHTML(initialAccounts = []) {
       </div>
     </section>
 
-    <!-- OVERNIGHT TASK AUTOPILOT -->
+    <!-- SCHEDULED PROMPTS -->
     <section class="card" id="taskQueueSection">
       <div class="card-header">
         <h2 class="card-title">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Overnight Autopilot
+          Scheduled Prompts
         </h2>
-        <span class="card-badge" style="color: var(--cyan);" id="taskQueueStatus">Dynamic Queue</span>
+        <span class="card-badge" style="color: var(--cyan);" id="taskQueueStatus">Flexible Schedule</span>
       </div>
 
       <p class="queue-desc">Choose an account, conversation and instruction, then schedule it for the next ping, a specific slot, or an exact IST time.</p>
@@ -2012,12 +2012,12 @@ export function renderDashboardHTML(initialAccounts = []) {
               <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
               <input type="time" class="form-input" id="queueExactTime" step="60" aria-label="Choose exact reset time" onfocus="try { this.showPicker(); } catch (e) {}" oninput="updateQueueButtonLabels()" onchange="updateQueueButtonLabels()">
             </div>
-              <button type="button" class="btn-clear-input" id="btnPasteNotice" onclick="pasteAndParseNotice()" title="Paste Claude rate limit notice">
+              <button type="button" class="btn-clear-input" id="btnPasteNotice" onclick="pasteAndParseNotice()" title="Paste Claude’s rate-limit message and use its reset time">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                <span>Paste Notice</span>
+                <span>Use reset message</span>
               </button>
             </div>
-            <span class="form-hint" style="margin-top:4px;">Choose a time in IST. Selecting the field opens your clock picker.</span>
+            <span class="form-hint" style="margin-top:4px;">Select the time field to open the clock, or fill it from Claude’s reset message.</span>
           </div>
         </div>
         </div>
@@ -2683,7 +2683,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           text = await navigator.clipboard.readText();
         }
         if (!text) {
-          text = prompt('Paste Claude rate limit notice text (e.g. "You are out of messages until 3:42 AM"):');
+          text = prompt('Paste Claude’s rate-limit message (for example, "You are out of messages until 3:42 AM"):');
         }
         if (text) {
           const res = await fetch('/api/queue/parse-notice', {
