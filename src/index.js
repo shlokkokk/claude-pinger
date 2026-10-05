@@ -893,11 +893,6 @@ async function pingAllClaudeAccounts(env) {
 }
 
 async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, accountId, currentSlotNumber = null, targetTaskId = null) {
-  const TOKEN = env && env.BROWSERLESS_TOKEN;
-  if (!TOKEN) {
-    return { success: false, error: 'BROWSERLESS_TOKEN secret is not set.' };
-  }
-
   // 1. Resolve eligible queued task for this account
   let queuedTask = null;
   let allTasks = [];
@@ -932,6 +927,34 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
     } catch (kvErr) {
       console.warn(`KV read error for account ${accountId}:`, kvErr.message);
     }
+  }
+
+  const TOKEN = env && env.BROWSERLESS_TOKEN;
+  if (!TOKEN) {
+    const noTokenErr = 'BROWSERLESS_TOKEN secret is not set in Cloudflare secrets.';
+    if (queuedTask && env && env.TASK_QUEUE && accountId) {
+      try {
+        const taskIdx = allTasks.findIndex(t => t.id === queuedTask.id);
+        const failedTask = {
+          ...queuedTask,
+          status: 'failed',
+          failedAt: new Date().toISOString(),
+          error: noTokenErr
+        };
+        if (taskIdx >= 0) allTasks[taskIdx] = failedTask;
+        else allTasks.push(failedTask);
+        await saveAccountTasks(env, accountId, allTasks);
+
+        await sendNotification(env, {
+          type: 'task_failed',
+          accountName,
+          accountId,
+          prompt: queuedTask.prompt,
+          error: noTokenErr
+        });
+      } catch (e) {}
+    }
+    return { success: false, error: noTokenErr };
   }
 
   const targetCustomUrl = queuedTask ? queuedTask.chatUrl : null;
@@ -1223,13 +1246,19 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
       })
     });
 
+    let result;
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Browserless API error:', response.status, errorText);
-      return { success: false, status: response.status, error: errorText };
+      let parsedError = errorText;
+      try {
+        const jsonErr = JSON.parse(errorText);
+        parsedError = jsonErr.error || jsonErr.message || errorText;
+      } catch (e) {}
+      result = { success: false, status: response.status, error: parsedError, stepError: parsedError };
+    } else {
+      result = await response.json();
     }
-
-    const result = await response.json();
     console.log(`Ping result for ${accountName}:`, result);
 
     if (result && result.error && !result.stepError) {
