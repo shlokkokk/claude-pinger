@@ -1080,7 +1080,26 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
       pageTitle = await p.title();
       const currentLoc = p.url();
 
-      if (currentLoc.includes('/login') || pageTitle.includes('Sign in') || pageTitle.includes('Log in')) {
+      const isLoginUrlOrTitle = currentLoc.includes('/login') ||
+        currentLoc.includes('/auth') ||
+        pageTitle.toLowerCase().includes('sign in') ||
+        pageTitle.toLowerCase().includes('log in') ||
+        pageTitle.toLowerCase().includes('welcome back');
+
+      let hasAuthForm = false;
+      try {
+        hasAuthForm = await p.evaluate(() => {
+          const text = (document.body ? document.body.innerText : '').toLowerCase();
+          const hasEmailInput = !!document.querySelector('input[type="email"], input[name="email"]');
+          const hasAuthText = text.includes('sign in to claude') || 
+                              text.includes('log in to claude') || 
+                              text.includes('enter your email to continue') ||
+                              text.includes('your session has expired');
+          return hasEmailInput && hasAuthText;
+        });
+      } catch (e) {}
+
+      if (isLoginUrlOrTitle || hasAuthForm || (discoveryResult && discoveryResult.isAuthFailed)) {
         return {
           success: false,
           url: currentLoc,
@@ -1206,8 +1225,16 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
       ? accountName 
       : (result?.accountSnippet || accountName);
 
+    const isSessionDead = result && result.stepError && (
+      result.stepError.toLowerCase().includes('session key expired') ||
+      result.stepError.toLowerCase().includes('session key revoked') ||
+      result.stepError.toLowerCase().includes('session expired') ||
+      result.stepError.toLowerCase().includes('authentication failed') ||
+      result.stepError.toLowerCase().includes('401 unauthorized')
+    );
+
     // Trigger Telegram / Discord alert if session key is expired
-    if (result && result.stepError && result.stepError.toLowerCase().includes('session key expired')) {
+    if (isSessionDead) {
       await sendNotification(env, {
         type: 'session_expired',
         accountName: resolvedAccountName,
