@@ -84,7 +84,7 @@ export function normalizeClaudeChatUrl(rawUrl) {
     return { valid: false, error: 'Only HTTPS and HTTP URLs are allowed.' };
   }
 
-  if (!parsed.hostname.endsWith('claude.ai')) {
+  if (parsed.hostname !== 'claude.ai' && !parsed.hostname.endsWith('.claude.ai')) {
     return { valid: false, error: `Invalid domain (${parsed.hostname}). URL must belong to claude.ai.` };
   }
 
@@ -97,10 +97,10 @@ export function normalizeClaudeChatUrl(rawUrl) {
   const genericChatMatch = path.match(/\/chat\/([a-zA-Z0-9_-]+)/);
 
   if (projectMatch) {
-    chatType = 'Project Chat (UUID v4 Verified)';
+    chatType = 'Project Chat (UUID v4 format)';
     chatId = projectMatch[1];
   } else if (directMatch) {
-    chatType = 'Standard Chat (UUID v4 Verified)';
+    chatType = 'Standard Chat (UUID v4 format)';
     chatId = directMatch[1];
   } else if (genericChatMatch) {
     chatType = 'Custom Claude Chat';
@@ -578,7 +578,8 @@ export default {
         normalizedUrl: norm.normalizedUrl,
         fullUrl: norm.fullUrl,
         targetAccount: matchedAcc ? matchedAcc.name : null,
-        message: `Verified: ${norm.chatType} is valid.`
+        message: 'Claude URL structure is valid. Conversation access and sign-in were not checked.',
+        validationScope: 'url-structure-only'
       }), { status: 200, headers: corsHeaders });
     }
 

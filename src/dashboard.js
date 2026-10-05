@@ -853,8 +853,8 @@ export function renderDashboardHTML(initialAccounts = []) {
     .exact-time-controls { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; }
     .exact-time-controls .input-wrap { min-width:0; }
     .exact-time-controls .form-input { padding-right:12px; }
-    .exact-time-controls .btn-clear-input { position:static; min-height:42px; padding:0 12px; border:1px solid var(--border); border-radius:9px; background:rgba(255,255,255,.035); font-size:.72rem; gap:7px; }
-    @media (max-width:480px) { .exact-time-controls { grid-template-columns:minmax(0,1fr); } .exact-time-controls .btn-clear-input { justify-self:start; } }
+    .exact-time-controls .btn-clear-input { position:static; width:auto; min-width:max-content; min-height:44px; padding:0 12px; border:1px solid var(--border); border-radius:9px; background:rgba(255,255,255,.035); color:var(--cyan); font-size:.72rem; gap:7px; }
+    @media (max-width:480px) { .exact-time-controls { grid-template-columns:minmax(0,1fr); } .exact-time-controls .btn-clear-input { justify-self:stretch; width:100%; min-width:0; } }
 
     /* Clear button inside input */
     .btn-clear-input {
@@ -1780,9 +1780,28 @@ export function renderDashboardHTML(initialAccounts = []) {
       .accounts-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
       .hero-card { padding: clamp(22px, 3vw, 34px); }
       .card { padding: clamp(20px, 2vw, 28px); }
-      .queue-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 2vw, 24px); }
-      .queue-form > .form-group { min-width: 0; }
-      .queue-form > .queue-btns { grid-column: 1 / -1; }
+      .queue-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "left right" "actions actions"; gap: clamp(16px, 2vw, 24px); align-items: start; }
+      .queue-column { display:flex; flex-direction:column; gap:clamp(16px, 2vw, 24px); min-width:0; }
+      #queueAccountColumn { grid-area:left; }
+      #queueTimingColumn { grid-area:right; }
+      .queue-form > .queue-btns { grid-area:actions; min-width:0; }
+      .queue-btns button { min-width:0; }
+      .queue-btns button span { overflow-wrap:anywhere; text-align:center; }
+    }
+
+    @media (max-width:959px) {
+      .queue-form { display:grid; grid-template-columns:minmax(0,1fr); grid-template-areas:"account" "url" "prompt" "timing" "actions"; gap:16px; }
+      .queue-column { display:contents; }
+      #queueAccountGroup { grid-area:account; }
+      #queueUrlGroup { grid-area:url; }
+      #queuePromptGroup { grid-area:prompt; }
+      #queueTimingGroup { grid-area:timing; }
+      .queue-form > .queue-btns { grid-area:actions; }
+      .queue-btns { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+
+    @media (max-width:600px) {
+      .queue-btns { grid-template-columns:minmax(0,1fr); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1895,10 +1914,11 @@ export function renderDashboardHTML(initialAccounts = []) {
         <span class="card-badge" style="color: var(--cyan);" id="taskQueueStatus">Dynamic Queue</span>
       </div>
 
-      <p class="queue-desc">Queue your conversation link and instruction. When the next 5-hour window opens, Claude Pulse automatically wakes up your chat and continues the work.</p>
+      <p class="queue-desc">Choose an account, conversation and instruction, then schedule it for the next ping, a specific slot, or an exact IST time.</p>
 
       <div class="queue-form">
-        <div class="form-group">
+        <div class="queue-column" id="queueAccountColumn">
+        <div class="form-group" id="queueAccountGroup">
           <label class="form-label" for="queueAccountSelect">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             Target Account
@@ -1911,7 +1931,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           <span class="form-hint">Select which account will execute this instruction on reset.</span>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="queueUrlGroup">
           <div class="form-label-row">
             <label class="form-label" for="queueChatUrl">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
@@ -1927,7 +1947,7 @@ export function renderDashboardHTML(initialAccounts = []) {
             </button>
           </div>
           <div class="url-bar">
-            <span class="form-hint">Paste full link from browser address bar</span>
+            <span class="form-hint">We check the link format only; sign-in and access are not checked.</span>
             <div class="url-btns">
               <button type="button" class="btn-link" id="btnPasteUrl" onclick="pasteFromClipboard()" style="display:none;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -1935,14 +1955,14 @@ export function renderDashboardHTML(initialAccounts = []) {
               </button>
               <button type="button" class="btn-link" id="btnVerifyUrl" onclick="verifyChatUrl(true)" disabled>
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Verify
+                Check Link
               </button>
             </div>
           </div>
           <div class="url-preview" id="urlPreviewCard" style="display:none;"></div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="queuePromptGroup">
           <label class="form-label" for="queuePrompt">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
             Prompt
@@ -1954,7 +1974,9 @@ export function renderDashboardHTML(initialAccounts = []) {
           <span class="form-hint">Message sent to Claude when the reset window opens.</span>
         </div>
 
-        <div class="form-group">
+        </div>
+        <div class="queue-column" id="queueTimingColumn">
+        <div class="form-group" id="queueTimingGroup">
           <label class="form-label">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Execution Schedule
@@ -1986,21 +2008,22 @@ export function renderDashboardHTML(initialAccounts = []) {
             <div class="exact-time-controls">
             <div class="input-wrap">
               <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-              <input type="time" class="form-input" id="queueExactTime" step="60" aria-label="Choose exact reset time">
+              <input type="time" class="form-input" id="queueExactTime" step="60" aria-label="Choose exact reset time" onfocus="try { this.showPicker(); } catch (e) {}" oninput="updateQueueButtonLabels()" onchange="updateQueueButtonLabels()">
             </div>
               <button type="button" class="btn-clear-input" id="btnPasteNotice" onclick="pasteAndParseNotice()" title="Paste Claude rate limit notice">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 <span>Paste Notice</span>
               </button>
             </div>
-            <span class="form-hint" style="margin-top:4px;">Choose a time in IST, or paste Claude’s reset notice.</span>
+            <span class="form-hint" style="margin-top:4px;">Choose a time in IST. Selecting the field opens your clock picker.</span>
           </div>
+        </div>
         </div>
 
         <div class="queue-btns">
           <button class="btn-queue-primary" id="btnQueueTask" onclick="submitQueuedTask(false)" disabled>
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span id="btnQueueText">Queue for Reset</span>
+            <span id="btnQueueText">Queue for Next Ping</span>
           </button>
           <button class="btn-queue-secondary" id="btnQueueNow" onclick="submitQueuedTask(true)" disabled>
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
@@ -2572,18 +2595,19 @@ export function renderDashboardHTML(initialAccounts = []) {
         const data = await res.json();
         if (res.ok && data.valid) {
           badge.className = 'verify-badge valid';
-          badge.innerHTML = '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Verified';
+          badge.innerHTML = '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Format Valid';
           if (preview) {
             preview.className = 'url-preview'; preview.style.display = 'flex';
             const sid = data.chatId ? data.chatId.substring(0, 14) + '...' : 'OK';
+            const chatTypeLabel = String(data.chatType || 'Claude conversation').replace(/\s*\(UUID v4 (?:Verified|format)\)/i, '');
             preview.innerHTML =
-              '<div class="url-preview-head"><span style="color:var(--green);display:flex;align-items:center;gap:5px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(data.chatType) + '</span><span style="color:var(--text-400);font-size:0.62rem;">ID: ' + escapeHtml(sid) + '</span></div>' +
+              '<div class="url-preview-head"><span style="color:var(--green);display:flex;align-items:center;gap:5px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 01-18 0z"/></svg>' + escapeHtml(chatTypeLabel) + ' link format</span><span style="color:var(--text-400);font-size:0.62rem;">ID: ' + escapeHtml(sid) + '</span></div>' +
               '<div class="url-preview-row"><span style="color:var(--text-400);">Target:</span><a href="' + escapeHtml(data.fullUrl || v) + '" target="_blank" rel="noopener noreferrer" style="color:var(--cyan);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(data.normalizedUrl) + '</a></div>' +
-              '<div style="font-size:0.62rem;color:var(--text-400);margin-top:1px;">Ready for ' + escapeHtml(data.targetAccount || 'Claude') + '.</div>';
+              '<div style="font-size:0.62rem;color:var(--text-400);margin-top:1px;">URL structure and chat ID pattern match. Claude access is not tested.</div>';
           }
           if (interactive) {
-            addConsoleLog('URL Verified: ' + data.chatType, 'ok');
-            showToast('URL Verified: ' + data.chatType, 'ok');
+            addConsoleLog('Claude URL format valid: ' + data.chatType, 'ok');
+            showToast('Claude URL format looks valid', 'ok');
           }
         } else {
           badge.className = 'verify-badge invalid';
@@ -2595,7 +2619,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           if (interactive) showToast(data.error || 'Enter a valid Claude URL.', 'err');
         }
       } catch (err) {
-        badge.className = 'verify-badge warning'; badge.innerText = 'Format OK';
+        badge.className = 'verify-badge warning'; badge.innerText = 'Format Only';
       }
     }
 
@@ -2616,6 +2640,23 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (timeWrap) timeWrap.style.display = mode === 'time' ? 'block' : 'none';
 
       if (mode === 'slot') populateQueueSlotSelect();
+      updateQueueButtonLabels();
+    }
+
+    function updateQueueButtonLabels() {
+      const buttonText = document.getElementById('btnQueueText');
+      if (!buttonText) return;
+      let label = 'Queue for Next Ping';
+      if (selectedTimingMode === 'slot') {
+        const slotSelect = document.getElementById('queueSlotSelect');
+        const selected = slotSelect && slotSelect.options[slotSelect.selectedIndex];
+        if (selected) label = 'Queue for ' + selected.textContent.replace(/\s*[•·]\s*/, ' · ');
+      } else if (selectedTimingMode === 'time') {
+        const timeInput = document.getElementById('queueExactTime');
+        const chosenTime = timeInput ? timeInput.value : '';
+        label = chosenTime ? 'Queue for ' + timeInputValueToText(chosenTime) + ' IST' : 'Choose Exact Time';
+      }
+      buttonText.textContent = label;
     }
 
     function populateQueueSlotSelect() {
@@ -2632,6 +2673,7 @@ export function renderDashboardHTML(initialAccounts = []) {
         opt.innerText = 'Slot ' + s.slot + ' \u2022 ' + s.display + ' (' + s.tag + ')';
         sel.appendChild(opt);
       });
+      updateQueueButtonLabels();
     }
 
     async function pasteAndParseNotice() {
@@ -2655,6 +2697,7 @@ export function renderDashboardHTML(initialAccounts = []) {
             const timeInp = document.getElementById('queueExactTime');
             const inputTime = timeTextToInputValue(data.parsedTime);
             if (timeInp && inputTime) timeInp.value = inputTime;
+            updateQueueButtonLabels();
             showToast('Extracted reset time: ' + data.parsedTime, 'ok');
             addConsoleLog('Extracted time from notice: ' + data.parsedTime, 'ok');
           } else {
@@ -2845,7 +2888,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       } finally {
         updateQueueActionButtons();
         if (runNow && tn) tn.innerText = ot || 'Dispatch Now';
-        if (!runNow && tq) tq.innerText = ot || 'Queue for Reset';
+        if (!runNow && tq) updateQueueButtonLabels();
       }
     }
 
@@ -2933,9 +2976,19 @@ export function renderDashboardHTML(initialAccounts = []) {
     if (qSel) { 
       qSel.addEventListener('change', () => { 
         populateQueueSlotSelect();
+        updateQueueButtonLabels();
         if (urlEl && urlEl.value.trim()) verifyChatUrl(false); 
       }); 
     }
+    const qSlotSel = document.getElementById('queueSlotSelect');
+    if (qSlotSel) qSlotSel.addEventListener('change', updateQueueButtonLabels);
+
+    const accountColumn = document.getElementById('queueAccountColumn');
+    const timingColumn = document.getElementById('queueTimingColumn');
+    const urlGroup = document.getElementById('queueUrlGroup');
+    const promptGroup = document.getElementById('queuePromptGroup');
+    if (accountColumn && promptGroup) accountColumn.appendChild(promptGroup);
+    if (timingColumn && urlGroup) timingColumn.prepend(urlGroup);
 
     // Check clipboard support for quick Paste button
     if (navigator.clipboard && navigator.clipboard.readText) {
@@ -2950,6 +3003,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     renderScheduleList();
     populateQueueAccountSelect();
     populateQueueSlotSelect();
+    updateQueueButtonLabels();
     fetchQueueTasks();
     updateQueueActionButtons();
     updateUI();
