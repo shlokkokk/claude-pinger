@@ -2197,7 +2197,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (!SCHEDULE || SCHEDULE.length === 0) return '';
       const accSchedule = SCHEDULE.filter(s => s.account === accountId);
       if (accSchedule.length === 0) return '';
-      const istDate = getISTDate();
+      const istDate = getNowIST();
       const currentMins = istDate.getHours() * 60 + istDate.getMinutes();
       const upcoming = accSchedule.find(s => s.minsOfDay > currentMins);
       return upcoming ? upcoming.display : accSchedule[0].display;
@@ -2738,88 +2738,92 @@ export function renderDashboardHTML(initialAccounts = []) {
 
         c.innerHTML = '';
         allItems.forEach(task => {
-          const acc = ACCOUNTS.find(a => a.id === task.accountId) || { name: task.accountName || ('Account ' + task.accountId), color: '#00e5f0' };
-          const el = document.createElement('div');
-          el.className = 'task-card ' + (task.status || 'queued');
+          try {
+            const acc = ACCOUNTS.find(a => a.id === task.accountId) || { name: task.accountName || ('Account ' + task.accountId), color: '#00e5f0' };
+            const el = document.createElement('div');
+            el.className = 'task-card ' + (task.status || 'queued');
 
-          let sb = '<span class="task-status queued"><span style="width:6px;height:6px;border-radius:50%;background:var(--cyan);display:inline-block;box-shadow:0 0 5px var(--cyan);"></span>Queued</span>';
-          if (task.status === 'completed') sb = '<span class="task-status completed"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Done</span>';
-          if (task.status === 'failed') sb = '<span class="task-status failed"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;"></span>Failed</span>';
+            let sb = '<span class="task-status queued"><span style="width:6px;height:6px;border-radius:50%;background:var(--cyan);display:inline-block;box-shadow:0 0 5px var(--cyan);"></span>Queued</span>';
+            if (task.status === 'completed') sb = '<span class="task-status completed"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Done</span>';
+            if (task.status === 'failed') sb = '<span class="task-status failed"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;"></span>Failed</span>';
 
-          // Target badge & timing description
-          let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping</span>';
-          let tt = 'Fires on next scheduled reset ping';
+            // Target badge & timing description
+            let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping</span>';
+            let tt = 'Fires on next scheduled reset ping';
 
-          if (task.targetType === 'slot') {
-            const slotText = task.targetSlotDisplay || ('Slot ' + task.targetSlot);
-            tb = '<span class="target-badge slot"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + escapeHtml(slotText) + '</span>';
-            tt = 'Scheduled for ' + escapeHtml(slotText);
-          } else if (task.targetType === 'time') {
-            let timeText = '';
-            if (task.targetTime) {
-              timeText = task.targetTime.includes('IST') ? task.targetTime : (task.targetTime + ' IST');
-            } else if (task.targetTimestamp) {
-              try {
-                timeText = new Date(task.targetTimestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
-              } catch (_) {}
-            }
-            if (timeText) {
-              tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(timeText) + '</span>';
-              tt = 'Scheduled for exact reset at ' + escapeHtml(timeText);
+            if (task.targetType === 'slot') {
+              const slotText = task.targetSlotDisplay || ('Slot ' + task.targetSlot);
+              tb = '<span class="target-badge slot"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + escapeHtml(slotText) + '</span>';
+              tt = 'Scheduled for ' + escapeHtml(slotText);
+            } else if (task.targetType === 'time') {
+              let timeText = '';
+              if (task.targetTime) {
+                timeText = task.targetTime.includes('IST') ? task.targetTime : (task.targetTime + ' IST');
+              } else if (task.targetTimestamp) {
+                try {
+                  timeText = new Date(task.targetTimestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
+                } catch (_) {}
+              }
+              if (timeText) {
+                tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(timeText) + '</span>';
+                tt = 'Scheduled for exact reset at ' + escapeHtml(timeText);
+              } else {
+                const nextPing = getNextPingDisplayForAccount(task.accountId);
+                const npLabel = nextPing ? ('Next Ping (' + escapeHtml(nextPing) + ')') : 'Next Ping';
+                tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' + npLabel + '</span>';
+                tt = 'Fires on next scheduled reset ping' + (nextPing ? (' at ' + escapeHtml(nextPing) + ' IST') : '');
+              }
             } else {
               const nextPing = getNextPingDisplayForAccount(task.accountId);
-              const npLabel = nextPing ? ('Next Ping (' + escapeHtml(nextPing) + ')') : 'Next Ping';
-              tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' + npLabel + '</span>';
-              tt = 'Fires on next scheduled reset ping' + (nextPing ? (' at ' + escapeHtml(nextPing) + ' IST') : '');
+              if (nextPing) {
+                tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping (' + escapeHtml(nextPing) + ')</span>';
+                tt = 'Fires on next scheduled reset ping at ' + escapeHtml(nextPing) + ' IST';
+              }
             }
-          } else {
-            const nextPing = getNextPingDisplayForAccount(task.accountId);
-            if (nextPing) {
-              tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping (' + escapeHtml(nextPing) + ')</span>';
-              tt = 'Fires on next scheduled reset ping at ' + escapeHtml(nextPing) + ' IST';
-            }
+            if (task.status === 'completed') tt = 'Finished ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : 'recently');
+            if (task.status === 'failed') tt = 'Error: ' + escapeHtml(task.error || 'Execution failed');
+
+            const actionBtns = task.status === 'queued'
+              ? '<div class="task-actions">' +
+                  '<button class="btn-dispatch-task" onclick="dispatchSingleTask(&quot;' + task.id + '&quot;, ' + task.accountId + ')" title="Execute this prompt immediately"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>Run Now</button>' +
+                  '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel</button>' +
+                '</div>'
+              : '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Clear</button>';
+
+            const su = (task.chatUrl && (task.chatUrl.startsWith('http://') || task.chatUrl.startsWith('https://'))) ? escapeHtml(task.chatUrl) : '#';
+            const suClean = su.replace(/^https?:\\/\\//i, '');
+
+            el.innerHTML =
+              '<div class="task-top">' +
+                '<div class="task-acc-wrap">' +
+                  '<span class="task-acc-name" style="color:' + (acc.color || '#00e5f0') + ';">' + escapeHtml(acc.name) + '</span>' +
+                  sb +
+                  tb +
+                '</div>' +
+                actionBtns +
+              '</div>' +
+              '<div class="task-prompt-box">' +
+                '<div class="task-prompt-badge">' +
+                  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>' +
+                  '<span>Prompt Instruction</span>' +
+                '</div>' +
+                '<div class="task-prompt-content">\u201c' + escapeHtml(task.prompt || 'continue') + '\u201d</div>' +
+              '</div>' +
+              '<div class="task-footer">' +
+                '<a href="' + su + '" target="_blank" rel="noopener noreferrer" class="task-url-chip">' +
+                  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>' +
+                  '<span class="task-url-text">' + suClean + '</span>' +
+                  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
+                '</a>' +
+                '<div class="task-timing-chip">' +
+                  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+                  '<span>' + escapeHtml(tt) + '</span>' +
+                '</div>' +
+              '</div>';
+            c.appendChild(el);
+          } catch (taskRenderErr) {
+            console.error('Error rendering individual task:', task.id, taskRenderErr);
           }
-          if (task.status === 'completed') tt = 'Finished ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : 'recently');
-          if (task.status === 'failed') tt = 'Error: ' + escapeHtml(task.error || 'Execution failed');
-
-          const actionBtns = task.status === 'queued'
-            ? '<div class="task-actions">' +
-                '<button class="btn-dispatch-task" onclick="dispatchSingleTask(&quot;' + task.id + '&quot;, ' + task.accountId + ')" title="Execute this prompt immediately"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>Run Now</button>' +
-                '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel</button>' +
-              '</div>'
-            : '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Clear</button>';
-
-          const su = (task.chatUrl && (task.chatUrl.startsWith('http://') || task.chatUrl.startsWith('https://'))) ? escapeHtml(task.chatUrl) : '#';
-          const suClean = su.replace(/^https?:\\/\\//i, '');
-
-          el.innerHTML =
-            '<div class="task-top">' +
-              '<div class="task-acc-wrap">' +
-                '<span class="task-acc-name" style="color:' + (acc.color || '#00e5f0') + ';">' + escapeHtml(acc.name) + '</span>' +
-                sb +
-                tb +
-              '</div>' +
-              actionBtns +
-            '</div>' +
-            '<div class="task-prompt-box">' +
-              '<div class="task-prompt-badge">' +
-                '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>' +
-                '<span>Prompt Instruction</span>' +
-              '</div>' +
-              '<div class="task-prompt-content">\u201c' + escapeHtml(task.prompt || 'continue') + '\u201d</div>' +
-            '</div>' +
-            '<div class="task-footer">' +
-              '<a href="' + su + '" target="_blank" rel="noopener noreferrer" class="task-url-chip">' +
-                '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>' +
-                '<span class="task-url-text">' + suClean + '</span>' +
-                '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
-              '</a>' +
-              '<div class="task-timing-chip">' +
-                '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
-                '<span>' + escapeHtml(tt) + '</span>' +
-              '</div>' +
-            '</div>';
-          c.appendChild(el);
         });
       } catch (e) { console.warn('Queue fetch skipped:', e.message); }
     }
