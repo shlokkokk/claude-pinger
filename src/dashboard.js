@@ -1648,6 +1648,135 @@ export function renderDashboardHTML(initialAccounts = []) {
       .task-url-text { max-width: 140px; }
       .sched-right span:not(.sched-badge) { display: none; }
     }
+
+    /* ===== POLISHED PRODUCT LAYER ===== */
+    :root {
+      --bg-base: #080a0f;
+      --bg-elevated: #0d1119;
+      --bg-card: #111722;
+      --bg-card-hover: #171f2b;
+      --border-dim: rgba(193, 207, 227, 0.09);
+      --border-default: rgba(193, 207, 227, 0.13);
+      --border-hover: rgba(193, 207, 227, 0.25);
+      --cyan: #78e3d2;
+      --cyan-bright: #9bf2e3;
+      --green: #83d6a4;
+      --purple: #b9a2f6;
+      --purple-bright: #cfc0ff;
+      --text-100: #f4f5f7;
+      --text-200: #c5cbd5;
+      --text-300: #929bab;
+      --text-400: #707b8d;
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 19px;
+      --radius-xl: 24px;
+      --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse at 50% -24%, rgba(71, 128, 135, 0.16), transparent 48%),
+        var(--bg-base);
+      padding-top: max(22px, env(safe-area-inset-top, 22px));
+      padding-bottom: max(32px, env(safe-area-inset-bottom, 32px));
+    }
+
+    .app { width: min(100%, 1280px); max-width: none; gap: 18px; }
+    .header { padding: 6px 2px 10px; }
+    .brand { gap: 12px; }
+    .brand-logo { width: 42px; height: 42px; border-radius: 14px; background: #121925; }
+    .brand-info h1 { font-size: 1.12rem; letter-spacing: -0.04em; }
+    .brand-info .brand-sub { font-size: 0.72rem; font-weight: 500; }
+    .clock-pill { padding: 8px 12px; background: rgba(18, 25, 36, 0.82); }
+
+    .mode-switch {
+      padding: 5px;
+      border-color: var(--border-default);
+      border-radius: var(--radius-md);
+      background: rgba(15, 20, 29, 0.92);
+    }
+    .mode-btn { min-height: 44px; font-size: 0.78rem; border-radius: 10px; }
+
+    .hero-card {
+      padding: 22px;
+      gap: 13px;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(145deg, rgba(24, 35, 44, 0.98), rgba(16, 21, 31, 0.98) 62%);
+      border-color: rgba(120, 227, 210, 0.23);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.28), inset 0 1px rgba(255,255,255,.035);
+    }
+    .hero-card::before { height: 2px; opacity: .8; }
+    .hero-title { font-size: clamp(1.28rem, 4vw, 1.58rem); letter-spacing: -0.04em; line-height: 1.22; }
+    .hero-reason { max-width: 54ch; color: #b8c2ce; font-size: .86rem; }
+    .hero-cta { min-height: 50px; border-radius: 13px; background: linear-gradient(120deg, rgba(120,227,210,.18), rgba(185,162,246,.12)); border-color: rgba(120,227,210,.4); }
+
+    .accounts-grid { gap: 12px; }
+    .acc-card, .card {
+      border-color: var(--border-default);
+      background: linear-gradient(150deg, rgba(18, 24, 35, .98), rgba(15, 20, 29, .98));
+      box-shadow: var(--shadow-card), inset 0 1px rgba(255,255,255,.025);
+    }
+    .acc-card { padding: 16px; gap: 14px; border-radius: var(--radius-lg); }
+    .card { padding: 20px; gap: 16px; border-radius: var(--radius-lg); }
+    .card-title { font-size: .94rem; letter-spacing: -.015em; }
+    .card-title svg, .form-label svg { color: var(--cyan); }
+    .diag-bar { padding: 11px 13px; border-radius: 11px; background: rgba(255,255,255,.025); }
+    .btn-diag, .btn-link, .btn-card { border-radius: 10px; }
+    .form-group { gap: 8px; }
+    .form-label { font-size: .7rem; letter-spacing: .065em; }
+    .form-hint { font-size: .71rem; color: #8994a5; }
+    .form-input, .form-select { border-radius: 11px; background: rgba(5,8,13,.42); }
+    .form-input:focus, .form-select:focus { border-color: rgba(120,227,210,.62); box-shadow: 0 0 0 3px rgba(120,227,210,.12); }
+    .timing-pill-group { gap: 5px; border-radius: 11px; }
+    .timing-pill-btn { min-height: 38px; padding: 7px 6px; font-size: .72rem; border-radius: 8px; }
+    .timing-pill-btn.active { color: var(--cyan-bright); background: rgba(120,227,210,.12); border-color: rgba(120,227,210,.3); }
+    .console { border-radius: 11px; padding: 12px; }
+    .timeline-banner { border-radius: 12px; }
+    .footer { padding-top: 12px; font-size: .72rem; }
+
+    /* Keep labels intact and controls comfortable on narrow phones. */
+    button, .card-title, .form-label, .hero-badge, .card-badge { word-break: normal; overflow-wrap: normal; hyphens: none; }
+    button { line-height: 1.25; }
+    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+    @media (max-width: 480px) {
+      body { padding-left: max(14px, env(safe-area-inset-left, 14px)); padding-right: max(14px, env(safe-area-inset-right, 14px)); }
+      .app { gap: 14px; }
+      .hero-card { padding: 18px; }
+      .card { padding: 16px; gap: 14px; }
+      .card-title { white-space: normal; }
+      .card-header { align-items: flex-start; }
+      .card-badge { white-space: nowrap; padding-top: 2px; }
+      .timing-pill-group { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .timing-pill-btn { white-space: normal; text-align: center; }
+      .diag-status { font-size: .68rem; }
+    }
+
+    @media (min-width: 960px) {
+      .app {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+        column-gap: clamp(18px, 2vw, 28px);
+        row-gap: 20px;
+      }
+      .app > .header,
+      .app > .mode-switch,
+      .app > .hero-card,
+      .app > .accounts-grid,
+      .app > .footer { grid-column: 1 / -1; }
+      .app > .manual-card { grid-column: span 5; }
+      .app > #taskQueueSection { grid-column: span 7; }
+      .app > .schedule-card { grid-column: 1 / -1; }
+      .accounts-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+      .hero-card { padding: clamp(22px, 3vw, 34px); }
+      .card { padding: clamp(20px, 2vw, 28px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
   </style>
 </head>
 <body>
@@ -1715,7 +1844,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     <section class="accounts-grid" id="accountsGrid"></section>
 
     <!-- MANUAL PING CONTROLS -->
-    <section class="card">
+    <section class="card manual-card">
       <div class="card-header">
         <h2 class="card-title">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -1877,7 +2006,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     </section>
 
     <!-- 24H SCHEDULE -->
-    <section class="card">
+    <section class="card schedule-card">
       <div class="card-header">
         <h2 class="card-title">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
