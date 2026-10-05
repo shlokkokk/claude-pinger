@@ -1083,8 +1083,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
       const isLoginUrlOrTitle = currentLoc.includes('/login') ||
         currentLoc.includes('/auth') ||
         pageTitle.toLowerCase().includes('sign in') ||
-        pageTitle.toLowerCase().includes('log in') ||
-        pageTitle.toLowerCase().includes('welcome back');
+        pageTitle.toLowerCase().includes('log in');
 
       let hasAuthForm = false;
       try {
@@ -1093,8 +1092,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
           const hasEmailInput = !!document.querySelector('input[type="email"], input[name="email"]');
           const hasAuthText = text.includes('sign in to claude') || 
                               text.includes('log in to claude') || 
-                              text.includes('enter your email to continue') ||
-                              text.includes('your session has expired');
+                              text.includes('enter your email to continue');
           return hasEmailInput && hasAuthText;
         });
       } catch (e) {}
