@@ -1731,6 +1731,8 @@ export function renderDashboardHTML(initialAccounts = []) {
     .timing-pill-group { gap: 5px; border-radius: 11px; }
     .timing-pill-btn { min-height: 38px; padding: 7px 6px; font-size: .72rem; border-radius: 8px; }
     .timing-pill-btn.active { color: var(--cyan-bright); background: rgba(120,227,210,.12); border-color: rgba(120,227,210,.3); }
+    .timing-pill-btn > span { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    .timing-pill-btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
     .console { border-radius: 11px; padding: 12px; }
     .timeline-banner { border-radius: 12px; }
     .footer { padding-top: 12px; font-size: .72rem; }
@@ -1766,12 +1768,15 @@ export function renderDashboardHTML(initialAccounts = []) {
       .app > .hero-card,
       .app > .accounts-grid,
       .app > .footer { grid-column: 1 / -1; }
-      .app > .manual-card { grid-column: span 5; }
-      .app > #taskQueueSection { grid-column: span 7; }
+      .app > .manual-card,
+      .app > #taskQueueSection { grid-column: 1 / -1; }
       .app > .schedule-card { grid-column: 1 / -1; }
       .accounts-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
       .hero-card { padding: clamp(22px, 3vw, 34px); }
       .card { padding: clamp(20px, 2vw, 28px); }
+      .queue-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 2vw, 24px); }
+      .queue-form > .form-group { min-width: 0; }
+      .queue-form > .queue-btns { grid-column: 1 / -1; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1950,13 +1955,13 @@ export function renderDashboardHTML(initialAccounts = []) {
           </label>
           <div class="timing-pill-group">
             <button type="button" class="timing-pill-btn active" id="pillTimingNext" onclick="setTimingMode('next')">
-              <span>⚡ Next Ping</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></svg>Next Ping</span>
             </button>
             <button type="button" class="timing-pill-btn" id="pillTimingSlot" onclick="setTimingMode('slot')">
-              <span>📅 Target Slot</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path stroke-linecap="round" d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 14 2 2 4-4"/></svg>Target Slot</span>
             </button>
             <button type="button" class="timing-pill-btn" id="pillTimingTime" onclick="setTimingMode('time')">
-              <span>🎯 Exact Time</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>Exact Time</span>
             </button>
           </div>
 

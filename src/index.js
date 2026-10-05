@@ -247,27 +247,27 @@ export async function sendNotification(env, { type, accountName, accountId, prom
   let color = 0x00f2fe;
 
   if (type === 'session_expired') {
-    title = `🚨 Session Key Expired: ${shortName}`;
+    title = `Session Key Expired: ${shortName}`;
     message = `<b>Claude Pulse Alert</b>\n\n` +
       `⚠️ The authentication session key for ${accountHeader} has expired or been revoked.\n\n` +
       `Automatic keep-alives and scheduled prompts for <b>${shortName}</b> are paused until updated.\n\n` +
       `<i>Action Required: Update CLAUDE_SESSION_KEY_${accountId || 1} in Cloudflare secrets.</i>`;
     color = 0xf04848;
   } else if (type === 'task_completed') {
-    title = `🚀 Overnight Task Completed: ${shortName}`;
+    title = `Overnight Task Completed: ${shortName}`;
     message = `<b>Claude Pulse Task Executed</b>\n\n` +
-      `👤 <b>Account:</b> ${accountHeader}\n` +
-      `💬 <b>Prompt:</b> "${prompt || 'continue'}"\n` +
-      `🔗 <b>Thread:</b> ${url || 'Claude Chat'}\n` +
-      `📄 <b>Status:</b> ${pageTitle || 'Message submitted successfully'}`;
+      `<b>Account:</b> ${accountHeader}\n` +
+      `<b>Prompt:</b> "${prompt || 'continue'}"\n` +
+      `<b>Thread:</b> ${url || 'Claude Chat'}\n` +
+      `<b>Status:</b> ${pageTitle || 'Message submitted successfully'}`;
     color = 0x00d68f;
   } else if (type === 'task_failed') {
     title = `⚠️ Task Execution Failed: ${shortName}`;
     message = `<b>Claude Pulse Task Error</b>\n\n` +
-      `👤 <b>Account:</b> ${accountHeader}\n` +
-      `💬 <b>Prompt:</b> "${prompt || 'continue'}"\n` +
+      `<b>Account:</b> ${accountHeader}\n` +
+      `<b>Prompt:</b> "${prompt || 'continue'}"\n` +
       `❌ <b>Error:</b> ${error || 'Failed to submit prompt'}\n\n` +
-      `🛡️ <i>Dispatched fallback keep-alive ping automatically to preserve rolling 5-hour window.</i>`;
+      `<i>Dispatched fallback keep-alive ping automatically to preserve rolling 5-hour window.</i>`;
     color = 0xffb020;
   } else {
     return;
