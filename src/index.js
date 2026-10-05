@@ -462,8 +462,12 @@ export default {
 
     // Sweep any exact-time tasks that are due, then execute scheduled slot pings
     ctx.waitUntil((async () => {
-      await sweepDueTasks(env);
-      await pingAccountsList(env, accountsToPing, slotNumber);
+      const swept = await sweepDueTasks(env);
+      const sweptAccountNames = new Set((swept || []).filter(s => s.result?.success).map(s => s.account));
+      const remainingAccountsToPing = accountsToPing.filter(a => !sweptAccountNames.has(a.name));
+      if (remainingAccountsToPing.length > 0) {
+        await pingAccountsList(env, remainingAccountsToPing, slotNumber);
+      }
     })());
   },
 
