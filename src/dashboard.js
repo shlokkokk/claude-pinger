@@ -849,6 +849,12 @@ export function renderDashboardHTML(initialAccounts = []) {
     .form-input:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.05); }
     .form-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0, 229, 240, 0.14); background: rgba(255,255,255,0.06); }
     .form-input::placeholder { color: var(--text-400); }
+    .form-input[type="time"] { color-scheme: dark; }
+    .exact-time-controls { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; }
+    .exact-time-controls .input-wrap { min-width:0; }
+    .exact-time-controls .form-input { padding-right:12px; }
+    .exact-time-controls .btn-clear-input { position:static; min-height:42px; padding:0 12px; border:1px solid var(--border); border-radius:9px; background:rgba(255,255,255,.035); font-size:.72rem; gap:7px; }
+    @media (max-width:480px) { .exact-time-controls { grid-template-columns:minmax(0,1fr); } .exact-time-controls .btn-clear-input { justify-self:start; } }
 
     /* Clear button inside input */
     .btn-clear-input {
@@ -1972,20 +1978,22 @@ export function renderDashboardHTML(initialAccounts = []) {
               <select class="form-select" id="queueSlotSelect"></select>
               <div class="chevron"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></div>
             </div>
-            <span class="form-hint" style="margin-top:4px;">Earlier keep-alives will run normally without using this task.</span>
+            <span class="form-hint" style="margin-top:4px;">A slot is one scheduled run for this account. Earlier pings stay unchanged.</span>
           </div>
 
           <!-- SUB-VIEW: EXACT RESET TIME -->
           <div id="timingExactWrap" style="display:none;margin-top:8px;">
+            <div class="exact-time-controls">
             <div class="input-wrap">
               <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-              <input type="text" class="form-input" id="queueExactTime" placeholder="e.g. 03:42 AM" autocomplete="off">
-              <button type="button" class="btn-clear-input" id="btnPasteNotice" onclick="pasteAndParseNotice()" title="Paste Claude rate limit notice" style="display:flex;width:auto;padding:0 8px;font-size:0.65rem;color:var(--cyan);background:rgba(0,229,240,0.08);border-radius:4px;gap:4px;right:6px;">
+              <input type="time" class="form-input" id="queueExactTime" step="60" aria-label="Choose exact reset time">
+            </div>
+              <button type="button" class="btn-clear-input" id="btnPasteNotice" onclick="pasteAndParseNotice()" title="Paste Claude rate limit notice">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 <span>Paste Notice</span>
               </button>
             </div>
-            <span class="form-hint" style="margin-top:4px;">Runs at exact IST reset time (swept by edge & Android exact alarm).</span>
+            <span class="form-hint" style="margin-top:4px;">Choose a time in IST, or paste Claude’s reset notice.</span>
           </div>
         </div>
 
@@ -2026,7 +2034,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           <span style="font-weight:700;color:#fff;font-family:var(--mono);" id="bubbleTime">--:-- --</span>
           <button type="button" class="btn-timeline-reset" id="btnTimelineReset" onclick="inspectNow(event)" style="display:none;">Live</button>
         </div>
-        <div style="font-family:var(--mono);color:var(--text-200);font-size:0.68rem;" id="bubbleDiff">Tracking active</div>
+        <div style="font-family:var(--mono);color:var(--text-200);font-size:0.68rem;" id="bubbleDiff">Recommended account</div>
       </div>
 
       <div class="timeline-lanes" id="timelineContainer"></div>
@@ -2104,7 +2112,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       fixedSlots.forEach(s => {
         const cohort = (s.slot % 2 !== 0) ? cohortA : cohortB;
         cohort.forEach(acc => {
-          items.push({ id: 'ping-' + s.slot + '-' + acc.id, account: acc.id, name: acc.name, hour: s.hour, min: s.min, minsOfDay: s.minsOfDay, display: s.display, tag: s.tag });
+          items.push({ id: 'ping-' + s.slot + '-' + acc.id, slot: s.slot, account: acc.id, name: acc.name, hour: s.hour, min: s.min, minsOfDay: s.minsOfDay, display: s.display, tag: s.tag });
         });
       });
       return items.sort((a, b) => a.minsOfDay - b.minsOfDay);
@@ -2135,6 +2143,23 @@ export function renderDashboardHTML(initialAccounts = []) {
       const h24 = Math.floor(n / 60), min = Math.floor(n % 60);
       const pm = h24 >= 12, h12 = (h24 % 12 === 0) ? 12 : (h24 % 12);
       return String(h12).padStart(2, '0') + ':' + String(min).padStart(2, '0') + ' ' + (pm ? 'PM' : 'AM');
+    }
+
+    function timeTextToInputValue(timeText) {
+      const match = String(timeText || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+      if (!match) return '';
+      let hour = Number(match[1]);
+      const minute = Number(match[2]);
+      const meridiem = (match[3] || '').toUpperCase();
+      if (minute > 59 || hour > (meridiem ? 12 : 23) || hour < (meridiem ? 1 : 0)) return '';
+      if (meridiem === 'PM' && hour < 12) hour += 12;
+      if (meridiem === 'AM' && hour === 12) hour = 0;
+      return String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+    }
+
+    function timeInputValueToText(value) {
+      const match = String(value || '').match(/^(\d{2}):(\d{2})$/);
+      return match ? fmtMinsToTime(Number(match[1]) * 60 + Number(match[2])) : '';
     }
 
     function fmtTime(d) { return d.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
@@ -2300,7 +2325,7 @@ export function renderDashboardHTML(initialAccounts = []) {
         const rbtn = document.getElementById('btnTimelineReset');
         if (rbtn) rbtn.style.display = 'none';
         document.getElementById('bubbleTime').innerText = fmtTime(d.nowIST);
-        document.getElementById('bubbleDiff').innerText = 'Tracking: ' + d.recommendedAcc.name;
+        document.getElementById('bubbleDiff').innerText = 'Recommended: ' + d.recommendedAcc.name;
       }
     }
 
@@ -2603,7 +2628,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       (accSchedule.length > 0 ? accSchedule : SCHEDULE).forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.slot;
-        opt.dataset.display = s.display + ' (' + s.tag + ')';
+        opt.dataset.display = 'Slot ' + s.slot + ' · ' + s.display + ' (' + s.tag + ')';
         opt.innerText = 'Slot ' + s.slot + ' \u2022 ' + s.display + ' (' + s.tag + ')';
         sel.appendChild(opt);
       });
@@ -2628,7 +2653,8 @@ export function renderDashboardHTML(initialAccounts = []) {
           if (data.success && data.parsedTime) {
             setTimingMode('time');
             const timeInp = document.getElementById('queueExactTime');
-            if (timeInp) timeInp.value = data.parsedTime;
+            const inputTime = timeTextToInputValue(data.parsedTime);
+            if (timeInp && inputTime) timeInp.value = inputTime;
             showToast('Extracted reset time: ' + data.parsedTime, 'ok');
             addConsoleLog('Extracted time from notice: ' + data.parsedTime, 'ok');
           } else {
@@ -2775,11 +2801,11 @@ export function renderDashboardHTML(initialAccounts = []) {
         const timeInp = document.getElementById('queueExactTime');
         const rawTime = timeInp ? timeInp.value.trim() : '';
         if (!rawTime) {
-          showToast('Please enter an exact reset time (e.g. 03:42 AM)!', 'warn');
+          showToast('Choose an exact reset time.', 'warn');
           if (timeInp) timeInp.focus();
           return;
         }
-        payload.targetTime = rawTime;
+        payload.targetTime = timeInputValueToText(rawTime);
       }
 
       if (bq) bq.disabled = true;
@@ -2872,8 +2898,6 @@ export function renderDashboardHTML(initialAccounts = []) {
             ACCOUNTS = data.accounts.map(a => ({ id: a.id, name: a.name, color: a.themeColor || (a.id === 1 ? '#00e5f0' : a.id === 2 ? '#b07df0' : '#00d68f') }));
             const hs = document.getElementById('headerSub');
             if (hs) hs.innerText = ACCOUNTS.map(a => a.name).join(' \u2022 ');
-            const ft = document.getElementById('footerText');
-            if (ft) ft.innerText = 'Claude Pulse \u2022 ' + ACCOUNTS.map(a => a.name).join(' & ') + ' Autopilot';
             SCHEDULE = generateScheduleForAccounts(ACCOUNTS);
             renderAccountCards(); renderManualControls(); renderTimelineTracks(); renderScheduleList(); populateQueueAccountSelect(); fetchQueueTasks(); updateUI();
           }
