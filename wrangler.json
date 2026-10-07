@@ -1,7 +1,7 @@
 {
   "name": "claude-pinger",
   "main": "src/index.js",
-  "compatibility_date": "2024-01-01",
+  "compatibility_date": "2024-09-01",
   "triggers": {
     "crons": [
       "58 4 * * *",
@@ -15,6 +15,20 @@
     {
       "binding": "TASK_QUEUE",
       "id": "a2ac1be761554159b1e385e50360ddb1"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "TASK_SCHEDULER",
+        "class_name": "TaskScheduler"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["TaskScheduler"]
     }
   ]
 }
