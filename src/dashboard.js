@@ -881,8 +881,14 @@ export function renderDashboardHTML(initialAccounts = []) {
     .chrono-deck-main {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 14px;
       flex-wrap: wrap;
+    }
+
+    .chrono-clock-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .chrono-stepper-cell {
@@ -890,7 +896,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       flex-direction: column;
       align-items: center;
       gap: 4px;
-      width: 72px;
+      width: 70px;
     }
 
     .stepper-btn {
@@ -1041,12 +1047,17 @@ export function renderDashboardHTML(initialAccounts = []) {
       height: 11px;
     }
 
+    .chrono-divider {
+      width: 1px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 0 2px;
+    }
+
     .chrono-quick-adjust {
       display: flex;
-      gap: 5px;
+      gap: 6px;
       align-items: center;
-      margin-left: auto;
-      flex-wrap: wrap;
     }
     .btn-quick-adjust {
       background: rgba(255, 255, 255, 0.04);
@@ -1054,9 +1065,9 @@ export function renderDashboardHTML(initialAccounts = []) {
       border-radius: 6px;
       color: var(--text-200);
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
-      padding: 6px 9px;
+      padding: 7px 11px;
       cursor: pointer;
       transition: all var(--transition);
       white-space: nowrap;
@@ -1099,7 +1110,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
     .chrono-presets-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      grid-template-columns: repeat(6, 1fr);
       gap: 6px;
     }
     .chrono-preset-pill {
@@ -1173,6 +1184,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       align-items: center;
       gap: 8px;
       min-width: 0;
+      flex-wrap: wrap;
     }
     .hud-pulse-ring {
       width: 8px;
@@ -1209,18 +1221,53 @@ export function renderDashboardHTML(initialAccounts = []) {
       white-space: nowrap;
     }
 
-    @media (max-width: 560px) {
+    @media (max-width: 900px) {
+      .chrono-presets-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .chrono-deck {
+        padding: 12px;
+        gap: 10px;
+      }
+      .chrono-deck-main {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .chrono-clock-cluster {
+        justify-content: center;
+      }
+      .chrono-divider {
+        display: none;
+      }
       .chrono-quick-adjust {
-        margin-left: 0;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
         width: 100%;
-        justify-content: space-between;
+        gap: 6px;
       }
       .btn-quick-adjust {
-        flex: 1;
+        min-height: 38px;
+        padding: 8px 4px;
+        font-size: 11px;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .chrono-presets-grid {
         grid-template-columns: repeat(2, 1fr);
+      }
+      .chrono-hud-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .hud-tz-tag {
+        align-self: flex-end;
       }
     }
 
@@ -2386,51 +2433,55 @@ export function renderDashboardHTML(initialAccounts = []) {
           <div id="timingExactWrap" style="display:none;margin-top:10px;">
             <div class="chrono-deck">
               <div class="chrono-deck-main">
-                <!-- Hour Stepper Cell -->
-                <div class="chrono-stepper-cell">
-                  <button type="button" class="stepper-btn" onclick="stepHour(1)" title="Increase Hour" aria-label="Increase Hour">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m18 15-6-6-6 6"/></svg>
-                  </button>
-                  <div class="chrono-digit-box">
-                    <input type="text" id="queueExactHour" class="chrono-digit-input" value="12" maxlength="2" inputmode="numeric" autocomplete="off" spellcheck="false" onfocus="this.select()" oninput="handleHourInput(this)" onblur="normalizeHourInput(this)" onkeydown="handleTimeKeydown(event, 'hour')" aria-label="Hour (1-12)">
-                    <span class="chrono-digit-sub">HR</span>
+                <div class="chrono-clock-cluster">
+                  <!-- Hour Stepper Cell -->
+                  <div class="chrono-stepper-cell">
+                    <button type="button" class="stepper-btn" onclick="stepHour(1)" title="Increase Hour" aria-label="Increase Hour">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m18 15-6-6-6 6"/></svg>
+                    </button>
+                    <div class="chrono-digit-box">
+                      <input type="text" id="queueExactHour" class="chrono-digit-input" value="12" maxlength="2" inputmode="numeric" autocomplete="off" spellcheck="false" onfocus="this.select()" oninput="handleHourInput(this)" onblur="normalizeHourInput(this)" onkeydown="handleTimeKeydown(event, 'hour')" aria-label="Hour (1-12)">
+                      <span class="chrono-digit-sub">HR</span>
+                    </div>
+                    <button type="button" class="stepper-btn" onclick="stepHour(-1)" title="Decrease Hour" aria-label="Decrease Hour">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+                    </button>
                   </div>
-                  <button type="button" class="stepper-btn" onclick="stepHour(-1)" title="Decrease Hour" aria-label="Decrease Hour">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
-                  </button>
-                </div>
 
-                <!-- Glowing Cyber Colon -->
-                <div class="chrono-colon">
-                  <div class="colon-dot"></div>
-                  <div class="colon-dot"></div>
-                </div>
-
-                <!-- Minute Stepper Cell -->
-                <div class="chrono-stepper-cell">
-                  <button type="button" class="stepper-btn" onclick="stepMinute(1)" title="Increase Minute" aria-label="Increase Minute">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m18 15-6-6-6 6"/></svg>
-                  </button>
-                  <div class="chrono-digit-box">
-                    <input type="text" id="queueExactMinute" class="chrono-digit-input" value="00" maxlength="2" inputmode="numeric" autocomplete="off" spellcheck="false" onfocus="this.select()" oninput="handleMinuteInput(this)" onblur="normalizeMinuteInput(this)" onkeydown="handleTimeKeydown(event, 'minute')" aria-label="Minute (0-59)">
-                    <span class="chrono-digit-sub">MIN</span>
+                  <!-- Glowing Cyber Colon -->
+                  <div class="chrono-colon">
+                    <div class="colon-dot"></div>
+                    <div class="colon-dot"></div>
                   </div>
-                  <button type="button" class="stepper-btn" onclick="stepMinute(-1)" title="Decrease Minute" aria-label="Decrease Minute">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
-                  </button>
+
+                  <!-- Minute Stepper Cell -->
+                  <div class="chrono-stepper-cell">
+                    <button type="button" class="stepper-btn" onclick="stepMinute(1)" title="Increase Minute" aria-label="Increase Minute">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m18 15-6-6-6 6"/></svg>
+                    </button>
+                    <div class="chrono-digit-box">
+                      <input type="text" id="queueExactMinute" class="chrono-digit-input" value="00" maxlength="2" inputmode="numeric" autocomplete="off" spellcheck="false" onfocus="this.select()" oninput="handleMinuteInput(this)" onblur="normalizeMinuteInput(this)" onkeydown="handleTimeKeydown(event, 'minute')" aria-label="Minute (0-59)">
+                      <span class="chrono-digit-sub">MIN</span>
+                    </div>
+                    <button type="button" class="stepper-btn" onclick="stepMinute(-1)" title="Decrease Minute" aria-label="Decrease Minute">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                  </div>
+
+                  <!-- AM / PM Tactical Toggle Deck -->
+                  <div class="meridiem-dock" role="radiogroup" aria-label="Select Period AM or PM">
+                    <button type="button" class="btn-meridiem-switch active am" id="btnMeridiemAM" onclick="setMeridiem('AM')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                      <span>AM</span>
+                    </button>
+                    <button type="button" class="btn-meridiem-switch" id="btnMeridiemPM" onclick="setMeridiem('PM')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                      <span>PM</span>
+                    </button>
+                  </div>
                 </div>
 
-                <!-- AM / PM Tactical Toggle Deck -->
-                <div class="meridiem-dock" role="radiogroup" aria-label="Select Period AM or PM">
-                  <button type="button" class="btn-meridiem-switch active am" id="btnMeridiemAM" onclick="setMeridiem('AM')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-                    <span>AM</span>
-                  </button>
-                  <button type="button" class="btn-meridiem-switch" id="btnMeridiemPM" onclick="setMeridiem('PM')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-                    <span>PM</span>
-                  </button>
-                </div>
+                <div class="chrono-divider" aria-hidden="true"></div>
 
                 <!-- Quick Offset Controls (+15m, +30m, +1h, Now) -->
                 <div class="chrono-quick-adjust">
@@ -2628,7 +2679,27 @@ export function renderDashboardHTML(initialAccounts = []) {
       updateUI();
     }
 
-    function getNowIST() { return new Date(Date.now() + 5.5 * 3600000); }
+    const istFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Kolkata',
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric'
+    });
+
+    function getNowIST() {
+      // Robust cross-platform IST time: works consistently regardless of client device/OS timezone
+      const parts = istFormatter.formatToParts(new Date());
+      const p = {};
+      for (const part of parts) p[part.type] = part.value;
+      const istDate = new Date();
+      istDate.setFullYear(parseInt(p.year, 10), parseInt(p.month, 10) - 1, parseInt(p.day, 10));
+      istDate.setHours(parseInt(p.hour, 10), parseInt(p.minute, 10), parseInt(p.second, 10), 0);
+      return istDate;
+    }
 
     function fmtHM(m) { const h = Math.floor(m / 60), r = Math.floor(m % 60); return h === 0 ? r + 'm' : h + 'h ' + r + 'm'; }
 
@@ -2824,6 +2895,9 @@ export function renderDashboardHTML(initialAccounts = []) {
         if (rbtn) rbtn.style.display = 'none';
         document.getElementById('bubbleTime').innerText = fmtTime(d.nowIST);
         document.getElementById('bubbleDiff').innerText = 'Recommended: ' + d.recommendedAcc.name;
+      }
+      if (selectedTimingMode === 'time') {
+        updateExactTimeCountdownOnly();
       }
     }
 
@@ -3267,15 +3341,12 @@ export function renderDashboardHTML(initialAccounts = []) {
       setMeridiem(mer);
     }
 
-    function onExactTimeChanged() {
-      const formatted = getExact12hTime();
-      const hiddenInp = document.getElementById('queueExactTime');
-      if (hiddenInp) hiddenInp.value = formatted;
-
+    function updateExactTimeCountdownOnly() {
       const hEl = document.getElementById('queueExactHour');
       const mEl = document.getElementById('queueExactMinute');
-      let h12 = parseInt(hEl ? hEl.value : '12', 10);
-      let m = parseInt(mEl ? mEl.value : '0', 10);
+      if (!hEl || !mEl) return;
+      let h12 = parseInt(hEl.value || '12', 10);
+      let m = parseInt(mEl.value || '0', 10);
       if (isNaN(h12)) h12 = 12;
       if (isNaN(m)) m = 0;
       let h24 = (h12 % 12) + (currentMeridiem === 'PM' ? 12 : 0);
@@ -3298,19 +3369,26 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (diffH > 0 && diffRemM > 0) countdownStr = 'in ' + diffH + 'h ' + diffRemM + 'm';
       else if (diffH > 0) countdownStr = 'in ' + diffH + 'h';
       else if (diffRemM > 0) countdownStr = 'in ' + diffRemM + 'm';
-      else countdownStr = 'right now';
+      else countdownStr = 'under 1m';
 
       if (isTomorrow) countdownStr += ' (Tomorrow)';
+
+      const previewCountdown = document.getElementById('exactTimeCountdownText');
+      if (previewCountdown && previewCountdown.textContent !== countdownStr) {
+        previewCountdown.textContent = countdownStr;
+      }
+    }
+
+    function onExactTimeChanged() {
+      const formatted = getExact12hTime();
+      const hiddenInp = document.getElementById('queueExactTime');
+      if (hiddenInp) hiddenInp.value = formatted;
 
       const preview = document.getElementById('exactTimePreviewText');
       if (preview) {
         preview.textContent = 'Will execute at ' + formatted + ' IST';
       }
-      const previewCountdown = document.getElementById('exactTimeCountdownText');
-      if (previewCountdown) {
-        previewCountdown.textContent = countdownStr;
-      }
-
+      updateExactTimeCountdownOnly();
       updateQueueButtonLabels();
       updateQueueActionButtons();
     }
