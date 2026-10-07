@@ -93,8 +93,33 @@ describe('Dynamic Reset Time Calculation & Notice Parser', () => {
     assert.ok(timestamp > 0);
   });
 
+  test('correctly handles 24-hour time strings and 12-hour AM/PM boundaries', () => {
+    const t1 = calculateTargetTimestamp('11:50');
+    assert.ok(t1 > 0);
+    const d1 = new Date(t1 + 5.5 * 3600000);
+    assert.equal(d1.getUTCHours(), 11);
+    assert.equal(d1.getUTCMinutes(), 50);
+
+    const t2 = calculateTargetTimestamp('12:00 PM');
+    const d2 = new Date(t2 + 5.5 * 3600000);
+    assert.equal(d2.getUTCHours(), 12);
+    assert.equal(d2.getUTCMinutes(), 0);
+
+    const t3 = calculateTargetTimestamp('12:00 AM');
+    const d3 = new Date(t3 + 5.5 * 3600000);
+    assert.equal(d3.getUTCHours(), 0);
+    assert.equal(d3.getUTCMinutes(), 0);
+
+    const t4 = calculateTargetTimestamp('23:50');
+    const d4 = new Date(t4 + 5.5 * 3600000);
+    assert.equal(d4.getUTCHours(), 23);
+    assert.equal(d4.getUTCMinutes(), 50);
+  });
+
   test('returns null for invalid time strings', () => {
     assert.equal(calculateTargetTimestamp('invalid-time'), null);
+    assert.equal(calculateTargetTimestamp('25:00'), null);
+    assert.equal(calculateTargetTimestamp('12:61'), null);
     assert.equal(calculateTargetTimestamp(''), null);
   });
 });
