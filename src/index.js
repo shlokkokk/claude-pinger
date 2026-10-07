@@ -156,10 +156,12 @@ export function validateQueuePayload(payload) {
 
 export function calculateTargetTimestamp(timeStr) {
   if (!timeStr || typeof timeStr !== 'string') return null;
-  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+  // Strip optional timezone suffixes (without stripping AM/PM) and trim
+  const clean = timeStr.trim().replace(/\s*(IST|UTC|GMT|EDT|EST|CDT|CST|MDT|MST|PDT|PST)$/i, '').trim();
+  const match = clean.match(/^(\d{1,2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i);
   if (!match) return null;
   let hour = parseInt(match[1], 10);
-  const min = parseInt(match[2], 10);
+  const min = match[2] !== undefined ? parseInt(match[2], 10) : 0;
   const ampm = match[3] ? match[3].toUpperCase() : null;
 
   if (ampm === 'PM' && hour < 12) hour += 12;
@@ -401,35 +403,114 @@ export async function saveAccountTasks(env, accountId, tasks) {
 
 export class TaskScheduler {
   constructor(ctx, env) {
-    this.ctx = ctx?.storage ? ctx : (ctx?.ctx || ctx);
+    this.ctx = ctx?.storage ? ctx : { storage: ctx?.ctx?.storage || ctx };
     this.env = env || ctx?.env;
+    this.isSweeping = false;
   }
 
-  async syncAlarm() {
+  async getStoredTasks() {
     try {
-      const accounts = getAllAccounts(this.env);
-      let earliestTimestamp = null;
-      let earliestTask = null;
+      const stored = await this.ctx.storage.get('active_timed_tasks');
+      return (stored && typeof stored === 'object') ? stored : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  async saveStoredTasks(tasksMap) {
+    try {
+      await this.ctx.storage.put('active_timed_tasks', tasksMap);
+    } catch (e) {
+      console.warn('[TaskScheduler DO] saveStoredTasks warning:', e.message);
+    }
+  }
+
+  async syncAlarm(hint = null) {
+    try {
+      const storedTasks = await this.getStoredTasks();
       const now = Date.now();
 
-      for (const acc of accounts) {
-        const tasks = await getAccountTasks(this.env, acc.id);
-        for (const t of tasks) {
-          const isTimedOut = (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000));
-          if ((t.status === 'queued' || isTimedOut) && t.targetType === 'time' && t.targetTimestamp) {
-            // If already overdue or due within 1 second, schedule for immediate trigger (now + 500ms)
-            const dueTime = Math.max(t.targetTimestamp, now + 500);
-            if (!earliestTimestamp || dueTime < earliestTimestamp) {
-              earliestTimestamp = dueTime;
-              earliestTask = t;
+      // 1. Direct synchronous hint ingestion (0ms latency, zero KV replication wait)
+      if (hint && typeof hint === 'object') {
+        if (hint.action === 'upsert' && hint.task && hint.task.id) {
+          if (hint.task.targetType === 'time' && hint.task.targetTimestamp) {
+            storedTasks[hint.task.id] = {
+              id: hint.task.id,
+              accountId: hint.task.accountId,
+              accountName: hint.task.accountName,
+              chatUrl: hint.task.chatUrl,
+              prompt: hint.task.prompt,
+              targetType: hint.task.targetType,
+              targetTime: hint.task.targetTime,
+              targetTimestamp: hint.task.targetTimestamp,
+              status: hint.task.status || 'queued',
+              queuedAtTimestamp: hint.task.queuedAtTimestamp || now
+            };
+          }
+        } else if (hint.action === 'delete' && hint.taskId) {
+          delete storedTasks[hint.taskId];
+        } else if (hint.action === 'clear_account' && hint.accountId) {
+          for (const [id, t] of Object.entries(storedTasks)) {
+            if (Number(t.accountId) === Number(hint.accountId)) {
+              delete storedTasks[id];
             }
           }
         }
       }
 
+      // 2. Dual-source KV reconciliation across all configured accounts
+      const accounts = getAllAccounts(this.env);
+      for (const acc of accounts) {
+        const kvTasks = await getAccountTasks(this.env, acc.id);
+        for (const t of kvTasks) {
+          if (t.targetType === 'time' && t.targetTimestamp) {
+            if (t.status === 'queued') {
+              storedTasks[t.id] = {
+                id: t.id,
+                accountId: t.accountId || acc.id,
+                accountName: t.accountName || acc.name,
+                chatUrl: t.chatUrl,
+                prompt: t.prompt,
+                targetType: t.targetType,
+                targetTime: t.targetTime,
+                targetTimestamp: t.targetTimestamp,
+                status: 'queued',
+                queuedAtTimestamp: t.queuedAtTimestamp || now
+              };
+            } else if (t.status === 'completed' || t.status === 'failed') {
+              delete storedTasks[t.id];
+            }
+          }
+        }
+      }
+
+      // 3. Auto-recover timed-out processing locks (> 6 minutes)
+      for (const t of Object.values(storedTasks)) {
+        if (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000)) {
+          t.status = 'queued';
+        }
+      }
+
+      await this.saveStoredTasks(storedTasks);
+
+      // 4. Resolve the earliest upcoming timestamp
+      let earliestTimestamp = null;
+      let earliestTask = null;
+
+      for (const t of Object.values(storedTasks)) {
+        if (t.status === 'queued' && t.targetTimestamp) {
+          // If already overdue or due within 1 second, schedule for immediate trigger (now + 500ms)
+          const dueTime = Math.max(t.targetTimestamp, now + 500);
+          if (!earliestTimestamp || dueTime < earliestTimestamp) {
+            earliestTimestamp = dueTime;
+            earliestTask = t;
+          }
+        }
+      }
+
+      // 5. Update SQLite persistent alarm
       const existingAlarm = await this.ctx.storage.getAlarm();
       if (earliestTimestamp) {
-        // Only set if different by > 1000ms to avoid unnecessary SQLite write cycles
         if (!existingAlarm || Math.abs(existingAlarm - earliestTimestamp) > 1000) {
           try {
             await this.ctx.storage.setAlarm(earliestTimestamp);
@@ -450,75 +531,153 @@ export class TaskScheduler {
           console.warn('[TaskScheduler DO] deleteAlarm warning:', delErr.message);
         }
       }
+
+      return { earliestTimestamp, taskCount: Object.keys(storedTasks).length };
     } catch (err) {
       console.warn('[TaskScheduler DO] syncAlarm error:', err.message);
-      try {
-        await sendNotification(this.env, {
-          type: 'scheduler_error',
-          error: `Edge scheduler sync error: ${err.message}`
-        });
-      } catch (notifErr) {}
+      return { error: err.message };
     }
+  }
+
+  async sweep() {
+    if (this.isSweeping) {
+      console.log('[TaskScheduler DO] Sweep already in progress. Skipping concurrent run.');
+      return [];
+    }
+    this.isSweeping = true;
+
+    const executed = [];
+    try {
+      const storedTasks = await this.getStoredTasks();
+      const accounts = getAllAccounts(this.env);
+      const now = Date.now();
+
+      // Collect candidates across storedTasks and KV
+      const candidates = new Map();
+
+      for (const t of Object.values(storedTasks)) {
+        const isTimedOut = (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000));
+        if ((t.status === 'queued' || isTimedOut) && t.targetType === 'time' && t.targetTimestamp && t.targetTimestamp <= (now + 2500)) {
+          candidates.set(t.id, t);
+        }
+      }
+
+      for (const acc of accounts) {
+        const kvTasks = await getAccountTasks(this.env, acc.id);
+        for (const t of kvTasks) {
+          const isTimedOut = (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000));
+          if ((t.status === 'queued' || isTimedOut) && t.targetType === 'time' && t.targetTimestamp && t.targetTimestamp <= (now + 2500)) {
+            candidates.set(t.id, { ...t, accountId: t.accountId || acc.id });
+          }
+        }
+      }
+
+      for (const dueTask of candidates.values()) {
+        const acc = accounts.find(a => a.id === dueTask.accountId) || accounts[0];
+        if (!acc) continue;
+
+        console.log(`[TaskScheduler DO] Executing due task for ${acc.name}: "${dueTask.prompt}" (id: ${dueTask.id})`);
+
+        // Claim lock in DO SQLite storage
+        dueTask.status = 'processing';
+        dueTask.processingStartedAt = now;
+        storedTasks[dueTask.id] = dueTask;
+        await this.saveStoredTasks(storedTasks);
+
+        // Claim lock in KV
+        const allAccountTasks = await getAccountTasks(this.env, acc.id);
+        const idx = allAccountTasks.findIndex(t => t.id === dueTask.id);
+        if (idx >= 0) {
+          allAccountTasks[idx].status = 'processing';
+          allAccountTasks[idx].processingStartedAt = now;
+        } else {
+          allAccountTasks.push(dueTask);
+        }
+        await saveAccountTasks(this.env, acc.id, allAccountTasks);
+
+        // Execute via Browserless
+        try {
+          const res = await pingClaudeAccount(this.env, acc.name, acc.key, acc.chatUrl, acc.id, null, dueTask.id);
+          executed.push({ account: acc.name, taskId: dueTask.id, result: res });
+        } catch (err) {
+          console.error(`[TaskScheduler DO] Error executing task ${dueTask.id}:`, err.message);
+        }
+
+        // Clean up from DO SQLite storage
+        delete storedTasks[dueTask.id];
+        await this.saveStoredTasks(storedTasks);
+      }
+    } catch (sweepErr) {
+      console.error('[TaskScheduler DO] Sweep error:', sweepErr.message);
+    } finally {
+      this.isSweeping = false;
+      await this.syncAlarm();
+    }
+
+    return executed;
   }
 
   async alarm() {
     console.log(`[TaskScheduler DO] Precision alarm trigger fired at: ${new Date().toISOString()}`);
-    try {
-      await sweepDueTasks(this.env);
-    } catch (err) {
-      console.error('[TaskScheduler DO] Error sweeping tasks in alarm:', err.message);
-    }
-    await this.syncAlarm();
+    await this.sweep();
   }
 
   async fetch(request) {
     const url = new URL(request.url);
-    if (url.pathname === '/sync' || url.pathname === '/alarm') {
-      await this.syncAlarm();
-      return new Response(JSON.stringify({ success: true, message: 'Alarm synchronized' }), {
+    if (url.pathname === '/sync' || url.pathname === '/task') {
+      let body = null;
+      try { body = await request.json(); } catch (e) {}
+      const syncResult = await this.syncAlarm(body);
+      const alarm = await this.ctx.storage.getAlarm();
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Alarm synchronized',
+        syncResult,
+        alarm,
+        alarmISO: alarm ? new Date(alarm).toISOString() : null,
+        alarmIST: alarm ? new Date(alarm + 5.5 * 3600000).toISOString() : null
+      }), { headers: { 'Content-Type': 'application/json' } });
+    }
+    if (url.pathname === '/sweep') {
+      const executed = await this.sweep();
+      return new Response(JSON.stringify({ success: true, executed }), {
         headers: { 'Content-Type': 'application/json' }
       });
     }
     if (url.pathname === '/status') {
       let alarm = null;
-      try {
-        alarm = await this.ctx.storage.getAlarm();
-      } catch (e) {}
+      try { alarm = await this.ctx.storage.getAlarm(); } catch (e) {}
+      const storedTasks = await this.getStoredTasks();
       return new Response(JSON.stringify({
+        success: true,
+        endpoint: '/status',
         alarm,
         alarmISO: alarm ? new Date(alarm).toISOString() : null,
-        alarmIST: alarm ? new Date(alarm + 5.5 * 3600000).toISOString() : null
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+        alarmIST: alarm ? new Date(alarm + 5.5 * 3600000).toISOString() : null,
+        pendingTasksCount: Object.keys(storedTasks).length,
+        pendingTasks: storedTasks
+      }), { headers: { 'Content-Type': 'application/json' } });
     }
     return new Response('Not Found', { status: 404 });
   }
 }
 
-export async function notifyTaskScheduler(env) {
+export async function notifyTaskScheduler(env, payload = null) {
   if (!env || !env.TASK_SCHEDULER) return;
   try {
     const id = env.TASK_SCHEDULER.idFromName('global_task_scheduler');
     const stub = env.TASK_SCHEDULER.get(id);
-    let synced = false;
-    if (typeof stub.syncAlarm === 'function') {
-      try {
-        await stub.syncAlarm();
-        synced = true;
-      } catch (rpcErr) {
-        console.warn('[TaskScheduler] RPC syncAlarm failed, attempting HTTP sync fallback:', rpcErr.message);
-      }
-    }
-    if (!synced) {
-      await stub.fetch('http://task-scheduler/sync');
-    }
+    await stub.fetch('http://task-scheduler/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || { action: 'sync' })
+    });
   } catch (e) {
     console.warn('[TaskScheduler] Notification warning:', e.message);
   }
 }
 
-export async function sweepDueTasks(env) {
+async function fallbackEdgeSweep(env) {
   if (!env || !env.TASK_QUEUE) return [];
   const accounts = getAllAccounts(env);
   const executed = [];
@@ -526,18 +685,15 @@ export async function sweepDueTasks(env) {
 
   for (const acc of accounts) {
     const tasks = await getAccountTasks(env, acc.id);
-    // Find all due tasks that are queued (or processing timed out > 6 mins)
     const dueTasks = tasks.filter(t => 
       (t.status === 'queued' || (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000))) &&
       t.targetType === 'time' && 
       t.targetTimestamp && 
-      t.targetTimestamp <= (now + 2000)
+      t.targetTimestamp <= (now + 2500)
     );
 
     for (const dueTask of dueTasks) {
-      console.log(`[Precision Sweep] Executing due task for ${acc.name}: "${dueTask.prompt}" (id: ${dueTask.id}, scheduled for ${dueTask.targetTime || 'exact time'})`);
-      
-      // Atomic claim lock: mark as 'processing' so concurrent triggers won't double-fire
+      console.log(`[Edge Sweep Fallback] Executing due task for ${acc.name}: "${dueTask.prompt}" (id: ${dueTask.id})`);
       const taskIndex = tasks.findIndex(t => t.id === dueTask.id);
       if (taskIndex >= 0) {
         tasks[taskIndex].status = 'processing';
@@ -554,10 +710,26 @@ export async function sweepDueTasks(env) {
     }
   }
 
-  // After sweeping, sync the Durable Object alarm to the next remaining future task
   await notifyTaskScheduler(env);
-
   return executed;
+}
+
+export async function sweepDueTasks(env) {
+  if (!env) return [];
+  if (env.TASK_SCHEDULER) {
+    try {
+      const id = env.TASK_SCHEDULER.idFromName('global_task_scheduler');
+      const stub = env.TASK_SCHEDULER.get(id);
+      const res = await stub.fetch('http://task-scheduler/sweep');
+      if (res.ok) {
+        const data = await res.json();
+        return data.executed || [];
+      }
+    } catch (e) {
+      console.warn('[sweepDueTasks] DO sweep request failed, using edge fallback:', e.message);
+    }
+  }
+  return fallbackEdgeSweep(env);
 }
 
 export default {
@@ -709,6 +881,10 @@ export default {
         diagnostics.browserless.message = 'BROWSERLESS_TOKEN not configured in env';
       }
 
+      if (ctx?.waitUntil && env.TASK_QUEUE) {
+        ctx.waitUntil(sweepDueTasks(env));
+      }
+
       return new Response(JSON.stringify(diagnostics, null, 2), {
         status: 200,
         headers: {
@@ -743,7 +919,13 @@ export default {
         const id = env.TASK_SCHEDULER.idFromName('global_task_scheduler');
         const stub = env.TASK_SCHEDULER.get(id);
         if (pathname === '/api/scheduler/sync' || request.method === 'POST') {
-          await stub.fetch('http://task-scheduler/sync');
+          let reqBody = null;
+          try { reqBody = await request.json(); } catch (e) {}
+          await stub.fetch('http://task-scheduler/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reqBody || { action: 'sync' })
+          });
         }
         const statusRes = await stub.fetch('http://task-scheduler/status');
         const statusData = await statusRes.json();
@@ -833,9 +1015,27 @@ export default {
       if (request.method === 'GET') {
         const accounts = getAllAccounts(env);
         const tasks = {};
+        let hasDueTask = false;
+        const now = Date.now();
+
         for (const a of accounts) {
-          tasks[a.id] = await getAccountTasks(env, a.id);
+          const accTasks = await getAccountTasks(env, a.id);
+          tasks[a.id] = accTasks;
+          if (!hasDueTask) {
+            hasDueTask = accTasks.some(t => 
+              (t.status === 'queued' || (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000))) &&
+              t.targetType === 'time' &&
+              t.targetTimestamp &&
+              t.targetTimestamp <= (now + 2500)
+            );
+          }
         }
+
+        // Opportunistic self-healing sweep: if UI polls and a task is due, trigger background sweep immediately!
+        if (hasDueTask && ctx?.waitUntil) {
+          ctx.waitUntil(sweepDueTasks(env));
+        }
+
         return new Response(JSON.stringify({ success: true, tasks }), {
           status: 200,
           headers: corsHeaders
@@ -907,7 +1107,17 @@ export default {
 
           existingTasks.push(task);
           await saveAccountTasks(env, accountId, existingTasks);
-          await notifyTaskScheduler(env);
+          
+          // Pass the complete task directly into the DO to eliminate KV replication lag
+          await notifyTaskScheduler(env, {
+            action: 'upsert',
+            task
+          });
+
+          // If the task is due immediately, run sweep right away
+          if (task.targetType === 'time' && task.targetTimestamp && task.targetTimestamp <= (Date.now() + 2500) && ctx?.waitUntil) {
+            ctx.waitUntil(sweepDueTasks(env));
+          }
 
           const targetDesc = targetType === 'slot' 
             ? `scheduled for ${targetSlotDisplay || `Slot ${targetSlot}`}` 
@@ -942,7 +1152,11 @@ export default {
           const tasks = await getAccountTasks(env, accId);
           const filtered = tasks.filter(t => t.id !== taskId);
           await saveAccountTasks(env, accId, filtered);
-          await notifyTaskScheduler(env);
+          await notifyTaskScheduler(env, {
+            action: 'delete',
+            taskId,
+            accountId: accId
+          });
           return new Response(JSON.stringify({ 
             success: true, 
             message: `Task removed for ${matchedAcc.name}.` 
@@ -950,7 +1164,10 @@ export default {
         } else {
           await env.TASK_QUEUE.delete(`tasks_account_${accId}`);
           await env.TASK_QUEUE.delete(`task_account_${accId}`);
-          await notifyTaskScheduler(env);
+          await notifyTaskScheduler(env, {
+            action: 'clear_account',
+            accountId: accId
+          });
           return new Response(JSON.stringify({ 
             success: true, 
             message: `All queued tasks removed for ${matchedAcc.name}.` 
@@ -1022,6 +1239,9 @@ export default {
         name: a.name,
         color: a.themeColor || (a.id === 1 ? '#00f2fe' : (a.id === 2 ? '#c084fc' : '#10b981'))
       }));
+      if (ctx?.waitUntil && env.TASK_QUEUE) {
+        ctx.waitUntil(sweepDueTasks(env));
+      }
       const html = renderDashboardHTML(accounts);
       return new Response(html, {
         status: 200,
