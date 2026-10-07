@@ -859,167 +859,369 @@ export function renderDashboardHTML(initialAccounts = []) {
     .form-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0, 229, 240, 0.14); background: rgba(255,255,255,0.06); }
     .form-input::placeholder { color: var(--text-400); }
     .form-input[type="time"] { color-scheme: dark; }
-    /* ===== 12-HOUR CLOCK PICKER (Desktop & Mobile optimized) ===== */
-    .clock-12h-picker {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-default);
+    /* ===== QUANTUM CHRONO-DECK (Next-Gen 12-Hour Precision Controller) ===== */
+    .chrono-deck {
+      background: linear-gradient(145deg, rgba(12, 17, 32, 0.95), rgba(16, 23, 44, 0.95));
+      border: 1px solid rgba(0, 229, 240, 0.22);
       border-radius: var(--radius-md);
-      padding: 10px 14px;
-      backdrop-filter: blur(8px);
-      transition: border-color var(--transition);
-    }
-    .clock-12h-picker:focus-within {
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 3px rgba(0, 229, 240, 0.12);
-    }
-    .time-col {
+      padding: 14px 16px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      flex: 1;
-      min-width: 0;
-    }
-    .time-col-label {
-      font-size: 9px;
-      font-weight: 700;
-      color: var(--text-400);
-      letter-spacing: 0.6px;
-      text-transform: uppercase;
-    }
-    .time-select-wrap {
-      position: relative;
-    }
-    .time-select {
-      width: 100%;
-      height: 44px;
-      background: rgba(16, 20, 36, 0.85);
-      border: 1px solid var(--border-dim);
-      border-radius: var(--radius-sm);
-      color: var(--text-100);
-      font-family: var(--mono);
-      font-size: 18px;
-      font-weight: 700;
-      text-align: center;
-      cursor: pointer;
-      outline: none;
+      gap: 12px;
       transition: all var(--transition);
-      appearance: none;
-      -webkit-appearance: none;
-      padding: 0 8px;
     }
-    .time-select:hover {
-      border-color: var(--border-hover);
-      background: rgba(22, 28, 50, 0.95);
+    .chrono-deck:focus-within {
+      border-color: rgba(0, 229, 240, 0.5);
+      box-shadow: 0 10px 32px rgba(0, 229, 240, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
-    .time-select:focus {
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 2px rgba(0, 229, 240, 0.2);
-    }
-    .time-select option {
-      background: #0f1322;
-      color: #f0f2f8;
-      font-family: var(--mono);
-      padding: 6px;
-    }
-    .time-colon {
-      font-family: var(--mono);
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--cyan);
-      margin-top: 14px;
-      user-select: none;
-      animation: pulseColon 2s infinite ease-in-out;
-    }
-    @keyframes pulseColon {
-      0%, 100% { opacity: 0.9; }
-      50% { opacity: 0.4; }
-    }
-    .meridiem-toggle {
+
+    .chrono-deck-main {
       display: flex;
-      background: rgba(16, 20, 36, 0.85);
-      border: 1px solid var(--border-dim);
-      border-radius: var(--radius-sm);
-      height: 44px;
-      padding: 3px;
-      gap: 3px;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-    .btn-meridiem {
-      flex: 1;
-      border: none;
-      background: transparent;
-      color: var(--text-400);
-      font-family: var(--font);
-      font-size: 13px;
-      font-weight: 700;
-      border-radius: 6px;
+
+    .chrono-stepper-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      width: 72px;
+    }
+
+    .stepper-btn {
+      width: 100%;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--border-dim);
+      border-radius: 5px;
+      color: var(--text-300);
       cursor: pointer;
-      transition: all var(--transition);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 10px;
+      transition: all 0.15s ease;
+      padding: 0;
+      user-select: none;
     }
-    .btn-meridiem:hover:not(.active) {
-      color: var(--text-200);
-      background: rgba(255, 255, 255, 0.05);
-    }
-    .btn-meridiem.active {
-      background: linear-gradient(135deg, rgba(0, 229, 240, 0.25), rgba(0, 214, 143, 0.25));
+    .stepper-btn:hover {
+      background: rgba(0, 229, 240, 0.15);
+      border-color: var(--cyan);
       color: #22f7ff;
-      border: 1px solid rgba(0, 229, 240, 0.45);
-      box-shadow: 0 2px 10px rgba(0, 229, 240, 0.18);
+      transform: translateY(-1px);
     }
-    .time-presets {
+    .stepper-btn:active {
+      transform: scale(0.94);
+    }
+    .stepper-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .chrono-digit-box {
+      width: 100%;
+      height: 52px;
+      background: rgba(6, 9, 18, 0.9);
+      border: 1px solid rgba(0, 229, 240, 0.28);
+      border-radius: 8px;
+      position: relative;
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
+      justify-content: center;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+      cursor: text;
     }
-    .preset-label {
-      font-size: 10px;
-      font-weight: 600;
+    .chrono-digit-box:focus-within {
+      border-color: #22f7ff;
+      box-shadow: 0 0 14px rgba(0, 229, 240, 0.35), inset 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    .chrono-digit-input {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #22f7ff;
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(34, 247, 255, 0.4);
+      padding: 0 4px 6px 4px;
+      caret-color: #22f7ff;
+      cursor: text;
+    }
+
+    .chrono-digit-sub {
+      position: absolute;
+      bottom: 3px;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
       color: var(--text-400);
-      margin-right: 2px;
+      font-family: var(--font);
+      pointer-events: none;
+      user-select: none;
+      text-transform: uppercase;
     }
-    .preset-chips {
+
+    .chrono-colon {
       display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
+      flex-direction: column;
+      gap: 6px;
+      padding: 0 2px;
+      user-select: none;
+      margin-bottom: 2px;
     }
-    .preset-chip {
+    .colon-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #22f7ff;
+      box-shadow: 0 0 8px #22f7ff;
+      animation: pulseColonDot 2s infinite ease-in-out;
+    }
+    @keyframes pulseColonDot {
+      0%, 100% { opacity: 0.95; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    .meridiem-dock {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      height: 108px;
+      justify-content: center;
+      margin-left: 2px;
+    }
+
+    .btn-meridiem-switch {
+      border: 1px solid var(--border-dim);
+      background: rgba(14, 18, 34, 0.85);
+      color: var(--text-400);
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 7px 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      min-width: 58px;
+      justify-content: center;
+    }
+    .btn-meridiem-switch:hover:not(.active) {
+      color: var(--text-200);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-hover);
+    }
+    .btn-meridiem-switch.active.am {
+      background: linear-gradient(135deg, rgba(0, 229, 240, 0.22), rgba(0, 214, 143, 0.18));
+      border-color: var(--cyan);
+      color: #22f7ff;
+      box-shadow: 0 0 12px rgba(0, 229, 240, 0.25);
+    }
+    .btn-meridiem-switch.active.pm {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(139, 92, 246, 0.2));
+      border-color: #a855f7;
+      color: #d8b4fe;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+    }
+    .btn-meridiem-switch svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    .chrono-quick-adjust {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+    .btn-quick-adjust {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-dim);
       border-radius: 6px;
-      color: var(--text-300);
+      color: var(--text-200);
       font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 6px 9px;
       cursor: pointer;
       transition: all var(--transition);
+      white-space: nowrap;
     }
-    .preset-chip:hover {
+    .btn-quick-adjust:hover {
       background: rgba(0, 229, 240, 0.12);
       border-color: var(--cyan);
       color: #22f7ff;
       transform: translateY(-1px);
     }
-    .exact-time-preview {
+    .btn-quick-adjust.now {
+      background: rgba(0, 214, 143, 0.1);
+      border-color: rgba(0, 214, 143, 0.3);
+      color: var(--green);
+    }
+    .btn-quick-adjust.now:hover {
+      background: rgba(0, 214, 143, 0.2);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .chrono-presets-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .chrono-presets-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chrono-presets-label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: var(--text-400);
+      text-transform: uppercase;
+    }
+    .chrono-presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      gap: 6px;
+    }
+    .chrono-preset-pill {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      color: var(--text-200);
+      padding: 6px 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      transition: all var(--transition);
+      text-align: left;
+    }
+    .chrono-preset-pill:hover {
+      background: rgba(0, 229, 240, 0.1);
+      border-color: var(--cyan);
+      transform: translateY(-1px);
+    }
+    .chrono-preset-pill.highlight-reset {
+      background: rgba(0, 229, 240, 0.07);
+      border-color: rgba(0, 229, 240, 0.35);
+    }
+    .chrono-preset-pill.highlight-reset:hover {
+      background: rgba(0, 229, 240, 0.18);
+      border-color: var(--cyan);
+    }
+    .preset-pill-time {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 8px;
-      padding: 6px 10px;
+      gap: 5px;
+    }
+    .preset-pill-sub {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-400);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .preset-dot-claude {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+      flex-shrink: 0;
+    }
+
+    /* Live HUD Status Readout */
+    .chrono-hud-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px;
       background: rgba(0, 229, 240, 0.05);
-      border: 1px solid rgba(0, 229, 240, 0.15);
+      border: 1px solid rgba(0, 229, 240, 0.2);
       border-radius: var(--radius-sm);
-      font-size: 11px;
-      color: var(--cyan);
+      animation: fade-in 0.25s ease;
+    }
+    .hud-status-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .hud-pulse-ring {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      flex-shrink: 0;
+    }
+    .hud-primary-time {
       font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      color: #22f7ff;
+      white-space: nowrap;
+    }
+    .hud-countdown-badge {
+      font-family: var(--font);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-300);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .hud-tz-tag {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-400);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 560px) {
+      .chrono-quick-adjust {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-between;
+      }
+      .btn-quick-adjust {
+        flex: 1;
+        text-align: center;
+      }
+      .chrono-presets-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     /* Clear button inside input */
@@ -2180,72 +2382,111 @@ export function renderDashboardHTML(initialAccounts = []) {
             <span class="form-hint" style="margin-top:4px;">Choose one of this account’s scheduled daily ping times.</span>
           </div>
 
-          <!-- SUB-VIEW: EXACT RESET TIME (12-Hour Clock with AM/PM & Presets) -->
+          <!-- SUB-VIEW: EXACT RESET TIME (Chrono-Deck 12-Hour System) -->
           <div id="timingExactWrap" style="display:none;margin-top:10px;">
-            <div class="clock-12h-picker">
-              <!-- Hour selector -->
-              <div class="time-col">
-                <label class="time-col-label" for="queueExactHour">HOUR</label>
-                <div class="time-select-wrap">
-                  <select class="time-select" id="queueExactHour" onchange="onExactTimeChanged()">
-                    <option value="12" selected>12</option>
-                    <option value="01">01</option>
-                    <option value="02">02</option>
-                    <option value="03">03</option>
-                    <option value="04">04</option>
-                    <option value="05">05</option>
-                    <option value="06">06</option>
-                    <option value="07">07</option>
-                    <option value="08">08</option>
-                    <option value="09">09</option>
-                    <option value="10">10</option>
-                    <option value="11">11</option>
-                  </select>
+            <div class="chrono-deck">
+              <div class="chrono-deck-main">
+                <!-- Hour Stepper Cell -->
+                <div class="chrono-stepper-cell">
+                  <button type="button" class="stepper-btn" onclick="stepHour(1)" title="Increase Hour" aria-label="Increase Hour">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m18 15-6-6-6 6"/></svg>
+                  </button>
+                  <div class="chrono-digit-box">
+                    <input type="text" id="queueExactHour" class="chrono-digit-input" value="12" maxlength="2" inputmode="numeric" autocomplete="off" spellcheck="false" onfocus="this.select()" oninput="handleHourInput(this)" onblur="normalizeHourInput(this)" onkeydown="handleTimeKeydown(event, 'hour')" aria-label="Hour (1-12)">
+                    <span class="chrono-digit-sub">HR</span>
+                  </div>
+                  <button type="button" class="stepper-btn" onclick="stepHour(-1)" title="Decrease Hour" aria-label="Decrease Hour">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                </div>
+
+                <!-- Glowing Cyber Colon -->
+                <div class="chrono-colon">
+                  <div class="colon-dot"></div>
+                  <div class="colon-dot"></div>
+                </div>
+
+                <!-- Minute Stepper Cell -->
+                <div class="chrono-stepper-cell">
+                  <button type="button" class="stepper-btn" onclick="stepMinute(1)" title="Increase Minute" aria-label="Increase Minute">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m18 15-6-6-6 6"/></svg>
+                  </button>
+                  <div class="chrono-digit-box">
+                    <input type="text" id="queueExactMinute" class="chrono-digit-input" value="00" maxlength="2" inputmode="numeric" autocomplete="off" spellcheck="false" onfocus="this.select()" oninput="handleMinuteInput(this)" onblur="normalizeMinuteInput(this)" onkeydown="handleTimeKeydown(event, 'minute')" aria-label="Minute (0-59)">
+                    <span class="chrono-digit-sub">MIN</span>
+                  </div>
+                  <button type="button" class="stepper-btn" onclick="stepMinute(-1)" title="Decrease Minute" aria-label="Decrease Minute">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                </div>
+
+                <!-- AM / PM Tactical Toggle Deck -->
+                <div class="meridiem-dock" role="radiogroup" aria-label="Select Period AM or PM">
+                  <button type="button" class="btn-meridiem-switch active am" id="btnMeridiemAM" onclick="setMeridiem('AM')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                    <span>AM</span>
+                  </button>
+                  <button type="button" class="btn-meridiem-switch" id="btnMeridiemPM" onclick="setMeridiem('PM')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    <span>PM</span>
+                  </button>
+                </div>
+
+                <!-- Quick Offset Controls (+15m, +30m, +1h, Now) -->
+                <div class="chrono-quick-adjust">
+                  <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(15)" title="Add 15 minutes">+15m</button>
+                  <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(30)" title="Add 30 minutes">+30m</button>
+                  <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(60)" title="Add 1 hour">+1h</button>
+                  <button type="button" class="btn-quick-adjust now" onclick="setTimeToCurrentNow()" title="Set to current time">Now</button>
                 </div>
               </div>
 
-              <!-- Separator -->
-              <div class="time-colon">:</div>
-
-              <!-- Minute selector -->
-              <div class="time-col">
-                <label class="time-col-label" for="queueExactMinute">MIN</label>
-                <div class="time-select-wrap">
-                  <select class="time-select" id="queueExactMinute" onchange="onExactTimeChanged()"></select>
+              <!-- Smart Presets Bar -->
+              <div class="chrono-presets-row">
+                <div class="chrono-presets-header">
+                  <span class="chrono-presets-label">Quick Reset Presets</span>
+                </div>
+                <div class="chrono-presets-grid">
+                  <button type="button" class="chrono-preset-pill highlight-reset" onclick="applyTimePreset('03:30 AM')">
+                    <span class="preset-pill-time"><span class="preset-dot-claude"></span>03:30 AM</span>
+                    <span class="preset-pill-sub">Claude Reset</span>
+                  </button>
+                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('12:00 AM')">
+                    <span class="preset-pill-time">12:00 AM</span>
+                    <span class="preset-pill-sub">Midnight</span>
+                  </button>
+                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('07:30 AM')">
+                    <span class="preset-pill-time">07:30 AM</span>
+                    <span class="preset-pill-sub">Morning</span>
+                  </button>
+                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('12:00 PM')">
+                    <span class="preset-pill-time">12:00 PM</span>
+                    <span class="preset-pill-sub">Midday</span>
+                  </button>
+                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('03:30 PM')">
+                    <span class="preset-pill-time">03:30 PM</span>
+                    <span class="preset-pill-sub">Afternoon</span>
+                  </button>
+                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('08:00 PM')">
+                    <span class="preset-pill-time">08:00 PM</span>
+                    <span class="preset-pill-sub">Evening</span>
+                  </button>
                 </div>
               </div>
 
-              <!-- AM / PM Selector -->
-              <div class="time-col">
-                <label class="time-col-label">PERIOD</label>
-                <div class="meridiem-toggle" role="radiogroup" aria-label="Select AM or PM">
-                  <button type="button" class="btn-meridiem active" id="btnMeridiemAM" onclick="setMeridiem('AM')">AM</button>
-                  <button type="button" class="btn-meridiem" id="btnMeridiemPM" onclick="setMeridiem('PM')">PM</button>
+              <!-- Live Feedback HUD Readout -->
+              <div class="chrono-hud-status" id="exactTimePreview">
+                <div class="hud-status-main">
+                  <div class="hud-pulse-ring"></div>
+                  <span class="hud-primary-time" id="exactTimePreviewText">Will execute at 12:00 AM IST</span>
+                  <span class="hud-countdown-badge" id="exactTimeCountdownText">in --</span>
                 </div>
-              </div>
-            </div>
-
-            <!-- Quick Reset Presets (Common Claude reset points) -->
-            <div class="time-presets">
-              <span class="preset-label">Quick Presets:</span>
-              <div class="preset-chips">
-                <button type="button" class="preset-chip" onclick="applyTimePreset('12:00 AM')">12:00 AM</button>
-                <button type="button" class="preset-chip" onclick="applyTimePreset('03:30 AM')">03:30 AM</button>
-                <button type="button" class="preset-chip" onclick="applyTimePreset('07:30 AM')">07:30 AM</button>
-                <button type="button" class="preset-chip" onclick="applyTimePreset('12:00 PM')">12:00 PM</button>
-                <button type="button" class="preset-chip" onclick="applyTimePreset('03:30 PM')">03:30 PM</button>
-                <button type="button" class="preset-chip" onclick="applyTimePreset('08:00 PM')">08:00 PM</button>
+                <span class="hud-tz-tag">IST (UTC+5:30)</span>
               </div>
             </div>
 
             <!-- Hidden sync input for backward compatibility -->
             <input type="hidden" id="queueExactTime" value="12:00 AM">
-
-            <!-- Live Feedback Hint -->
-            <div class="exact-time-preview" id="exactTimePreview">
-              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></svg>
-              <span id="exactTimePreviewText">Will execute at 12:00 AM IST</span>
-            </div>
           </div>
         </div>
         </div>
@@ -2879,33 +3120,138 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     let currentMeridiem = 'AM';
 
-    function initMinuteOptions() {
-      const minEl = document.getElementById('queueExactMinute');
-      if (!minEl || minEl.options.length > 0) return;
-      for (let m = 0; m < 60; m++) {
-        const val = String(m).padStart(2, '0');
-        const opt = document.createElement('option');
-        opt.value = val;
-        opt.textContent = val;
-        minEl.appendChild(opt);
-      }
-    }
-
     function setMeridiem(mer) {
       currentMeridiem = mer;
       const bAM = document.getElementById('btnMeridiemAM');
       const bPM = document.getElementById('btnMeridiemPM');
-      if (bAM) bAM.className = 'btn-meridiem ' + (mer === 'AM' ? 'active' : '');
-      if (bPM) bPM.className = 'btn-meridiem ' + (mer === 'PM' ? 'active' : '');
+      if (bAM) bAM.className = 'btn-meridiem-switch ' + (mer === 'AM' ? 'active am' : '');
+      if (bPM) bPM.className = 'btn-meridiem-switch ' + (mer === 'PM' ? 'active pm' : '');
       onExactTimeChanged();
     }
 
     function getExact12hTime() {
       const hEl = document.getElementById('queueExactHour');
       const mEl = document.getElementById('queueExactMinute');
-      const h = hEl ? hEl.value : '12';
-      const m = mEl ? mEl.value : '00';
+      let h = parseInt(hEl ? hEl.value : '12', 10);
+      let m = parseInt(mEl ? mEl.value : '00', 10);
+      if (isNaN(h) || h < 1 || h > 12) h = 12;
+      if (isNaN(m) || m < 0 || m > 59) m = 0;
       return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ' ' + currentMeridiem;
+    }
+
+    function stepHour(delta) {
+      const hEl = document.getElementById('queueExactHour');
+      if (!hEl) return;
+      let val = parseInt(hEl.value || '12', 10);
+      if (isNaN(val)) val = 12;
+      val = val + delta;
+      if (val > 12) val = 1;
+      if (val < 1) val = 12;
+      hEl.value = String(val).padStart(2, '0');
+      onExactTimeChanged();
+    }
+
+    function stepMinute(delta) {
+      const mEl = document.getElementById('queueExactMinute');
+      if (!mEl) return;
+      let val = parseInt(mEl.value || '00', 10);
+      if (isNaN(val)) val = 0;
+      val = val + delta;
+      if (val >= 60) {
+        val = 0;
+        stepHour(1);
+      } else if (val < 0) {
+        val = 59;
+        stepHour(-1);
+      }
+      mEl.value = String(val).padStart(2, '0');
+      onExactTimeChanged();
+    }
+
+    function handleHourInput(el) {
+      let raw = el.value.replace(/\D/g, '');
+      if (raw.length > 2) raw = raw.slice(-2);
+      el.value = raw;
+      if (raw.length === 2 || (raw.length === 1 && parseInt(raw, 10) >= 2)) {
+        const mEl = document.getElementById('queueExactMinute');
+        if (mEl) {
+          mEl.focus();
+          mEl.select();
+        }
+      }
+      onExactTimeChanged();
+    }
+
+    function normalizeHourInput(el) {
+      let val = parseInt(el.value, 10);
+      if (isNaN(val) || val < 1) val = 12;
+      if (val > 12) val = 12;
+      el.value = String(val).padStart(2, '0');
+      onExactTimeChanged();
+    }
+
+    function handleMinuteInput(el) {
+      let raw = el.value.replace(/\D/g, '');
+      if (raw.length > 2) raw = raw.slice(-2);
+      el.value = raw;
+      onExactTimeChanged();
+    }
+
+    function normalizeMinuteInput(el) {
+      let val = parseInt(el.value, 10);
+      if (isNaN(val) || val < 0) val = 0;
+      if (val > 59) val = 59;
+      el.value = String(val).padStart(2, '0');
+      onExactTimeChanged();
+    }
+
+    function handleTimeKeydown(event, type) {
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (type === 'hour') stepHour(1); else stepMinute(1);
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (type === 'hour') stepHour(-1); else stepMinute(-1);
+      }
+    }
+
+    function adjustTimeMinutes(deltaMinutes) {
+      const hEl = document.getElementById('queueExactHour');
+      const mEl = document.getElementById('queueExactMinute');
+      let h12 = parseInt(hEl ? hEl.value : '12', 10);
+      let m = parseInt(mEl ? mEl.value : '00', 10);
+      if (isNaN(h12)) h12 = 12;
+      if (isNaN(m)) m = 0;
+      let h24 = (h12 % 12) + (currentMeridiem === 'PM' ? 12 : 0);
+      let totalMins = (h24 * 60 + m + deltaMinutes) % 1440;
+      if (totalMins < 0) totalMins += 1440;
+
+      let newH24 = Math.floor(totalMins / 60);
+      let newM = totalMins % 60;
+      let newMer = newH24 >= 12 ? 'PM' : 'AM';
+      let newH12 = newH24 % 12 === 0 ? 12 : newH24 % 12;
+
+      if (hEl) hEl.value = String(newH12).padStart(2, '0');
+      if (mEl) mEl.value = String(newM).padStart(2, '0');
+      setMeridiem(newMer);
+    }
+
+    function setTimeToCurrentNow() {
+      const istDate = getNowIST();
+      let h24 = istDate.getHours();
+      let m = istDate.getMinutes() + 1;
+      if (m >= 60) {
+        m = 0;
+        h24 = (h24 + 1) % 24;
+      }
+      let mer = h24 >= 12 ? 'PM' : 'AM';
+      let h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+
+      const hEl = document.getElementById('queueExactHour');
+      const mEl = document.getElementById('queueExactMinute');
+      if (hEl) hEl.value = String(h12).padStart(2, '0');
+      if (mEl) mEl.value = String(m).padStart(2, '0');
+      setMeridiem(mer);
     }
 
     function applyTimePreset(timeStr) {
@@ -2926,13 +3272,64 @@ export function renderDashboardHTML(initialAccounts = []) {
       const hiddenInp = document.getElementById('queueExactTime');
       if (hiddenInp) hiddenInp.value = formatted;
 
+      const hEl = document.getElementById('queueExactHour');
+      const mEl = document.getElementById('queueExactMinute');
+      let h12 = parseInt(hEl ? hEl.value : '12', 10);
+      let m = parseInt(mEl ? mEl.value : '0', 10);
+      if (isNaN(h12)) h12 = 12;
+      if (isNaN(m)) m = 0;
+      let h24 = (h12 % 12) + (currentMeridiem === 'PM' ? 12 : 0);
+      let targetMins = h24 * 60 + m;
+
+      const istDate = getNowIST();
+      let currentMins = istDate.getHours() * 60 + istDate.getMinutes();
+      let currentSecs = istDate.getSeconds();
+
+      let diffMins = targetMins - currentMins;
+      let isTomorrow = false;
+      if (diffMins < 0 || (diffMins === 0 && currentSecs > 0)) {
+        diffMins += 1440;
+        isTomorrow = true;
+      }
+
+      let diffH = Math.floor(diffMins / 60);
+      let diffRemM = diffMins % 60;
+      let countdownStr = '';
+      if (diffH > 0 && diffRemM > 0) countdownStr = 'in ' + diffH + 'h ' + diffRemM + 'm';
+      else if (diffH > 0) countdownStr = 'in ' + diffH + 'h';
+      else if (diffRemM > 0) countdownStr = 'in ' + diffRemM + 'm';
+      else countdownStr = 'right now';
+
+      if (isTomorrow) countdownStr += ' (Tomorrow)';
+
       const preview = document.getElementById('exactTimePreviewText');
       if (preview) {
         preview.textContent = 'Will execute at ' + formatted + ' IST';
       }
+      const previewCountdown = document.getElementById('exactTimeCountdownText');
+      if (previewCountdown) {
+        previewCountdown.textContent = countdownStr;
+      }
 
       updateQueueButtonLabels();
       updateQueueActionButtons();
+    }
+
+    function initChronoDeckWheelEvents() {
+      const hInput = document.getElementById('queueExactHour');
+      if (hInput) {
+        hInput.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          stepHour(e.deltaY < 0 ? 1 : -1);
+        }, { passive: false });
+      }
+      const mInput = document.getElementById('queueExactMinute');
+      if (mInput) {
+        mInput.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          stepMinute(e.deltaY < 0 ? 1 : -1);
+        }, { passive: false });
+      }
     }
 
     function updateQueueButtonLabels() {
@@ -3303,7 +3700,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     renderScheduleList();
     populateQueueAccountSelect();
     populateQueueSlotSelect();
-    initMinuteOptions();
+    initChronoDeckWheelEvents();
     onExactTimeChanged();
     const initialHeaderSub = document.getElementById('headerSub');
     if (initialHeaderSub && ACCOUNTS.length > 0) initialHeaderSub.textContent = ACCOUNTS.length + (ACCOUNTS.length === 1 ? ' connected account' : ' connected accounts');
