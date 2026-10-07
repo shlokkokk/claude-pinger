@@ -291,6 +291,12 @@ export async function sendNotification(env, { type, accountName, accountId, prom
       `❌ <b>Error:</b> ${safeError}\n\n` +
       `<i>Dispatched fallback keep-alive ping automatically to preserve rolling 5-hour window.</i>`;
     color = 0xffb020;
+  } else if (type === 'scheduler_error') {
+    title = `⚠️ Edge Scheduler Alert`;
+    message = `<b>Claude Pulse Scheduler Alert</b>\n\n` +
+      `⚠️ <b>Scheduler Notice:</b> ${safeError}\n\n` +
+      `<i>Safety Net: The 8 daily cron keep-alive slots remain active as a fallback.</i>`;
+    color = 0xffb020;
   } else {
     return;
   }
@@ -391,6 +397,104 @@ export async function saveAccountTasks(env, accountId, tasks) {
   }
 }
 
+export class TaskScheduler {
+  constructor(ctx, env) {
+    this.ctx = ctx;
+    this.env = env;
+  }
+
+  async syncAlarm() {
+    try {
+      const accounts = getAllAccounts(this.env);
+      let earliestTimestamp = null;
+      let earliestTask = null;
+      const now = Date.now();
+
+      for (const acc of accounts) {
+        const tasks = await getAccountTasks(this.env, acc.id);
+        for (const t of tasks) {
+          if ((t.status === 'queued' || t.status === 'processing') && t.targetType === 'time' && t.targetTimestamp) {
+            // If already overdue or due within 1 second, schedule for immediate trigger (now + 500ms)
+            const dueTime = Math.max(t.targetTimestamp, now + 500);
+            if (!earliestTimestamp || dueTime < earliestTimestamp) {
+              earliestTimestamp = dueTime;
+              earliestTask = t;
+            }
+          }
+        }
+      }
+
+      const existingAlarm = await this.ctx.storage.getAlarm();
+      if (earliestTimestamp) {
+        // Only set if different by > 1000ms to avoid unnecessary SQLite write cycles
+        if (!existingAlarm || Math.abs(existingAlarm - earliestTimestamp) > 1000) {
+          try {
+            await this.ctx.storage.setAlarm(earliestTimestamp);
+            console.log(`[TaskScheduler DO] Precision alarm registered for: ${new Date(earliestTimestamp).toISOString()}`);
+          } catch (alarmErr) {
+            console.error('[TaskScheduler DO] Failed to setAlarm:', alarmErr.message);
+            await sendNotification(this.env, {
+              type: 'scheduler_error',
+              error: `Failed to set edge alarm for ${earliestTask?.accountName || 'task'} (${earliestTask?.targetTime || new Date(earliestTimestamp).toISOString()}): ${alarmErr.message}`
+            });
+          }
+        }
+      } else if (existingAlarm) {
+        try {
+          await this.ctx.storage.deleteAlarm();
+          console.log('[TaskScheduler DO] No pending timed tasks. Alarm cleared.');
+        } catch (delErr) {
+          console.warn('[TaskScheduler DO] deleteAlarm warning:', delErr.message);
+        }
+      }
+    } catch (err) {
+      console.warn('[TaskScheduler DO] syncAlarm error:', err.message);
+      try {
+        await sendNotification(this.env, {
+          type: 'scheduler_error',
+          error: `Edge scheduler sync error: ${err.message}`
+        });
+      } catch (notifErr) {}
+    }
+  }
+
+  async alarm() {
+    console.log(`[TaskScheduler DO] Precision alarm trigger fired at: ${new Date().toISOString()}`);
+    try {
+      await sweepDueTasks(this.env);
+    } catch (err) {
+      console.error('[TaskScheduler DO] Error sweeping tasks in alarm:', err.message);
+    }
+    await this.syncAlarm();
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    if (url.pathname === '/sync' || url.pathname === '/alarm') {
+      await this.syncAlarm();
+      return new Response(JSON.stringify({ success: true, message: 'Alarm synchronized' }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    return new Response('Not Found', { status: 404 });
+  }
+}
+
+export async function notifyTaskScheduler(env) {
+  if (!env || !env.TASK_SCHEDULER) return;
+  try {
+    const id = env.TASK_SCHEDULER.idFromName('global_task_scheduler');
+    const stub = env.TASK_SCHEDULER.get(id);
+    if (typeof stub.syncAlarm === 'function') {
+      await stub.syncAlarm();
+    } else {
+      await stub.fetch('http://task-scheduler/sync');
+    }
+  } catch (e) {
+    console.warn('[TaskScheduler] Notification warning:', e.message);
+  }
+}
+
 export async function sweepDueTasks(env) {
   if (!env || !env.TASK_QUEUE) return [];
   const accounts = getAllAccounts(env);
@@ -399,12 +503,26 @@ export async function sweepDueTasks(env) {
 
   for (const acc of accounts) {
     const tasks = await getAccountTasks(env, acc.id);
-    // Find ALL due time-targeted tasks, not just the first
-    const dueTasks = tasks.filter(t => t.status === 'queued' && t.targetType === 'time' && t.targetTimestamp && t.targetTimestamp <= now);
+    // Find all due tasks that are queued (or processing timed out > 6 mins)
+    const dueTasks = tasks.filter(t => 
+      (t.status === 'queued' || (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000))) &&
+      t.targetType === 'time' && 
+      t.targetTimestamp && 
+      t.targetTimestamp <= now
+    );
+
     for (const dueTask of dueTasks) {
-      console.log(`Sweeping due task for ${acc.name}: "${dueTask.prompt}" (id: ${dueTask.id}, scheduled for ${dueTask.targetTime || 'exact time'})`);
+      console.log(`[Precision Sweep] Executing due task for ${acc.name}: "${dueTask.prompt}" (id: ${dueTask.id}, scheduled for ${dueTask.targetTime || 'exact time'})`);
+      
+      // Atomic claim lock: mark as 'processing' so concurrent triggers won't double-fire
+      const taskIndex = tasks.findIndex(t => t.id === dueTask.id);
+      if (taskIndex >= 0) {
+        tasks[taskIndex].status = 'processing';
+        tasks[taskIndex].processingStartedAt = now;
+        await saveAccountTasks(env, acc.id, tasks);
+      }
+
       try {
-        // Pass dueTask.id so pingClaudeAccount targets exactly this task, not re-running priority selection
         const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl, acc.id, null, dueTask.id);
         executed.push({ account: acc.name, taskId: dueTask.id, result: res });
       } catch (err) {
@@ -412,6 +530,10 @@ export async function sweepDueTasks(env) {
       }
     }
   }
+
+  // After sweeping, sync the Durable Object alarm to the next remaining future task
+  await notifyTaskScheduler(env);
+
   return executed;
 }
 
@@ -529,6 +651,7 @@ export default {
           ...accountsDiagnostic,
           browserlessApiKey: !!(env.BROWSERLESS_TOKEN || env.BROWSERLESS_API_KEY),
           taskQueueConfigured: !!env.TASK_QUEUE,
+          taskSchedulerConfigured: !!env.TASK_SCHEDULER,
           telegramConfigured: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
           discordConfigured: !!env.DISCORD_WEBHOOK_URL
         },
@@ -723,6 +846,7 @@ export default {
 
           existingTasks.push(task);
           await saveAccountTasks(env, accountId, existingTasks);
+          await notifyTaskScheduler(env);
 
           const targetDesc = targetType === 'slot' 
             ? `scheduled for ${targetSlotDisplay || `Slot ${targetSlot}`}` 
@@ -757,6 +881,7 @@ export default {
           const tasks = await getAccountTasks(env, accId);
           const filtered = tasks.filter(t => t.id !== taskId);
           await saveAccountTasks(env, accId, filtered);
+          await notifyTaskScheduler(env);
           return new Response(JSON.stringify({ 
             success: true, 
             message: `Task removed for ${matchedAcc.name}.` 
@@ -764,6 +889,7 @@ export default {
         } else {
           await env.TASK_QUEUE.delete(`tasks_account_${accId}`);
           await env.TASK_QUEUE.delete(`task_account_${accId}`);
+          await notifyTaskScheduler(env);
           return new Response(JSON.stringify({ 
             success: true, 
             message: `All queued tasks removed for ${matchedAcc.name}.` 
@@ -808,6 +934,7 @@ export default {
       }
 
       const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl, acc.id, null, taskId);
+      await notifyTaskScheduler(env);
       return new Response(JSON.stringify({ message: `Dispatched task for ${acc.name}`, result: res }), { status: 200, headers: corsHeaders });
     }
 
@@ -899,10 +1026,10 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
   if (env && env.TASK_QUEUE && accountId) {
     try {
       allTasks = await getAccountTasks(env, accountId);
-      const queuedTasks = allTasks.filter(t => t.status === 'queued');
+      const queuedTasks = allTasks.filter(t => t.status === 'queued' || (targetTaskId && t.id === targetTaskId));
 
       if (targetTaskId) {
-        queuedTask = queuedTasks.find(t => t.id === targetTaskId) || null;
+        queuedTask = allTasks.find(t => t.id === targetTaskId) || null;
       } else if (queuedTasks.length > 0) {
         const now = Date.now();
         // Priority 1: Due timestamp tasks (exact time arrived)
@@ -1314,6 +1441,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
           if (taskIdx >= 0) allTasks[taskIdx] = completedTask;
           else allTasks.push(completedTask);
           await saveAccountTasks(env, accountId, allTasks);
+          await notifyTaskScheduler(env);
 
           // Clear the debounce flag so session expiry can alert fresh next time
           try {
@@ -1340,6 +1468,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
           if (taskIdx >= 0) allTasks[taskIdx] = failedTask;
           else allTasks.push(failedTask);
           await saveAccountTasks(env, accountId, allTasks);
+          await notifyTaskScheduler(env);
 
           await sendNotification(env, {
             type: 'task_failed',
@@ -1378,6 +1507,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
         if (taskIdx >= 0) allTasks[taskIdx] = failedTask;
         else allTasks.push(failedTask);
         await saveAccountTasks(env, accountId, allTasks);
+        await notifyTaskScheduler(env);
 
         await sendNotification(env, {
           type: 'task_failed',
