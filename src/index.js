@@ -166,21 +166,23 @@ export function calculateTargetTimestamp(timeStr) {
   if (ampm === 'AM' && hour === 12) hour = 0;
   if (hour < 0 || hour > 23 || min < 0 || min > 59) return null;
 
-  // Calculate in IST (UTC+5.5)
+  // Calculate in IST (UTC+5.5) using UTC calendar methods to be 100% host-timezone independent
   const now = new Date();
   const istOffsetMs = 5.5 * 3600000;
-  const nowIST = new Date(now.getTime() + istOffsetMs);
-
-  const targetIST = new Date(nowIST);
-  targetIST.setHours(hour, min, 0, 0);
+  const istTime = new Date(now.getTime() + istOffsetMs);
+  const year = istTime.getUTCFullYear();
+  const month = istTime.getUTCMonth();
+  let day = istTime.getUTCDate();
+  const curHour = istTime.getUTCHours();
+  const curMin = istTime.getUTCMinutes();
 
   // If time has already passed today in IST, schedule for tomorrow
-  if (targetIST.getTime() <= nowIST.getTime()) {
-    targetIST.setDate(targetIST.getDate() + 1);
+  if (hour < curHour || (hour === curHour && min <= curMin)) {
+    day += 1;
   }
 
-  // Convert back to UTC timestamp in ms
-  return targetIST.getTime() - istOffsetMs;
+  // Date.UTC automatically normalizes month/year rollover
+  return Date.UTC(year, month, day, hour, min, 0, 0) - istOffsetMs;
 }
 
 export function parseRateLimitNotice(text) {
@@ -399,8 +401,8 @@ export async function saveAccountTasks(env, accountId, tasks) {
 
 export class TaskScheduler {
   constructor(ctx, env) {
-    this.ctx = ctx;
-    this.env = env;
+    this.ctx = ctx?.storage ? ctx : (ctx?.ctx || ctx);
+    this.env = env || ctx?.env;
   }
 
   async syncAlarm() {
@@ -413,7 +415,8 @@ export class TaskScheduler {
       for (const acc of accounts) {
         const tasks = await getAccountTasks(this.env, acc.id);
         for (const t of tasks) {
-          if ((t.status === 'queued' || t.status === 'processing') && t.targetType === 'time' && t.targetTimestamp) {
+          const isTimedOut = (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000));
+          if ((t.status === 'queued' || isTimedOut) && t.targetType === 'time' && t.targetTimestamp) {
             // If already overdue or due within 1 second, schedule for immediate trigger (now + 500ms)
             const dueTime = Math.max(t.targetTimestamp, now + 500);
             if (!earliestTimestamp || dueTime < earliestTimestamp) {
@@ -476,6 +479,19 @@ export class TaskScheduler {
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    if (url.pathname === '/status') {
+      let alarm = null;
+      try {
+        alarm = await this.ctx.storage.getAlarm();
+      } catch (e) {}
+      return new Response(JSON.stringify({
+        alarm,
+        alarmISO: alarm ? new Date(alarm).toISOString() : null,
+        alarmIST: alarm ? new Date(alarm + 5.5 * 3600000).toISOString() : null
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     return new Response('Not Found', { status: 404 });
   }
 }
@@ -485,9 +501,16 @@ export async function notifyTaskScheduler(env) {
   try {
     const id = env.TASK_SCHEDULER.idFromName('global_task_scheduler');
     const stub = env.TASK_SCHEDULER.get(id);
+    let synced = false;
     if (typeof stub.syncAlarm === 'function') {
-      await stub.syncAlarm();
-    } else {
+      try {
+        await stub.syncAlarm();
+        synced = true;
+      } catch (rpcErr) {
+        console.warn('[TaskScheduler] RPC syncAlarm failed, attempting HTTP sync fallback:', rpcErr.message);
+      }
+    }
+    if (!synced) {
       await stub.fetch('http://task-scheduler/sync');
     }
   } catch (e) {
@@ -508,7 +531,7 @@ export async function sweepDueTasks(env) {
       (t.status === 'queued' || (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000))) &&
       t.targetType === 'time' && 
       t.targetTimestamp && 
-      t.targetTimestamp <= now
+      t.targetTimestamp <= (now + 2000)
     );
 
     for (const dueTask of dueTasks) {
@@ -694,6 +717,44 @@ export default {
           'Cache-Control': 'no-cache'
         }
       });
+    }
+
+    if (pathname === '/api/scheduler/status' || pathname === '/api/scheduler/sync') {
+      const corsHeaders = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Cache-Control': 'no-cache'
+      };
+
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { headers: corsHeaders });
+      }
+
+      if (!env.TASK_SCHEDULER) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'TASK_SCHEDULER Durable Object binding is not configured.' 
+        }), { status: 200, headers: corsHeaders });
+      }
+
+      try {
+        const id = env.TASK_SCHEDULER.idFromName('global_task_scheduler');
+        const stub = env.TASK_SCHEDULER.get(id);
+        if (pathname === '/api/scheduler/sync' || request.method === 'POST') {
+          await stub.fetch('http://task-scheduler/sync');
+        }
+        const statusRes = await stub.fetch('http://task-scheduler/status');
+        const statusData = await statusRes.json();
+        return new Response(JSON.stringify({
+          success: true,
+          endpoint: pathname,
+          ...statusData
+        }, null, 2), { status: 200, headers: corsHeaders });
+      } catch (err) {
+        return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500, headers: corsHeaders });
+      }
     }
 
     // TASK QUEUE URL VERIFICATION API: Inspect & verify Claude conversation links
