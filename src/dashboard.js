@@ -859,9 +859,168 @@ export function renderDashboardHTML(initialAccounts = []) {
     .form-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0, 229, 240, 0.14); background: rgba(255,255,255,0.06); }
     .form-input::placeholder { color: var(--text-400); }
     .form-input[type="time"] { color-scheme: dark; }
-    .exact-time-controls { display:block; }
-    .exact-time-controls .input-wrap { min-width:0; }
-    .exact-time-controls .form-input { padding-right:12px; }
+    /* ===== 12-HOUR CLOCK PICKER (Desktop & Mobile optimized) ===== */
+    .clock-12h-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      backdrop-filter: blur(8px);
+      transition: border-color var(--transition);
+    }
+    .clock-12h-picker:focus-within {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0, 229, 240, 0.12);
+    }
+    .time-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+    .time-col-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-400);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+    .time-select-wrap {
+      position: relative;
+    }
+    .time-select {
+      width: 100%;
+      height: 44px;
+      background: rgba(16, 20, 36, 0.85);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      color: var(--text-100);
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      outline: none;
+      transition: all var(--transition);
+      appearance: none;
+      -webkit-appearance: none;
+      padding: 0 8px;
+    }
+    .time-select:hover {
+      border-color: var(--border-hover);
+      background: rgba(22, 28, 50, 0.95);
+    }
+    .time-select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(0, 229, 240, 0.2);
+    }
+    .time-select option {
+      background: #0f1322;
+      color: #f0f2f8;
+      font-family: var(--mono);
+      padding: 6px;
+    }
+    .time-colon {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--cyan);
+      margin-top: 14px;
+      user-select: none;
+      animation: pulseColon 2s infinite ease-in-out;
+    }
+    @keyframes pulseColon {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.4; }
+    }
+    .meridiem-toggle {
+      display: flex;
+      background: rgba(16, 20, 36, 0.85);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      height: 44px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .btn-meridiem {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text-400);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+    }
+    .btn-meridiem:hover:not(.active) {
+      color: var(--text-200);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .btn-meridiem.active {
+      background: linear-gradient(135deg, rgba(0, 229, 240, 0.25), rgba(0, 214, 143, 0.25));
+      color: #22f7ff;
+      border: 1px solid rgba(0, 229, 240, 0.45);
+      box-shadow: 0 2px 10px rgba(0, 229, 240, 0.18);
+    }
+    .time-presets {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .preset-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-400);
+      margin-right: 2px;
+    }
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .preset-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      color: var(--text-300);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .preset-chip:hover {
+      background: rgba(0, 229, 240, 0.12);
+      border-color: var(--cyan);
+      color: #22f7ff;
+      transform: translateY(-1px);
+    }
+    .exact-time-preview {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: rgba(0, 229, 240, 0.05);
+      border: 1px solid rgba(0, 229, 240, 0.15);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--cyan);
+      font-family: var(--mono);
+    }
 
     /* Clear button inside input */
     .btn-clear-input {
@@ -2021,15 +2180,72 @@ export function renderDashboardHTML(initialAccounts = []) {
             <span class="form-hint" style="margin-top:4px;">Choose one of this account’s scheduled daily ping times.</span>
           </div>
 
-          <!-- SUB-VIEW: EXACT RESET TIME -->
-          <div id="timingExactWrap" style="display:none;margin-top:8px;">
-            <div class="exact-time-controls">
-              <div class="input-wrap">
-                <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-                <input type="time" class="form-input" id="queueExactTime" step="60" aria-label="Choose exact reset time" onfocus="try { this.showPicker(); } catch (e) {}" oninput="updateQueueButtonLabels()" onchange="updateQueueButtonLabels()">
+          <!-- SUB-VIEW: EXACT RESET TIME (12-Hour Clock with AM/PM & Presets) -->
+          <div id="timingExactWrap" style="display:none;margin-top:10px;">
+            <div class="clock-12h-picker">
+              <!-- Hour selector -->
+              <div class="time-col">
+                <label class="time-col-label" for="queueExactHour">HOUR</label>
+                <div class="time-select-wrap">
+                  <select class="time-select" id="queueExactHour" onchange="onExactTimeChanged()">
+                    <option value="12" selected>12</option>
+                    <option value="01">01</option>
+                    <option value="02">02</option>
+                    <option value="03">03</option>
+                    <option value="04">04</option>
+                    <option value="05">05</option>
+                    <option value="06">06</option>
+                    <option value="07">07</option>
+                    <option value="08">08</option>
+                    <option value="09">09</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Separator -->
+              <div class="time-colon">:</div>
+
+              <!-- Minute selector -->
+              <div class="time-col">
+                <label class="time-col-label" for="queueExactMinute">MIN</label>
+                <div class="time-select-wrap">
+                  <select class="time-select" id="queueExactMinute" onchange="onExactTimeChanged()"></select>
+                </div>
+              </div>
+
+              <!-- AM / PM Selector -->
+              <div class="time-col">
+                <label class="time-col-label">PERIOD</label>
+                <div class="meridiem-toggle" role="radiogroup" aria-label="Select AM or PM">
+                  <button type="button" class="btn-meridiem active" id="btnMeridiemAM" onclick="setMeridiem('AM')">AM</button>
+                  <button type="button" class="btn-meridiem" id="btnMeridiemPM" onclick="setMeridiem('PM')">PM</button>
+                </div>
               </div>
             </div>
-            <span class="form-hint" style="margin-top:4px;">Select the field to open the clock picker. Times use IST.</span>
+
+            <!-- Quick Reset Presets (Common Claude reset points) -->
+            <div class="time-presets">
+              <span class="preset-label">Quick Presets:</span>
+              <div class="preset-chips">
+                <button type="button" class="preset-chip" onclick="applyTimePreset('12:00 AM')">12:00 AM</button>
+                <button type="button" class="preset-chip" onclick="applyTimePreset('03:30 AM')">03:30 AM</button>
+                <button type="button" class="preset-chip" onclick="applyTimePreset('07:30 AM')">07:30 AM</button>
+                <button type="button" class="preset-chip" onclick="applyTimePreset('12:00 PM')">12:00 PM</button>
+                <button type="button" class="preset-chip" onclick="applyTimePreset('03:30 PM')">03:30 PM</button>
+                <button type="button" class="preset-chip" onclick="applyTimePreset('08:00 PM')">08:00 PM</button>
+              </div>
+            </div>
+
+            <!-- Hidden sync input for backward compatibility -->
+            <input type="hidden" id="queueExactTime" value="12:00 AM">
+
+            <!-- Live Feedback Hint -->
+            <div class="exact-time-preview" id="exactTimePreview">
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></svg>
+              <span id="exactTimePreviewText">Will execute at 12:00 AM IST</span>
+            </div>
           </div>
         </div>
         </div>
@@ -2661,6 +2877,64 @@ export function renderDashboardHTML(initialAccounts = []) {
       updateQueueActionButtons();
     }
 
+    let currentMeridiem = 'AM';
+
+    function initMinuteOptions() {
+      const minEl = document.getElementById('queueExactMinute');
+      if (!minEl || minEl.options.length > 0) return;
+      for (let m = 0; m < 60; m++) {
+        const val = String(m).padStart(2, '0');
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        minEl.appendChild(opt);
+      }
+    }
+
+    function setMeridiem(mer) {
+      currentMeridiem = mer;
+      const bAM = document.getElementById('btnMeridiemAM');
+      const bPM = document.getElementById('btnMeridiemPM');
+      if (bAM) bAM.className = 'btn-meridiem ' + (mer === 'AM' ? 'active' : '');
+      if (bPM) bPM.className = 'btn-meridiem ' + (mer === 'PM' ? 'active' : '');
+      onExactTimeChanged();
+    }
+
+    function getExact12hTime() {
+      const hEl = document.getElementById('queueExactHour');
+      const mEl = document.getElementById('queueExactMinute');
+      const h = hEl ? hEl.value : '12';
+      const m = mEl ? mEl.value : '00';
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ' ' + currentMeridiem;
+    }
+
+    function applyTimePreset(timeStr) {
+      const match = String(timeStr || '').match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (!match) return;
+      const h = String(parseInt(match[1], 10)).padStart(2, '0');
+      const m = match[2];
+      const mer = match[3].toUpperCase();
+      const hEl = document.getElementById('queueExactHour');
+      const mEl = document.getElementById('queueExactMinute');
+      if (hEl) hEl.value = h;
+      if (mEl) mEl.value = m;
+      setMeridiem(mer);
+    }
+
+    function onExactTimeChanged() {
+      const formatted = getExact12hTime();
+      const hiddenInp = document.getElementById('queueExactTime');
+      if (hiddenInp) hiddenInp.value = formatted;
+
+      const preview = document.getElementById('exactTimePreviewText');
+      if (preview) {
+        preview.textContent = 'Will execute at ' + formatted + ' IST';
+      }
+
+      updateQueueButtonLabels();
+      updateQueueActionButtons();
+    }
+
     function updateQueueButtonLabels() {
       const buttonText = document.getElementById('btnQueueText');
       if (!buttonText) return;
@@ -2671,9 +2945,8 @@ export function renderDashboardHTML(initialAccounts = []) {
         if (selected && selected.value) label = 'Queue for ' + selected.textContent;
         else label = 'No scheduled times';
       } else if (selectedTimingMode === 'time') {
-        const timeInput = document.getElementById('queueExactTime');
-        const chosenTime = timeInput ? timeInput.value : '';
-        label = chosenTime ? 'Queue for ' + timeInputValueToText(chosenTime) + ' IST' : 'Choose Exact Time';
+        const chosenTime = getExact12hTime();
+        label = 'Queue for ' + chosenTime + ' IST';
       }
       buttonText.textContent = label;
     }
@@ -2869,14 +3142,12 @@ export function renderDashboardHTML(initialAccounts = []) {
           payload.targetSlotDisplay = selOpt ? selOpt.dataset.display : ('Slot ' + payload.targetSlot);
         }
       } else if (selectedTimingMode === 'time') {
-        const timeInp = document.getElementById('queueExactTime');
-        const rawTime = timeInp ? timeInp.value.trim() : '';
-        if (!rawTime) {
+        const exactTime = getExact12hTime();
+        if (!exactTime) {
           showToast('Choose an exact reset time.', 'warn');
-          if (timeInp) timeInp.focus();
           return;
         }
-        payload.targetTime = timeInputValueToText(rawTime);
+        payload.targetTime = exactTime;
       }
 
       if (bq) bq.disabled = true;
@@ -3032,6 +3303,8 @@ export function renderDashboardHTML(initialAccounts = []) {
     renderScheduleList();
     populateQueueAccountSelect();
     populateQueueSlotSelect();
+    initMinuteOptions();
+    onExactTimeChanged();
     const initialHeaderSub = document.getElementById('headerSub');
     if (initialHeaderSub && ACCOUNTS.length > 0) initialHeaderSub.textContent = ACCOUNTS.length + (ACCOUNTS.length === 1 ? ' connected account' : ' connected accounts');
     updateQueueButtonLabels();
