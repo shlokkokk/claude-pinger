@@ -275,9 +275,15 @@ Accessible by navigating to the worker root URL (`/`) in any browser. Features i
 
 ---
 
-## Overnight Task Autopilot
+## Overnight Task Autopilot & Precision Scheduler
 
-The Overnight Task Autopilot allows users to queue prompts for execution at the exact moment their next 5-hour usage limit window resets.
+The Overnight Task Autopilot allows users to queue prompts for execution at the exact moment their next 5-hour usage limit window resets or at any custom scheduled time (e.g., 06:55 AM, 12:00 PM).
+
+### Precision Edge Alarm Execution (Durable Objects)
+- **Millisecond Edge Alarms**: Powered by Cloudflare SQLite-backed Durable Objects (`TaskScheduler`), which register edge timers via `storage.setAlarm()`.
+- **Zero-Cron Dependency for Timed Tasks**: Exact-time tasks fire at the precise minute without waiting for the 8 daily cron slots.
+- **Autonomous Auto Re-Arming**: When a task completes, the engine automatically checks for subsequent scheduled tasks and sets the next edge alarm.
+- **Failure Alerting**: If alarm registration ever fails, immediate alerts are dispatched via Telegram and Discord while the 8 daily cron slots remain active as a fallback.
 
 ### REST Endpoints
 
