@@ -6,8 +6,8 @@
   "description": "Claude Pulse - Automated Cloudflare Worker keep-alive autopilot",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "tail": "wrangler tail"
+    "deploy": "npx wrangler deploy",
+    "dev": "npx wrangler dev",
+    "tail": "npx wrangler tail"
   }
 }
