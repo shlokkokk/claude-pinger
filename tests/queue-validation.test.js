@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateQueuePayload, calculateTargetTimestamp, parseRateLimitNotice, TaskScheduler } from '../src/index.js';
+import worker, { validateQueuePayload, calculateTargetTimestamp, parseRateLimitNotice, TaskScheduler } from '../src/index.js';
 
 describe('Overnight Autopilot Queue Payload Validation', () => {
   test('accepts valid payload with explicit prompt', () => {
@@ -261,6 +261,37 @@ describe('TaskScheduler Durable Object Precision Scheduling', () => {
     await scheduler.syncAlarm({ action: 'upsert', task: taskOverdue });
     const alarm = await mockStorage.getAlarm();
     assert.ok(alarm >= Date.now()); // Scheduled for now + 500ms
+  });
+});
+
+describe('Queue Task Management & Clear Completed History', () => {
+  test('clears completed and failed tasks while preserving active queued tasks', async () => {
+    const memory = new Map();
+    memory.set('tasks_account_1', JSON.stringify([
+      { id: 'task_1', status: 'queued', prompt: 'active 1' },
+      { id: 'task_2', status: 'completed', prompt: 'done 1' },
+      { id: 'task_3', status: 'failed', prompt: 'failed 1' }
+    ]));
+    const mockEnv = {
+      CLAUDE_SESSION_KEY_1: 'sk-ant-test',
+      TASK_QUEUE: {
+        async get(key) { return memory.get(key) || null; },
+        async put(key, val) { memory.set(key, val); },
+        async delete(key) { memory.delete(key); }
+      }
+    };
+
+    const req = new Request('http://localhost/api/queue?clearCompleted=true', { method: 'DELETE' });
+    const res = await worker.fetch(req, mockEnv);
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.success, true);
+    assert.equal(data.clearedCount, 2);
+
+    const updated = JSON.parse(memory.get('tasks_account_1'));
+    assert.equal(updated.length, 1);
+    assert.equal(updated[0].id, 'task_1');
+    assert.equal(updated[0].status, 'queued');
   });
 });
 
