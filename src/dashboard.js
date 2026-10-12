@@ -1100,6 +1100,8 @@ export function renderDashboardHTML(initialAccounts = []) {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .chrono-presets-label {
       font-size: 9px;
@@ -1107,6 +1109,74 @@ export function renderDashboardHTML(initialAccounts = []) {
       letter-spacing: 0.8px;
       color: var(--text-400);
       text-transform: uppercase;
+    }
+    .preset-auto-badge {
+      font-size: 8px;
+      font-weight: 800;
+      color: var(--cyan);
+      background: rgba(0, 229, 240, 0.12);
+      border: 1px solid rgba(0, 229, 240, 0.28);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: var(--mono);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .chrono-presets-sub {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-400);
+      font-family: var(--font);
+      white-space: nowrap;
+    }
+    .smart-queue-callout {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 7px 11px;
+      background: linear-gradient(135deg, rgba(0, 229, 240, 0.08), rgba(176, 125, 240, 0.06));
+      border: 1px solid rgba(0, 229, 240, 0.28);
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      color: var(--text-200);
+      margin-bottom: 8px;
+      animation: fade-in 0.2s ease;
+    }
+    .smart-queue-callout-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    .smart-queue-callout-text svg {
+      color: var(--cyan);
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+    }
+    .smart-queue-callout-text strong {
+      color: #fff;
+      font-family: var(--mono);
+    }
+    .btn-callout-apply {
+      background: rgba(0, 229, 240, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .btn-callout-apply:hover {
+      background: var(--cyan);
+      color: #000;
     }
     .chrono-presets-grid {
       display: grid;
@@ -1139,6 +1209,11 @@ export function renderDashboardHTML(initialAccounts = []) {
     .chrono-preset-pill.highlight-reset:hover {
       background: rgba(0, 229, 240, 0.18);
       border-color: var(--cyan);
+    }
+    .chrono-preset-pill.current-selected {
+      border-color: var(--cyan);
+      background: rgba(0, 229, 240, 0.16);
+      box-shadow: 0 0 10px rgba(0, 229, 240, 0.18);
     }
     .preset-pill-time {
       font-family: var(--mono);
@@ -1528,11 +1603,17 @@ export function renderDashboardHTML(initialAccounts = []) {
     .btn-dispatch-task svg { width: 12px; height: 12px; flex-shrink: 0; }
     .task-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-    /* ===== ACTIVE QUEUED TASKS (Redesigned for flawless UX) ===== */
+    /* ===== ACTIVE QUEUED TASKS & EXECUTION HISTORY ===== */
     .tasks-divider {
       margin-top: 14px;
       padding-top: 14px;
       border-top: 1px solid var(--border-dim);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .tasks-section {
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -1549,6 +1630,12 @@ export function renderDashboardHTML(initialAccounts = []) {
       letter-spacing: 0.05em;
     }
 
+    .tasks-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .task-count {
       font-family: var(--mono);
       font-size: 0.65rem;
@@ -1557,6 +1644,135 @@ export function renderDashboardHTML(initialAccounts = []) {
       border-radius: 10px;
       background: rgba(255,255,255,0.06);
       color: var(--text-100);
+    }
+
+    .task-count.queued {
+      background: rgba(0, 229, 240, 0.12);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 229, 240, 0.28);
+    }
+
+    .task-count.completed {
+      background: rgba(0, 214, 143, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(0, 214, 143, 0.28);
+    }
+
+    .queue-section-separator {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0 2px 0;
+    }
+
+    .separator-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-default), transparent);
+    }
+
+    .separator-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.64rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-300);
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-dim);
+      border-radius: 12px;
+    }
+
+    .separator-chip svg {
+      color: var(--green);
+    }
+
+    .btn-clear-completed {
+      background: rgba(240, 72, 72, 0.08);
+      border: 1px solid rgba(240, 72, 72, 0.24);
+      color: var(--red);
+      font-size: 0.66rem;
+      font-weight: 700;
+      border-radius: 6px;
+      padding: 4px 9px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all var(--transition);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .btn-clear-completed:hover:not(:disabled) {
+      background: rgba(240, 72, 72, 0.18);
+      border-color: var(--red);
+      color: #fff;
+    }
+
+    .btn-clear-completed:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: var(--border-dim);
+      color: var(--text-400);
+      background: transparent;
+    }
+
+    .btn-queue-expand {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px dashed var(--border-default);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      color: var(--text-200);
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: var(--font);
+      margin-top: 4px;
+    }
+
+    .btn-queue-expand:hover {
+      background: rgba(0, 229, 240, 0.06);
+      border-color: rgba(0, 229, 240, 0.35);
+      border-style: solid;
+      color: var(--cyan);
+    }
+
+    .btn-queue-expand svg {
+      width: 12px;
+      height: 12px;
+      transition: transform var(--transition);
+    }
+
+    .btn-queue-expand.expanded svg {
+      transform: rotate(180deg);
+    }
+
+    .expand-badge {
+      background: rgba(0, 229, 240, 0.14);
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 229, 240, 0.25);
+    }
+
+    .expand-badge.completed {
+      background: rgba(0, 214, 143, 0.14);
+      color: var(--green);
+      border-color: rgba(0, 214, 143, 0.25);
     }
 
     .tasks-list {
@@ -2046,6 +2262,32 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     .btn-modal-ok:hover { background: linear-gradient(135deg, rgba(0, 229, 240, 0.26), rgba(0, 229, 240, 0.15)); }
 
+    .btn-modal-danger {
+      background: linear-gradient(135deg, rgba(240, 72, 72, 0.22), rgba(240, 72, 72, 0.10));
+      border: 1px solid rgba(240, 72, 72, 0.45);
+      color: #ff7878;
+      font-weight: 800;
+    }
+
+    .btn-modal-danger:hover {
+      background: linear-gradient(135deg, rgba(240, 72, 72, 0.35), rgba(240, 72, 72, 0.18));
+      border-color: var(--red);
+      color: #fff;
+    }
+
+    .btn-modal-amber {
+      background: linear-gradient(135deg, rgba(255, 176, 32, 0.22), rgba(255, 176, 32, 0.10));
+      border: 1px solid rgba(255, 176, 32, 0.45);
+      color: #ffc95c;
+      font-weight: 800;
+    }
+
+    .btn-modal-amber:hover {
+      background: linear-gradient(135deg, rgba(255, 176, 32, 0.35), rgba(255, 176, 32, 0.18));
+      border-color: var(--amber);
+      color: #fff;
+    }
+
     /* ===== EMPTY STATE ===== */
     .empty-state {
       color: var(--text-400);
@@ -2368,7 +2610,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           <div class="input-wrap">
             <div class="left-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></div>
             <input type="text" class="form-input" id="queueChatUrl" placeholder="https://claude.ai/chat/..." autocomplete="off" spellcheck="false">
-            <button type="button" class="btn-clear-input" id="btnClearUrl" onclick="clearChatUrlInput()" style="display:none;" title="Clear URL">
+            <button type="button" class="btn-clear-input" id="btnClearUrl" onclick="confirmClearUrlInput()" style="display:none;" title="Clear URL">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
@@ -2495,34 +2737,14 @@ export function renderDashboardHTML(initialAccounts = []) {
               <!-- Smart Presets Bar -->
               <div class="chrono-presets-row">
                 <div class="chrono-presets-header">
-                  <span class="chrono-presets-label">Quick Reset Presets</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <span class="chrono-presets-label">Smart Reset &amp; Cascade Presets</span>
+                    <span class="preset-auto-badge">+5h 2m Buffer</span>
+                  </div>
+                  <span class="chrono-presets-sub" id="chronoPresetsSub">Auto-computed from queue &amp; rate limits</span>
                 </div>
-                <div class="chrono-presets-grid">
-                  <button type="button" class="chrono-preset-pill highlight-reset" onclick="applyTimePreset('03:30 AM')">
-                    <span class="preset-pill-time"><span class="preset-dot-claude"></span>03:30 AM</span>
-                    <span class="preset-pill-sub">Claude Reset</span>
-                  </button>
-                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('12:00 AM')">
-                    <span class="preset-pill-time">12:00 AM</span>
-                    <span class="preset-pill-sub">Midnight</span>
-                  </button>
-                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('07:30 AM')">
-                    <span class="preset-pill-time">07:30 AM</span>
-                    <span class="preset-pill-sub">Morning</span>
-                  </button>
-                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('12:00 PM')">
-                    <span class="preset-pill-time">12:00 PM</span>
-                    <span class="preset-pill-sub">Midday</span>
-                  </button>
-                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('03:30 PM')">
-                    <span class="preset-pill-time">03:30 PM</span>
-                    <span class="preset-pill-sub">Afternoon</span>
-                  </button>
-                  <button type="button" class="chrono-preset-pill" onclick="applyTimePreset('08:00 PM')">
-                    <span class="preset-pill-time">08:00 PM</span>
-                    <span class="preset-pill-sub">Evening</span>
-                  </button>
-                </div>
+                <div class="smart-queue-callout" id="smartQueueCallout" style="display:none;"></div>
+                <div class="chrono-presets-grid" id="chronoPresetsGrid"></div>
               </div>
 
               <!-- Live Feedback HUD Readout -->
@@ -2543,11 +2765,11 @@ export function renderDashboardHTML(initialAccounts = []) {
         </div>
 
         <div class="queue-btns">
-          <button class="btn-queue-primary" id="btnQueueTask" onclick="submitQueuedTask(false)" disabled>
+          <button class="btn-queue-primary" id="btnQueueTask" onclick="confirmQueueTask(false)" disabled>
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span id="btnQueueText">Queue for Next Ping</span>
           </button>
-          <button class="btn-queue-secondary" id="btnQueueNow" onclick="submitQueuedTask(true)" disabled>
+          <button class="btn-queue-secondary" id="btnQueueNow" onclick="confirmQueueTask(true)" disabled>
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
             <span id="btnQueueNowText">Dispatch Now</span>
           </button>
@@ -2555,11 +2777,41 @@ export function renderDashboardHTML(initialAccounts = []) {
       </div>
 
       <div class="tasks-divider">
-        <div class="tasks-header">
-          <span>Active Queued Tasks</span>
-          <span class="task-count" id="taskCountBadge">0</span>
+        <!-- ACTIVE QUEUED TASKS SECTION -->
+        <div class="tasks-section" id="activeTasksSection">
+          <div class="tasks-header">
+            <div class="tasks-header-left">
+              <span>Active Queued Tasks</span>
+              <span class="task-count queued" id="taskCountBadge">0</span>
+            </div>
+          </div>
+          <div class="tasks-list" id="activeTasksList"></div>
         </div>
-        <div class="tasks-list" id="activeTasksList"></div>
+
+        <!-- SEPARATOR BETWEEN QUEUED & COMPLETED -->
+        <div class="queue-section-separator" id="queueSectionSeparator" style="display:none;">
+          <div class="separator-line"></div>
+          <div class="separator-chip">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Execution History</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+
+        <!-- COMPLETED & HISTORY SECTION -->
+        <div class="tasks-section" id="completedTasksSection" style="display:none;">
+          <div class="tasks-header completed-header">
+            <div class="tasks-header-left">
+              <span>Completed & History</span>
+              <span class="task-count completed" id="taskCompletedCountBadge">0</span>
+            </div>
+            <button type="button" class="btn-clear-completed" id="btnClearCompletedTasks" onclick="confirmClearCompleted()">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              <span>Clear History</span>
+            </button>
+          </div>
+          <div class="tasks-list" id="completedTasksList"></div>
+        </div>
       </div>
     </section>
 
@@ -2899,6 +3151,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (selectedTimingMode === 'time') {
         updateExactTimeCountdownOnly();
       }
+      updateSmartPresets();
     }
 
     function inspectScheduleItem(item) {
@@ -2990,6 +3243,79 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (ma) ma.style.gridTemplateColumns = '1fr 1fr';
     }
 
+    function showConfirmDialog({
+      title = 'Confirm Action',
+      sub = 'Claude Pulse',
+      body = 'Are you sure you want to proceed?',
+      iconSvg = null,
+      iconColor = 'var(--cyan)',
+      confirmText = 'Proceed',
+      confirmClass = 'btn-modal-ok',
+      cancelText = 'Cancel',
+      onConfirm = null
+    }) {
+      const modal = document.getElementById('confirmModal');
+      if (!modal) return;
+      const titleEl = document.getElementById('modalTitle');
+      const subEl = document.getElementById('modalSub');
+      const bodyEl = document.getElementById('modalBody');
+      const btnOk = document.getElementById('modalConfirmBtn');
+      const btnCancel = modal.querySelector('.btn-modal-cancel');
+      const iconBox = document.getElementById('modalIcon');
+      const ma = document.getElementById('modalActions');
+
+      if (titleEl) titleEl.innerText = title;
+      if (subEl) subEl.innerText = sub;
+      if (bodyEl) bodyEl.innerHTML = body;
+      if (btnCancel) {
+        btnCancel.innerText = cancelText;
+        btnCancel.style.display = '';
+      }
+      if (ma) ma.style.gridTemplateColumns = '1fr 1fr';
+
+      if (iconBox) {
+        if (iconSvg) {
+          iconBox.innerHTML = iconSvg;
+        } else {
+          iconBox.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>';
+        }
+        iconBox.style.color = iconColor;
+        iconBox.style.borderColor = iconColor;
+        const isRed = iconColor.includes('red') || iconColor.includes('#f04848');
+        const isAmber = iconColor.includes('amber') || iconColor.includes('#ffb020');
+        iconBox.style.background = isRed ? 'rgba(240, 72, 72, 0.12)' : (isAmber ? 'rgba(255, 176, 32, 0.12)' : 'rgba(0, 229, 240, 0.12)');
+      }
+
+      if (btnOk) {
+        btnOk.className = 'btn-modal ' + confirmClass;
+        btnOk.innerText = confirmText;
+        btnOk.onclick = () => {
+          closeModal();
+          if (typeof onConfirm === 'function') onConfirm();
+        };
+      }
+
+      modal.classList.add('open');
+    }
+
+    function confirmClearUrlInput() {
+      const input = document.getElementById('queueChatUrl');
+      if (!input || !input.value.trim()) {
+        clearChatUrlInput();
+        return;
+      }
+      showConfirmDialog({
+        title: 'Clear Chat URL?',
+        sub: 'Autopilot URL Input',
+        body: 'Clear the currently entered Claude conversation link from the input box?',
+        iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>',
+        iconColor: 'var(--amber)',
+        confirmText: 'Clear URL',
+        confirmClass: 'btn-modal-amber',
+        onConfirm: () => clearChatUrlInput()
+      });
+    }
+
     async function runDiagnostics() {
       addConsoleLog('Running live diagnostic check...', 'info');
       const modal = document.getElementById('confirmModal');
@@ -3029,24 +3355,30 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     function confirmAndPing(target, label) {
       if (!label) { if (target === 'all') label = 'All Accounts'; else { const f = ACCOUNTS.find(a => a.id === target); label = f ? f.name : 'Account ' + target; } }
-      const modal = document.getElementById('confirmModal');
-      document.getElementById('modalTitle').innerText = 'Ping ' + label + '?';
-      document.getElementById('modalBody').innerHTML = 'Sends a 1-character keep-alive (<code style="color:#fff;font-family:var(--mono);padding:2px 5px;background:rgba(255,255,255,0.06);border-radius:4px;">.</code>) via Browserless to refresh your 5-hour limit window.';
-      const btn = document.getElementById('modalConfirmBtn');
-      btn.className = 'btn-modal btn-modal-ok'; btn.innerText = 'Send Ping';
-      btn.onclick = () => { closeModal(); triggerPing(target); };
-      modal.classList.add('open');
+      showConfirmDialog({
+        title: 'Ping ' + label + '?',
+        sub: 'Keep-Alive Automation',
+        body: 'Sends a 1-character keep-alive (<code style="color:#fff;font-family:var(--mono);padding:2px 5px;background:rgba(255,255,255,0.06);border-radius:4px;">.</code>) via Browserless to refresh your 5-hour limit window on Claude.ai.',
+        iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>',
+        iconColor: 'var(--cyan)',
+        confirmText: 'Send Ping',
+        confirmClass: 'btn-modal-ok',
+        onConfirm: () => triggerPing(target)
+      });
     }
 
     function openLaunchDialog(accNum, accName) {
       if (!accName) { const f = ACCOUNTS.find(a => a.id === accNum); accName = f ? f.name : 'Account ' + accNum; }
-      const modal = document.getElementById('confirmModal');
-      document.getElementById('modalTitle').innerText = 'Open Claude as ' + accName;
-      document.getElementById('modalBody').innerHTML = 'Make sure your browser is signed into <strong style="color:var(--cyan);">' + escapeHtml(accName) + '</strong> before continuing.';
-      const btn = document.getElementById('modalConfirmBtn');
-      btn.className = 'btn-modal btn-modal-ok'; btn.innerText = 'Open Claude.ai';
-      btn.onclick = () => { closeModal(); window.open('https://claude.ai', '_blank', 'noopener,noreferrer'); };
-      modal.classList.add('open');
+      showConfirmDialog({
+        title: 'Open Claude as ' + accName,
+        sub: 'Claude Web Session',
+        body: 'Make sure your browser is currently signed into <strong style="color:var(--cyan);">' + escapeHtml(accName) + '</strong> before continuing.',
+        iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>',
+        iconColor: 'var(--purple)',
+        confirmText: 'Open Claude.ai',
+        confirmClass: 'btn-modal-ok',
+        onConfirm: () => window.open('https://claude.ai', '_blank', 'noopener,noreferrer')
+      });
     }
 
     async function triggerPing(target) {
@@ -3329,16 +3661,24 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     function applyTimePreset(timeStr) {
-      const match = String(timeStr || '').match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      const match = String(timeStr || '').match(/^(\d{1,2}):(\d{1,2})\s*(AM|PM)?$/i);
       if (!match) return;
-      const h = String(parseInt(match[1], 10)).padStart(2, '0');
-      const m = match[2];
-      const mer = match[3].toUpperCase();
+      let h = parseInt(match[1], 10);
+      const m = String(parseInt(match[2], 10)).padStart(2, '0');
+      let mer = match[3] ? match[3].toUpperCase() : null;
+      if (!mer) {
+        mer = h >= 12 ? 'PM' : 'AM';
+        h = (h % 12 === 0) ? 12 : (h % 12);
+      }
+      const hStr = String(h).padStart(2, '0');
       const hEl = document.getElementById('queueExactHour');
       const mEl = document.getElementById('queueExactMinute');
-      if (hEl) hEl.value = h;
+      if (hEl) hEl.value = hStr;
       if (mEl) mEl.value = m;
       setMeridiem(mer);
+      if (typeof selectedTimingMode !== 'undefined' && selectedTimingMode !== 'time') {
+        setTimingMode('time');
+      }
     }
 
     function updateExactTimeCountdownOnly() {
@@ -3391,6 +3731,290 @@ export function renderDashboardHTML(initialAccounts = []) {
       updateExactTimeCountdownOnly();
       updateQueueButtonLabels();
       updateQueueActionButtons();
+      updateSmartPresets();
+    }
+
+    function parseTimeToMinsOfDay(str) {
+      if (!str) return null;
+      const clean = String(str).trim().replace(/\s*(IST|UTC|GMT)$/i, '').trim();
+      const match = clean.match(/^(\d{1,2}):(\d{1,2})(?:\s*(AM|PM))?$/i);
+      if (!match) return null;
+      let h = parseInt(match[1], 10);
+      const m = parseInt(match[2], 10);
+      const mer = match[3] ? match[3].toUpperCase() : null;
+      if (mer === 'PM' && h < 12) h += 12;
+      if (mer === 'AM' && h === 12) h = 0;
+      if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+      return h * 60 + m;
+    }
+
+    function getTaskScheduledMinsOfDay(task) {
+      if (!task) return null;
+      if (task.targetTime) {
+        const mins = parseTimeToMinsOfDay(task.targetTime);
+        if (mins !== null) return mins;
+      }
+      if (task.targetTimestamp) {
+        try {
+          const d = new Date(task.targetTimestamp);
+          const parts = istFormatter.formatToParts(d);
+          const p = {};
+          for (const part of parts) p[part.type] = part.value;
+          let h = parseInt(p.hour, 10);
+          let m = parseInt(p.minute, 10);
+          if (!isNaN(h) && !isNaN(m)) return (h % 24) * 60 + m;
+        } catch (_) {}
+      }
+      if (task.targetSlot) {
+        const slotItem = SCHEDULE.find(s => s.slot === task.targetSlot && s.account === task.accountId);
+        if (slotItem) return slotItem.minsOfDay;
+      }
+      if (task.targetType === 'next') {
+        const nextPingStr = getNextPingDisplayForAccount(task.accountId);
+        if (nextPingStr) {
+          const mins = parseTimeToMinsOfDay(nextPingStr);
+          if (mins !== null) return mins;
+        }
+      }
+      if (task.queuedAtTimestamp) {
+        try {
+          const d = new Date(task.queuedAtTimestamp);
+          const parts = istFormatter.formatToParts(d);
+          const p = {};
+          for (const part of parts) p[part.type] = part.value;
+          let h = parseInt(p.hour, 10);
+          let m = parseInt(p.minute, 10);
+          if (!isNaN(h) && !isNaN(m)) return (h % 24) * 60 + m;
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    function getLatestTaskScheduledMinsOfDay(tasks) {
+      if (!tasks || tasks.length === 0) return null;
+      let latestMins = null;
+      tasks.forEach(t => {
+        const m = getTaskScheduledMinsOfDay(t);
+        if (m !== null) {
+          if (latestMins === null || m > latestMins) latestMins = m;
+        }
+      });
+      return latestMins;
+    }
+
+    let lastSmartPresetKey = '';
+
+    function updateSmartPresets(force = false) {
+      const grid = document.getElementById('chronoPresetsGrid');
+      const callout = document.getElementById('smartQueueCallout');
+      if (!grid) return;
+
+      const currentPickerTime = getExact12hTime();
+      const currentPickerMins = parseTimeToMinsOfDay(currentPickerTime) ?? 0;
+      const accSel = document.getElementById('queueAccountSelect');
+      const targetAccId = accSel ? parseInt(accSel.value, 10) : 1;
+      const targetAcc = ACCOUNTS.find(a => a.id === targetAccId) || ACCOUNTS[0] || { id: 1, name: 'Account 1' };
+      const otherAcc = ACCOUNTS.find(a => a.id !== targetAccId) || (ACCOUNTS.length > 1 ? ACCOUNTS[1] : null);
+
+      const telemetry = calculateTelemetry();
+      const targetState = telemetry.accountStates.find(a => a.id === targetAccId);
+      const otherState = otherAcc ? telemetry.accountStates.find(a => a.id === otherAcc.id) : null;
+
+      const activeQueued = (cachedAllQueueTasks || []).filter(t => t.status === 'queued' || t.status === 'processing');
+      const targetTasks = activeQueued.filter(t => t.accountId === targetAccId);
+      const otherTasks = otherAcc ? activeQueued.filter(t => t.accountId === otherAcc.id) : [];
+
+      const targetLatestTaskMins = getLatestTaskScheduledMinsOfDay(targetTasks);
+      const otherLatestTaskMins = getLatestTaskScheduledMinsOfDay(otherTasks);
+
+      const stateKey = [
+        currentPickerTime,
+        targetAccId,
+        targetTasks.map(t => getTaskScheduledMinsOfDay(t)).join(','),
+        otherTasks.map(t => getTaskScheduledMinsOfDay(t)).join(','),
+        targetState ? (targetState.isActive ? 'act' : 'sb') : 'na',
+        otherState ? (otherState.isActive ? 'act' : 'sb') : 'na'
+      ].join('||');
+
+      // 1. Update the dedicated smart context callout banner for this account
+      if (callout) {
+        if (targetLatestTaskMins !== null) {
+          const postTaskMins = (targetLatestTaskMins + 302) % 1440;
+          const postTaskTime = fmtMinsToTime(postTaskMins);
+          const taskTimeStr = fmtMinsToTime(targetLatestTaskMins);
+          callout.style.display = 'flex';
+          callout.innerHTML =
+            '<div class="smart-queue-callout-text">' +
+              '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' +
+              '<span><strong>' + escapeHtml(targetAcc.name) + '</strong> has a task queued for <strong>' + taskTimeStr + '</strong>. Suggested reset: <strong>' + postTaskTime + '</strong> (+5h 2m).</span>' +
+            '</div>' +
+            '<button type="button" class="btn-callout-apply" onclick="applyTimePreset(&quot;' + postTaskTime + '&quot;)">Set ' + postTaskTime + '</button>';
+        } else {
+          callout.style.display = 'none';
+        }
+      }
+
+      if (!force && stateKey === lastSmartPresetKey) return;
+      lastSmartPresetKey = stateKey;
+
+      const presets = [];
+      const targetAccLabel = targetAcc.name.replace(/^Account\s*/i, 'Acc ');
+      const otherAccLabel = otherAcc ? otherAcc.name.replace(/^Account\s*/i, 'Acc ') : 'Other';
+
+      // 1. Primary Suggestion 1: Selected Account's Next Scheduled Reset
+      if (targetState && targetState.isActive && targetState.mostRecent) {
+        const actResetMins = (targetState.mostRecent.minsOfDay + 302) % 1440;
+        presets.push({
+          time: fmtMinsToTime(actResetMins),
+          sub: targetAccLabel + ' Next Reset',
+          tooltip: targetAcc.name + ' active 5h quota resets at ' + fmtMinsToTime(actResetMins),
+          highlight: true,
+          dot: true
+        });
+      } else if (targetState && targetState.nextPing) {
+        presets.push({
+          time: targetState.nextPing.display,
+          sub: targetAccLabel + ' Next Reset',
+          tooltip: targetAcc.name + ' scheduled autopilot reset at ' + targetState.nextPing.display,
+          highlight: true,
+          dot: true
+        });
+      }
+
+      // 2. Primary Suggestion 2: +5h (and buffer) from Last Queued Task on this Account
+      if (targetLatestTaskMins !== null) {
+        const postTaskMins = (targetLatestTaskMins + 302) % 1440;
+        const postTaskTime = fmtMinsToTime(postTaskMins);
+        presets.push({
+          time: postTaskTime,
+          sub: '+5h from Last Queue',
+          tooltip: '5h limit reset after ' + targetAcc.name + ' task at ' + fmtMinsToTime(targetLatestTaskMins),
+          highlight: true,
+          dot: true
+        });
+
+        // 3. Exact 5h without buffer from Last Queued Task
+        const exact5hMins = (targetLatestTaskMins + 300) % 1440;
+        const exact5hTime = fmtMinsToTime(exact5hMins);
+        presets.push({
+          time: exact5hTime,
+          sub: '+5h Exact (No Buffer)',
+          tooltip: 'Exact 5h window (no buffer) after ' + targetAcc.name + ' task at ' + fmtMinsToTime(targetLatestTaskMins),
+          highlight: false
+        });
+      } else {
+        // If no tasks on this account yet, suggest +5h 2m cascade from dialed time
+        const cascade1Mins = (currentPickerMins + 302) % 1440;
+        presets.push({
+          time: fmtMinsToTime(cascade1Mins),
+          sub: '+5h 2m Limit Reset',
+          tooltip: '5h limit window + 2m buffer from dialed time (' + currentPickerTime + ')',
+          highlight: true,
+          dot: true
+        });
+
+        const cascade2Mins = (currentPickerMins + 604) % 1440;
+        presets.push({
+          time: fmtMinsToTime(cascade2Mins),
+          sub: '+10h 4m (Cycle 2)',
+          tooltip: 'Two full limit cycles (+10h 4m) from dialed time (' + currentPickerTime + ')',
+          highlight: false
+        });
+      }
+
+      // 4. Other Account: From Queue OR Next Reset
+      if (otherAcc && otherState) {
+        if (otherLatestTaskMins !== null) {
+          const oResetMins = (otherLatestTaskMins + 302) % 1440;
+          presets.push({
+            time: fmtMinsToTime(oResetMins),
+            sub: otherAccLabel + ' from Queue',
+            tooltip: '5h limit reset after ' + otherAcc.name + ' task at ' + fmtMinsToTime(otherLatestTaskMins),
+            highlight: false
+          });
+        } else if (otherState.isActive && otherState.mostRecent) {
+          const oActResetMins = (otherState.mostRecent.minsOfDay + 302) % 1440;
+          presets.push({
+            time: fmtMinsToTime(oActResetMins),
+            sub: otherAccLabel + ' Next Reset',
+            tooltip: otherAcc.name + ' active quota clears at ' + fmtMinsToTime(oActResetMins),
+            highlight: false
+          });
+        } else if (otherState.nextPing) {
+          presets.push({
+            time: otherState.nextPing.display,
+            sub: otherAccLabel + ' Next Reset',
+            tooltip: otherAcc.name + ' scheduled autopilot ping at ' + otherState.nextPing.display,
+            highlight: false
+          });
+        }
+      }
+
+      // 5. Claude Global Daily Reset (03:30 AM)
+      presets.push({
+        time: '03:30 AM',
+        sub: 'Claude Global Reset',
+        tooltip: 'Daily midnight quota reset (03:30 AM IST)',
+        highlight: false,
+        dot: true
+      });
+
+      // 6. Earliest Upcoming Autopilot Cron Slot
+      const upcomingCron = SCHEDULE.find(s => s.minsOfDay > telemetry.currentMinsOfDay) || SCHEDULE[0];
+      if (upcomingCron) {
+        presets.push({
+          time: upcomingCron.display,
+          sub: 'Next System Ping',
+          tooltip: 'Earliest upcoming autopilot ping across all accounts at ' + upcomingCron.display,
+          highlight: false
+        });
+      }
+
+      const fallbackPresets = [
+        { time: '12:00 AM', sub: 'Midnight', tooltip: '12:00 AM Midnight' },
+        { time: '07:30 AM', sub: 'Morning Reset', tooltip: '07:30 AM Morning' },
+        { time: '12:00 PM', sub: 'Midday Reset', tooltip: '12:00 PM Midday' },
+        { time: '03:30 PM', sub: 'Afternoon Reset', tooltip: '03:30 PM Afternoon' },
+        { time: '08:00 PM', sub: 'Evening Reset', tooltip: '08:00 PM Evening' },
+        { time: '10:36 PM', sub: 'Night Reset', tooltip: '10:36 PM Night' }
+      ];
+
+      const finalPresets = [];
+      const seenTimes = new Set();
+
+      for (const p of presets) {
+        if (!seenTimes.has(p.time) && finalPresets.length < 6) {
+          seenTimes.add(p.time);
+          finalPresets.push(p);
+        }
+      }
+
+      for (const fb of fallbackPresets) {
+        if (finalPresets.length >= 6) break;
+        if (!seenTimes.has(fb.time)) {
+          seenTimes.add(fb.time);
+          finalPresets.push(fb);
+        }
+      }
+
+      grid.innerHTML = '';
+      finalPresets.forEach(p => {
+        const isSelected = p.time === currentPickerTime;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chrono-preset-pill' + (p.highlight ? ' highlight-reset' : '') + (isSelected ? ' current-selected' : '');
+        btn.title = p.tooltip || ('Set time to ' + p.time);
+        btn.onclick = () => {
+          applyTimePreset(p.time);
+          showToast('Time set to ' + p.time + ' (' + p.sub + ')', 'info');
+        };
+
+        const dotHtml = p.dot ? '<span class="preset-dot-claude"></span>' : '';
+        btn.innerHTML =
+          '<span class="preset-pill-time">' + dotHtml + escapeHtml(p.time) + '</span>' +
+          '<span class="preset-pill-sub">' + escapeHtml(p.sub) + '</span>';
+        grid.appendChild(btn);
+      });
     }
 
     function initChronoDeckWheelEvents() {
@@ -3451,9 +4075,118 @@ export function renderDashboardHTML(initialAccounts = []) {
       updateQueueActionButtons();
     }
 
+    let cachedAllQueueTasks = [];
+    const QUEUE_COLLAPSE_THRESHOLD = 3;
+    let isQueuedExpanded = false;
+    let isCompletedExpanded = false;
+
+    function toggleQueuedExpand() {
+      isQueuedExpanded = !isQueuedExpanded;
+      fetchQueueTasks();
+    }
+
+    function toggleCompletedExpand() {
+      isCompletedExpanded = !isCompletedExpanded;
+      fetchQueueTasks();
+    }
+
+    function buildTaskCardElement(task) {
+      const acc = ACCOUNTS.find(a => a.id === task.accountId) || { name: task.accountName || ('Account ' + task.accountId), color: '#00e5f0' };
+      const el = document.createElement('div');
+      el.className = 'task-card ' + (task.status || 'queued');
+
+      let sb = '<span class="task-status queued"><span style="width:6px;height:6px;border-radius:50%;background:var(--cyan);display:inline-block;box-shadow:0 0 5px var(--cyan);"></span>Queued</span>';
+      if (task.status === 'completed') sb = '<span class="task-status completed"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Done</span>';
+      if (task.status === 'failed') sb = '<span class="task-status failed"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;"></span>Failed</span>';
+
+      // Target badge & timing description
+      let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping</span>';
+      let tt = 'Fires on next scheduled reset ping';
+
+      if (task.targetType === 'slot') {
+        const slotText = task.targetSlotDisplay || ('Slot ' + task.targetSlot);
+        tb = '<span class="target-badge slot"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + escapeHtml(slotText) + '</span>';
+        tt = 'Scheduled for ' + escapeHtml(slotText);
+      } else if (task.targetType === 'time') {
+        let timeText = '';
+        if (task.targetTimestamp) {
+          try {
+            timeText = new Date(task.targetTimestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
+          } catch (_) {}
+        }
+        if (!timeText && task.targetTime) {
+          const formatted = timeInputValueToText(task.targetTime);
+          timeText = formatted.includes('IST') ? formatted : (formatted + ' IST');
+        }
+        if (timeText) {
+          tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(timeText) + '</span>';
+          tt = 'Scheduled for exact reset at ' + escapeHtml(timeText);
+        } else {
+          const nextPing = getNextPingDisplayForAccount(task.accountId);
+          const npLabel = nextPing ? ('Next Ping (' + escapeHtml(nextPing) + ')') : 'Next Ping';
+          tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' + npLabel + '</span>';
+          tt = 'Fires on next scheduled reset ping' + (nextPing ? (' at ' + escapeHtml(nextPing) + ' IST') : '');
+        }
+      } else {
+        const nextPing = getNextPingDisplayForAccount(task.accountId);
+        if (nextPing) {
+          tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping (' + escapeHtml(nextPing) + ')</span>';
+          tt = 'Fires on next scheduled reset ping at ' + escapeHtml(nextPing) + ' IST';
+        }
+      }
+      if (task.status === 'completed') tt = 'Finished ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : 'recently');
+      if (task.status === 'failed') tt = 'Error: ' + escapeHtml(task.error || 'Execution failed');
+
+      const actionBtns = task.status === 'queued'
+        ? '<div class="task-actions">' +
+            '<button type="button" class="btn-dispatch-task" onclick="confirmDispatchSingleTask(&quot;' + task.id + '&quot;, ' + task.accountId + ')" title="Execute this prompt immediately"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>Run Now</button>' +
+            '<button type="button" class="btn-cancel-task" onclick="confirmCancelTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel</button>' +
+          '</div>'
+        : '<button type="button" class="btn-cancel-task" onclick="confirmClearSingleTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Clear</button>';
+
+      const su = (task.chatUrl && (task.chatUrl.startsWith('http://') || task.chatUrl.startsWith('https://'))) ? escapeHtml(task.chatUrl) : '#';
+      const suClean = su.replace(/^https?:\/\//i, '');
+
+      el.innerHTML =
+        '<div class="task-top">' +
+          '<div class="task-acc-wrap">' +
+            '<span class="task-acc-name" style="color:' + (acc.color || '#00e5f0') + ';">' + escapeHtml(acc.name) + '</span>' +
+            sb +
+            tb +
+          '</div>' +
+          actionBtns +
+        '</div>' +
+        '<div class="task-prompt-box">' +
+          '<div class="task-prompt-badge">' +
+            '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>' +
+            '<span>Prompt Instruction</span>' +
+          '</div>' +
+          '<div class="task-prompt-content">\u201c' + escapeHtml(task.prompt || 'continue') + '\u201d</div>' +
+        '</div>' +
+        '<div class="task-footer">' +
+          '<a href="' + su + '" target="_blank" rel="noopener noreferrer" class="task-url-chip">' +
+            '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>' +
+            '<span class="task-url-text">' + suClean + '</span>' +
+            '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
+          '</a>' +
+          '<div class="task-timing-chip">' +
+            '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+            '<span>' + escapeHtml(tt) + '</span>' +
+          '</div>' +
+        '</div>';
+      return el;
+    }
+
     async function fetchQueueTasks() {
-      const c = document.getElementById('activeTasksList'), cb = document.getElementById('taskCountBadge');
-      if (!c) return;
+      const qList = document.getElementById('activeTasksList');
+      const cList = document.getElementById('completedTasksList');
+      const qBadge = document.getElementById('taskCountBadge');
+      const cBadge = document.getElementById('taskCompletedCountBadge');
+      const sep = document.getElementById('queueSectionSeparator');
+      const compSection = document.getElementById('completedTasksSection');
+      const clearBtn = document.getElementById('btnClearCompletedTasks');
+
+      if (!qList) return;
       try {
         const res = await fetch('/api/queue');
         if (!res.ok) return;
@@ -3471,111 +4204,160 @@ export function renderDashboardHTML(initialAccounts = []) {
           }
         });
 
-        if (cb) cb.innerText = String(allItems.length);
-        if (allItems.length === 0) {
-          c.innerHTML = '<div class="empty-state"><svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>No tasks queued. Enter a Claude chat link and prompt above to automate your reset.</span></div>';
-          return;
-        }
+        cachedAllQueueTasks = allItems;
+        updateSmartPresets();
 
-        // Sort: queued first, then by queued timestamp desc
-        allItems.sort((a, b) => {
-          if (a.status === 'queued' && b.status !== 'queued') return -1;
-          if (a.status !== 'queued' && b.status === 'queued') return 1;
+        // Split into queued and completed
+        const queuedItems = allItems.filter(t => t.status === 'queued' || t.status === 'processing');
+        const completedItems = allItems.filter(t => t.status !== 'queued' && t.status !== 'processing');
+
+        // Sort queued items: earliest due or newest queued first
+        queuedItems.sort((a, b) => {
+          if (a.targetTimestamp && b.targetTimestamp) return a.targetTimestamp - b.targetTimestamp;
           return (b.queuedAtTimestamp || 0) - (a.queuedAtTimestamp || 0);
         });
 
-        c.innerHTML = '';
-        allItems.forEach(task => {
-          try {
-            const acc = ACCOUNTS.find(a => a.id === task.accountId) || { name: task.accountName || ('Account ' + task.accountId), color: '#00e5f0' };
-            const el = document.createElement('div');
-            el.className = 'task-card ' + (task.status || 'queued');
-
-            let sb = '<span class="task-status queued"><span style="width:6px;height:6px;border-radius:50%;background:var(--cyan);display:inline-block;box-shadow:0 0 5px var(--cyan);"></span>Queued</span>';
-            if (task.status === 'completed') sb = '<span class="task-status completed"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Done</span>';
-            if (task.status === 'failed') sb = '<span class="task-status failed"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;"></span>Failed</span>';
-
-            // Target badge & timing description
-            let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping</span>';
-            let tt = 'Fires on next scheduled reset ping';
-
-            if (task.targetType === 'slot') {
-              const slotText = task.targetSlotDisplay || ('Slot ' + task.targetSlot);
-              tb = '<span class="target-badge slot"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' + escapeHtml(slotText) + '</span>';
-              tt = 'Scheduled for ' + escapeHtml(slotText);
-            } else if (task.targetType === 'time') {
-              let timeText = '';
-              if (task.targetTimestamp) {
-                try {
-                  timeText = new Date(task.targetTimestamp).toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST';
-                } catch (_) {}
-              }
-              if (!timeText && task.targetTime) {
-                const formatted = timeInputValueToText(task.targetTime);
-                timeText = formatted.includes('IST') ? formatted : (formatted + ' IST');
-              }
-              if (timeText) {
-                tb = '<span class="target-badge time"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(timeText) + '</span>';
-                tt = 'Scheduled for exact reset at ' + escapeHtml(timeText);
-              } else {
-                const nextPing = getNextPingDisplayForAccount(task.accountId);
-                const npLabel = nextPing ? ('Next Ping (' + escapeHtml(nextPing) + ')') : 'Next Ping';
-                tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' + npLabel + '</span>';
-                tt = 'Fires on next scheduled reset ping' + (nextPing ? (' at ' + escapeHtml(nextPing) + ' IST') : '');
-              }
-            } else {
-              const nextPing = getNextPingDisplayForAccount(task.accountId);
-              if (nextPing) {
-                tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping (' + escapeHtml(nextPing) + ')</span>';
-                tt = 'Fires on next scheduled reset ping at ' + escapeHtml(nextPing) + ' IST';
-              }
-            }
-            if (task.status === 'completed') tt = 'Finished ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : 'recently');
-            if (task.status === 'failed') tt = 'Error: ' + escapeHtml(task.error || 'Execution failed');
-
-            const actionBtns = task.status === 'queued'
-              ? '<div class="task-actions">' +
-                  '<button class="btn-dispatch-task" onclick="dispatchSingleTask(&quot;' + task.id + '&quot;, ' + task.accountId + ')" title="Execute this prompt immediately"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>Run Now</button>' +
-                  '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel</button>' +
-                '</div>'
-              : '<button class="btn-cancel-task" onclick="cancelQueuedTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Clear</button>';
-
-            const su = (task.chatUrl && (task.chatUrl.startsWith('http://') || task.chatUrl.startsWith('https://'))) ? escapeHtml(task.chatUrl) : '#';
-            const suClean = su.replace(/^https?:\\/\\//i, '');
-
-            el.innerHTML =
-              '<div class="task-top">' +
-                '<div class="task-acc-wrap">' +
-                  '<span class="task-acc-name" style="color:' + (acc.color || '#00e5f0') + ';">' + escapeHtml(acc.name) + '</span>' +
-                  sb +
-                  tb +
-                '</div>' +
-                actionBtns +
-              '</div>' +
-              '<div class="task-prompt-box">' +
-                '<div class="task-prompt-badge">' +
-                  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>' +
-                  '<span>Prompt Instruction</span>' +
-                '</div>' +
-                '<div class="task-prompt-content">\u201c' + escapeHtml(task.prompt || 'continue') + '\u201d</div>' +
-              '</div>' +
-              '<div class="task-footer">' +
-                '<a href="' + su + '" target="_blank" rel="noopener noreferrer" class="task-url-chip">' +
-                  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>' +
-                  '<span class="task-url-text">' + suClean + '</span>' +
-                  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
-                '</a>' +
-                '<div class="task-timing-chip">' +
-                  '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
-                  '<span>' + escapeHtml(tt) + '</span>' +
-                '</div>' +
-              '</div>';
-            c.appendChild(el);
-          } catch (taskRenderErr) {
-            console.error('Error rendering individual task:', task.id, taskRenderErr);
-          }
+        // Sort completed items: newest completed first
+        completedItems.sort((a, b) => {
+          const tA = a.completedAt ? new Date(a.completedAt).getTime() : (a.queuedAtTimestamp || 0);
+          const tB = b.completedAt ? new Date(b.completedAt).getTime() : (b.queuedAtTimestamp || 0);
+          return tB - tA;
         });
+
+        if (qBadge) qBadge.innerText = String(queuedItems.length);
+        if (cBadge) cBadge.innerText = String(completedItems.length);
+
+        // 1. Render Active Queued Section
+        qList.innerHTML = '';
+        if (queuedItems.length === 0) {
+          qList.innerHTML = '<div class="empty-state"><svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>No active tasks queued. Enter a Claude chat link and prompt above to automate your reset.</span></div>';
+        } else {
+          const visibleQueuedCount = isQueuedExpanded ? queuedItems.length : Math.min(QUEUE_COLLAPSE_THRESHOLD, queuedItems.length);
+          for (let i = 0; i < visibleQueuedCount; i++) {
+            qList.appendChild(buildTaskCardElement(queuedItems[i]));
+          }
+          if (queuedItems.length > QUEUE_COLLAPSE_THRESHOLD) {
+            const expBtn = document.createElement('button');
+            expBtn.type = 'button';
+            expBtn.className = 'btn-queue-expand' + (isQueuedExpanded ? ' expanded' : '');
+            expBtn.onclick = toggleQueuedExpand;
+            if (isQueuedExpanded) {
+              expBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg><span>Show less (' + QUEUE_COLLAPSE_THRESHOLD + ' visible)</span>';
+            } else {
+              const remaining = queuedItems.length - QUEUE_COLLAPSE_THRESHOLD;
+              expBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg><span>Show ' + remaining + ' more queued task' + (remaining === 1 ? '' : 's') + '</span><span class="expand-badge">+' + remaining + '</span>';
+            }
+            qList.appendChild(expBtn);
+          }
+        }
+
+        // 2. Render Completed & History Section
+        if (cList) {
+          cList.innerHTML = '';
+          if (completedItems.length > 0) {
+            if (sep) sep.style.display = 'flex';
+            if (compSection) compSection.style.display = 'block';
+            if (clearBtn) clearBtn.disabled = false;
+
+            const visibleCompCount = isCompletedExpanded ? completedItems.length : Math.min(QUEUE_COLLAPSE_THRESHOLD, completedItems.length);
+            for (let i = 0; i < visibleCompCount; i++) {
+              cList.appendChild(buildTaskCardElement(completedItems[i]));
+            }
+            if (completedItems.length > QUEUE_COLLAPSE_THRESHOLD) {
+              const expBtn = document.createElement('button');
+              expBtn.type = 'button';
+              expBtn.className = 'btn-queue-expand' + (isCompletedExpanded ? ' expanded' : '');
+              expBtn.onclick = toggleCompletedExpand;
+              if (isCompletedExpanded) {
+                expBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg><span>Show less (' + QUEUE_COLLAPSE_THRESHOLD + ' visible)</span>';
+              } else {
+                const remaining = completedItems.length - QUEUE_COLLAPSE_THRESHOLD;
+                expBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg><span>Show ' + remaining + ' more completed task' + (remaining === 1 ? '' : 's') + '</span><span class="expand-badge completed">+' + remaining + '</span>';
+              }
+              cList.appendChild(expBtn);
+            }
+          } else {
+            if (sep) sep.style.display = 'none';
+            if (compSection) compSection.style.display = 'none';
+            if (clearBtn) clearBtn.disabled = true;
+          }
+        }
       } catch (e) { console.warn('Queue fetch skipped:', e.message); }
+    }
+
+    function confirmQueueTask(runNow) {
+      const sel = document.getElementById('queueAccountSelect'), ci = document.getElementById('queueChatUrl'), pi = document.getElementById('queuePrompt');
+      const aid = sel ? parseInt(sel.value, 10) : 1;
+      const cu = ci ? ci.value.trim() : '', pr = pi ? pi.value.trim() : '';
+
+      if (!pr) {
+        showToast('Write the instruction to send to Claude.', 'warn');
+        if (pi) pi.focus();
+        return;
+      }
+
+      if (!cu) {
+        showToast('Please paste your Claude Chat URL first!', 'warn');
+        if (ci) ci.focus();
+        return;
+      }
+      if (!cu.includes('claude.ai') && !cu.match(/^[a-zA-Z0-9_-]{8,}$/)) {
+        showToast('Please enter a valid Claude conversation URL.', 'warn');
+        if (ci) ci.focus();
+        return;
+      }
+
+      const acc = ACCOUNTS.find(a => a.id === aid) || { name: 'Account ' + aid, color: 'var(--cyan)' };
+      let timingDesc = 'Next scheduled reset ping';
+      if (selectedTimingMode === 'slot') {
+        const slotEl = document.getElementById('queueSlotSelect');
+        if (slotEl && slotEl.options[slotEl.selectedIndex]) {
+          timingDesc = slotEl.options[slotEl.selectedIndex].dataset.display || ('Slot ' + slotEl.value);
+        }
+      } else if (selectedTimingMode === 'time') {
+        const exactTime = getExact12hTime();
+        if (!exactTime) {
+          showToast('Choose an exact reset time.', 'warn');
+          return;
+        }
+        timingDesc = 'Exact time: ' + exactTime + ' IST';
+      }
+
+      const cuClean = cu.replace(/^https?:\/\//i, '');
+      const displayPrompt = pr.length > 120 ? (pr.substring(0, 117) + '...') : pr;
+
+      if (runNow) {
+        showConfirmDialog({
+          title: 'Dispatch Task Now?',
+          sub: 'Immediate Headless Browser Execution',
+          body: '<div style="display:flex;flex-direction:column;gap:8px;">' +
+                  '<div>Send prompt to <strong style="color:' + (acc.color || 'var(--cyan)') + ';">' + escapeHtml(acc.name) + '</strong> immediately?</div>' +
+                  '<div style="background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:0.75rem;color:var(--text-100);line-height:1.4;">&ldquo;' + escapeHtml(displayPrompt) + '&rdquo;</div>' +
+                  '<div style="font-size:0.72rem;color:var(--text-300);word-break:break-all;"><strong>URL:</strong> ' + escapeHtml(cuClean) + '</div>' +
+                '</div>',
+          iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>',
+          iconColor: 'var(--cyan)',
+          confirmText: 'Dispatch Now',
+          confirmClass: 'btn-modal-ok',
+          onConfirm: () => submitQueuedTask(true)
+        });
+      } else {
+        showConfirmDialog({
+          title: 'Queue Task for ' + acc.name + '?',
+          sub: 'Overnight Task Autopilot',
+          body: '<div style="display:flex;flex-direction:column;gap:8px;">' +
+                  '<div style="display:flex;justify-content:space-between;align-items:center;"><span>Account:</span><strong style="color:' + (acc.color || 'var(--cyan)') + ';">' + escapeHtml(acc.name) + '</strong></div>' +
+                  '<div style="display:flex;justify-content:space-between;align-items:center;"><span>Timing:</span><strong style="color:var(--cyan);font-family:var(--mono);">' + escapeHtml(timingDesc) + '</strong></div>' +
+                  '<div style="margin-top:2px;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:0.75rem;color:var(--text-100);line-height:1.4;">&ldquo;' + escapeHtml(displayPrompt) + '&rdquo;</div>' +
+                  '<div style="font-size:0.72rem;color:var(--text-300);word-break:break-all;"><strong>URL:</strong> ' + escapeHtml(cuClean) + '</div>' +
+                '</div>',
+          iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+          iconColor: 'var(--cyan)',
+          confirmText: 'Confirm & Queue',
+          confirmClass: 'btn-modal-ok',
+          onConfirm: () => submitQueuedTask(false)
+        });
+      }
     }
 
     async function submitQueuedTask(runNow) {
@@ -3666,6 +4448,20 @@ export function renderDashboardHTML(initialAccounts = []) {
       }
     }
 
+    function confirmDispatchSingleTask(taskId, aid) {
+      const acc = ACCOUNTS.find(a => a.id === aid) || { name: 'Account ' + aid, color: 'var(--cyan)' };
+      showConfirmDialog({
+        title: 'Run Queued Task Now?',
+        sub: 'Manual Immediate Execution',
+        body: 'Execute this queued autopilot prompt right now on <strong style="color:' + (acc.color || 'var(--cyan)') + ';">' + escapeHtml(acc.name) + '</strong>?',
+        iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>',
+        iconColor: 'var(--cyan)',
+        confirmText: 'Run Now',
+        confirmClass: 'btn-modal-ok',
+        onConfirm: () => dispatchSingleTask(taskId, aid)
+      });
+    }
+
     async function dispatchSingleTask(taskId, aid) {
       const acc = ACCOUNTS.find(a => a.id === aid) || { name: 'Account ' + aid };
       addConsoleLog('Dispatching task for ' + acc.name + ' now...', 'info');
@@ -3683,6 +4479,66 @@ export function renderDashboardHTML(initialAccounts = []) {
         await fetchQueueTasks();
       } catch (e) {
         showToast('Dispatch error: ' + e.message, 'err');
+      }
+    }
+
+    function confirmCancelTask(aid, taskId) {
+      const acc = ACCOUNTS.find(a => a.id === aid) || { name: 'Account ' + aid, color: 'var(--cyan)' };
+      showConfirmDialog({
+        title: 'Cancel Queued Task?',
+        sub: 'Task Queue Cancellation',
+        body: 'Cancel this queued task for <strong style="color:' + (acc.color || 'var(--cyan)') + ';">' + escapeHtml(acc.name) + '</strong>? This will disarm its edge alarm trigger.',
+        iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
+        iconColor: 'var(--red)',
+        confirmText: 'Cancel Task',
+        confirmClass: 'btn-modal-danger',
+        onConfirm: () => cancelQueuedTask(aid, taskId)
+      });
+    }
+
+    function confirmClearSingleTask(aid, taskId) {
+      showConfirmDialog({
+        title: 'Remove Task Record?',
+        sub: 'Task History Clean',
+        body: 'Remove this finished task record from your history?',
+        iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>',
+        iconColor: 'var(--red)',
+        confirmText: 'Remove',
+        confirmClass: 'btn-modal-danger',
+        onConfirm: () => cancelQueuedTask(aid, taskId)
+      });
+    }
+
+    function confirmClearCompleted() {
+      showConfirmDialog({
+        title: 'Clear Completed History?',
+        sub: 'Execution History Clean',
+        body: 'Are you sure you want to clear all completed and failed tasks? <strong>Active queued tasks will not be affected.</strong>',
+        iconSvg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>',
+        iconColor: 'var(--red)',
+        confirmText: 'Clear History',
+        confirmClass: 'btn-modal-danger',
+        onConfirm: () => clearCompletedTasks()
+      });
+    }
+
+    async function clearCompletedTasks() {
+      addConsoleLog('Clearing completed tasks history...', 'info');
+      showToast('Clearing completed history...', 'info');
+      try {
+        const res = await fetch('/api/queue?clearCompleted=true', { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Cleared ' + (data.clearedCount || 0) + ' completed tasks', 'ok');
+          addConsoleLog('Cleared ' + (data.clearedCount || 0) + ' completed tasks from history', 'ok');
+        } else {
+          showToast('Failed to clear: ' + (data.error || 'Failed'), 'err');
+          addConsoleLog('Clear error: ' + (data.error || 'Failed'), 'err');
+        }
+        await fetchQueueTasks();
+      } catch (err) {
+        showToast('Clear network error: ' + err.message, 'err');
+        addConsoleLog('Clear network error: ' + err.message, 'err');
       }
     }
 
@@ -3757,6 +4613,7 @@ export function renderDashboardHTML(initialAccounts = []) {
         populateQueueSlotSelect();
         updateQueueButtonLabels();
         updateQueueActionButtons();
+        updateSmartPresets(true);
         if (urlEl && urlEl.value.trim()) verifyChatUrl(false); 
       }); 
     }
