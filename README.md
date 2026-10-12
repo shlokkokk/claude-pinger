@@ -308,14 +308,37 @@ The Overnight Task Autopilot allows users to queue prompts for execution at the 
 - **Path**: `POST /api/queue`
 - **Payload**:
   ```json
-  { "accountId": 1, "chatUrl": "https://claude.ai/chat/...", "prompt": "continue analysis" }
+  {
+    "accountId": 1,
+    "chatUrl": "https://claude.ai/chat/...",
+    "prompt": "continue analysis",
+    "timingMode": "time",
+    "timeString": "04:45 AM"
+  }
   ```
 
-#### 3. List Active Queued Tasks
+#### 3. List Queued Tasks & History
 - **Path**: `GET /api/queue`
+- **Response**: Array of queue items with statuses: `queued`, `running`, `completed`, `failed`.
 
 #### 4. Cancel Queued Task
 - **Path**: `DELETE /api/queue?accountId=1`
+- **Action**: Cancels and removes the active queued task for the specified account.
+
+#### 5. Bulk Purge Completed Execution History
+- **Path**: `DELETE /api/queue?clearCompleted=true`
+- **Action**: Atomically purges all `completed` and `failed` task history entries from the queue store while preserving any active pending/running tasks.
+
+---
+
+### Smart Cascade & Rate-Limit Reset Engine
+
+Claude enforces a strict rolling 5-hour quota window once an initial prompt is processed. Claude Pulse includes an autonomous forward calculation engine (`calculateCascadeResetTime`):
+
+- **Forward Rate-Limit Calculation**: Given any scheduled execution time (e.g. `04:45 AM`), computes `+5h 2m` buffer (`09:47 AM`) to guarantee full quota regeneration before subsequent prompts.
+- **Dynamic Chaining**: Supports cascading consecutive sessions across multiple cycles (e.g. Cycle 1: `+5h 2m` -> Cycle 2: `+10h 4m`) across midnight boundaries.
+- **Account Queue Callout**: The dashboard actively detects if an account has a pending queued task and renders a real-time banner recommending the optimal reset slot with one-tap application.
+- **Zero Ambiguity UI**: Features segmented Active Queue vs Completed History accordions with item counter badges (`+N more`), tactile chrono-decks, and modal confirmation safeguards on all mutating actions.
 
 ---
 
