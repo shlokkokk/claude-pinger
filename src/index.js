@@ -1136,10 +1136,30 @@ export default {
         }
       }
 
-      // DELETE: Cancel queued task (by taskId or clear account)
+      // DELETE: Cancel queued task (by taskId or clear account or clear completed)
       if (request.method === 'DELETE') {
         const accId = parseInt(accountParam || url.searchParams.get('accountId'), 10);
         const taskId = url.searchParams.get('taskId');
+        const clearCompleted = url.searchParams.get('clearCompleted') === 'true' || url.searchParams.get('status') === 'completed';
+
+        if (clearCompleted) {
+          const accounts = getAllAccounts(env);
+          const accountsToClear = !isNaN(accId) ? accounts.filter(a => a.id === accId) : accounts;
+          let clearedCount = 0;
+
+          for (const acc of accountsToClear) {
+            const tasks = await getAccountTasks(env, acc.id);
+            const remaining = tasks.filter(t => t.status === 'queued' || t.status === 'processing');
+            clearedCount += (tasks.length - remaining.length);
+            await saveAccountTasks(env, acc.id, remaining);
+          }
+          await notifyTaskScheduler(env);
+          return new Response(JSON.stringify({ 
+            success: true, 
+            clearedCount,
+            message: `Cleared ${clearedCount} completed task${clearedCount === 1 ? '' : 's'}.` 
+          }), { status: 200, headers: corsHeaders });
+        }
 
         if (isNaN(accId)) {
           return new Response(JSON.stringify({ error: 'accountId parameter is required to delete.' }), { status: 400, headers: corsHeaders });
