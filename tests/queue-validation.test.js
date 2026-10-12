@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import worker, { validateQueuePayload, calculateTargetTimestamp, parseRateLimitNotice, TaskScheduler } from '../src/index.js';
+import worker, { validateQueuePayload, calculateTargetTimestamp, parseRateLimitNotice, calculateCascadeResetTime, TaskScheduler } from '../src/index.js';
 
 describe('Overnight Autopilot Queue Payload Validation', () => {
   test('accepts valid payload with explicit prompt', () => {
@@ -292,6 +292,34 @@ describe('Queue Task Management & Clear Completed History', () => {
     assert.equal(updated.length, 1);
     assert.equal(updated[0].id, 'task_1');
     assert.equal(updated[0].status, 'queued');
+  });
+});
+
+describe('Smart Cascade & Rate Limit Reset Calculation', () => {
+  test('calculates 5h + 2m buffer from scheduled morning time (04:45 AM -> 09:47 AM)', () => {
+    const res = calculateCascadeResetTime('04:45 AM', 2);
+    assert.equal(res, '09:47 AM');
+  });
+
+  test('chains cascade successively across multiple cycles (09:47 AM -> 02:49 PM)', () => {
+    const res = calculateCascadeResetTime('09:47 AM', 2);
+    assert.equal(res, '02:49 PM');
+  });
+
+  test('correctly wraps across midnight boundary (11:30 PM -> 04:32 AM)', () => {
+    const res = calculateCascadeResetTime('11:30 PM', 2);
+    assert.equal(res, '04:32 AM');
+  });
+
+  test('supports custom buffer duration (e.g. 5 minutes buffer: 04:45 AM -> 09:50 AM)', () => {
+    const res = calculateCascadeResetTime('04:45 AM', 5);
+    assert.equal(res, '09:50 AM');
+  });
+
+  test('returns null for invalid time string inputs', () => {
+    assert.equal(calculateCascadeResetTime('invalid-time'), null);
+    assert.equal(calculateCascadeResetTime(''), null);
+    assert.equal(calculateCascadeResetTime(null), null);
   });
 });
 

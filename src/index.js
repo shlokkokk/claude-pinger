@@ -199,6 +199,25 @@ export function parseRateLimitNotice(text) {
   return rawTime;
 }
 
+export function calculateCascadeResetTime(timeStr, bufferMins = 2) {
+  if (!timeStr || typeof timeStr !== 'string') return null;
+  const clean = timeStr.trim().replace(/\s*(IST|UTC|GMT)$/i, '').trim();
+  const match = clean.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+  if (!match) return null;
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const mer = match[3] ? match[3].toUpperCase() : null;
+  if (mer === 'PM' && h < 12) h += 12;
+  if (mer === 'AM' && h === 12) h = 0;
+  if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+  const totalMins = (h * 60 + m + 300 + bufferMins) % 1440;
+  const h24 = Math.floor(totalMins / 60);
+  const remM = totalMins % 60;
+  const isPm = h24 >= 12;
+  const h12 = (h24 % 12 === 0) ? 12 : (h24 % 12);
+  return String(h12).padStart(2, '0') + ':' + String(remM).padStart(2, '0') + ' ' + (isPm ? 'PM' : 'AM');
+}
+
 function escapeTelegramHtml(str) {
   if (!str) return '';
   return String(str)
