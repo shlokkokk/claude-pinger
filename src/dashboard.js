@@ -1047,27 +1047,6 @@ export function renderDashboardHTML(initialAccounts = []) {
       height: 11px;
     }
 
-    .btn-next-minute {
-      min-height: 36px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 7px 12px;
-      border: 1px solid rgba(0, 214, 143, 0.24);
-      border-radius: 9px;
-      background: rgba(0, 214, 143, 0.07);
-      color: var(--green);
-      font-family: var(--font);
-      font-size: .72rem;
-      font-weight: 700;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: background .16s ease, border-color .16s ease;
-    }
-    .btn-next-minute:hover { background: rgba(0,214,143,.13); border-color: rgba(0,214,143,.42); }
-    .btn-next-minute svg { width: 14px; height: 14px; }
-
     .chrono-presets-row {
       display: flex;
       flex-direction: column;
@@ -2696,7 +2675,6 @@ export function renderDashboardHTML(initialAccounts = []) {
     #taskQueueSection .stepper-btn:hover { transform: none; }
     #taskQueueSection .stepper-btn:focus-visible,
     #taskQueueSection .btn-meridiem-switch:focus-visible,
-    #taskQueueSection .btn-next-minute:focus-visible,
     #taskQueueSection .chrono-preset-pill:focus-visible,
     #taskQueueSection .btn-callout-apply:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
     #taskQueueSection .chrono-digit-box { height: 48px; border-radius: 9px; background: rgba(4,8,15,.5); box-shadow: none; }
@@ -2706,7 +2684,6 @@ export function renderDashboardHTML(initialAccounts = []) {
     #taskQueueSection .btn-meridiem-switch { min-height: 34px; min-width: 58px; border-radius: 8px; padding: 6px 8px; }
     #taskQueueSection .btn-meridiem-switch.active.am,
     #taskQueueSection .btn-meridiem-switch.active.pm { box-shadow: none; }
-    #taskQueueSection .btn-next-minute { margin-left: auto; }
     #taskQueueSection .chrono-presets-row { gap: 9px; padding-top: 12px; }
     #taskQueueSection .chrono-presets-header { align-items: flex-start; }
     #taskQueueSection .chrono-presets-label { font-size: .64rem; letter-spacing: .09em; }
@@ -2831,7 +2808,6 @@ export function renderDashboardHTML(initialAccounts = []) {
       #taskQueueSection .chrono-digit-input { font-size: 28px; }
       #taskQueueSection .meridiem-dock { height: auto; gap: 6px; margin-left: 1px; }
       #taskQueueSection .btn-meridiem-switch { min-width: 58px; min-height: 44px; justify-content: center; padding: 7px; }
-      #taskQueueSection .btn-next-minute { width: 100%; min-height: 44px; margin-left: 0; }
       #taskQueueSection .chrono-presets-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
       #taskQueueSection .chrono-preset-pill { min-height: 58px; padding: 8px; }
       #taskQueueSection .chrono-presets-header { flex-direction: column; gap: 5px; }
@@ -3131,11 +3107,6 @@ export function renderDashboardHTML(initialAccounts = []) {
                     </button>
                   </div>
                 </div>
-
-                <button type="button" class="btn-next-minute" onclick="setTimeToCurrentNow()" title="Set the execution time to the next minute in IST" aria-label="Set to the next minute in IST">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2M18.5 5.5 20 4"/></svg>
-                  <span>Next minute</span>
-                </button>
               </div>
 
               <!-- Smart Presets Bar -->
@@ -3243,7 +3214,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     <div class="modal-box">
       <div class="modal-head">
         <div class="modal-icon-box" id="modalIcon">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
         </div>
         <div class="modal-head-text">
           <h3 id="modalTitle">Confirm Action</h3>
@@ -3673,7 +3644,7 @@ export function renderDashboardHTML(initialAccounts = []) {
         if (iconSvg) {
           iconBox.innerHTML = iconSvg;
         } else {
-          iconBox.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>';
+          iconBox.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>';
         }
         iconBox.style.color = iconColor;
         iconBox.style.borderColor = iconColor;
@@ -4035,24 +4006,6 @@ export function renderDashboardHTML(initialAccounts = []) {
       }
     }
 
-    function setTimeToCurrentNow() {
-      const istNow = getISTClockParts();
-      let h24 = istNow.hour;
-      let m = istNow.minute + 1;
-      if (m >= 60) {
-        m = 0;
-        h24 = (h24 + 1) % 24;
-      }
-      let mer = h24 >= 12 ? 'PM' : 'AM';
-      let h12 = h24 % 12 === 0 ? 12 : h24 % 12;
-
-      const hEl = document.getElementById('queueExactHour');
-      const mEl = document.getElementById('queueExactMinute');
-      if (hEl) hEl.value = String(h12).padStart(2, '0');
-      if (mEl) mEl.value = String(m).padStart(2, '0');
-      setMeridiem(mer);
-    }
-
     function applyTimePreset(timeStr) {
       const match = String(timeStr || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
       if (!match) return;
@@ -4068,8 +4021,6 @@ export function renderDashboardHTML(initialAccounts = []) {
         hour = hour % 12 || 12;
       }
 
-      // Commit the whole picker state together. This avoids rebuilding the smart
-      // preset buttons halfway through a click and keeps the preview in sync.
       if (selectedTimingMode !== 'time') setTimingMode('time');
       currentMeridiem = mer;
       const hEl = document.getElementById('queueExactHour');
@@ -4078,6 +4029,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (mEl) mEl.value = String(minute).padStart(2, '0');
       paintMeridiemButtons();
       onExactTimeChanged();
+      showToast('Time set to ' + getExact12hTime(), 'info');
     }
 
     function updateExactTimeCountdownOnly() {
@@ -4130,7 +4082,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       updateExactTimeCountdownOnly();
       updateQueueButtonLabels();
       updateQueueActionButtons();
-      updateSmartPresets();
+      updateSmartPresets(true);
     }
 
     function parseTimeToMinsOfDay(str) {
@@ -4189,35 +4141,64 @@ export function renderDashboardHTML(initialAccounts = []) {
       return null;
     }
 
-    function getTaskQueuedAtTimestamp(task) {
-      const numeric = Number(task && task.queuedAtTimestamp);
-      if (Number.isFinite(numeric) && numeric > 0) return numeric;
-      const parsed = Date.parse((task && task.queuedAt) || '');
-      return Number.isFinite(parsed) ? parsed : 0;
+    function getTaskTargetTimestamp(task) {
+      if (!task) return 0;
+      const direct = Number(task.targetTimestamp);
+      if (Number.isFinite(direct) && direct > 0) return direct;
+      if (task.targetTime) {
+        const mins = parseTimeToMinsOfDay(task.targetTime);
+        if (mins !== null) {
+          const h24 = Math.floor(mins / 60);
+          const m = mins % 60;
+          const nowMs = Date.now();
+          const istOffsetMs = 5.5 * 3600000;
+          const istNow = new Date(nowMs + istOffsetMs);
+          let target = Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate(), h24, m, 0, 0) - istOffsetMs;
+          if (target <= nowMs) target += 24 * 3600000;
+          return target;
+        }
+      }
+      if (task.targetSlot) {
+        const slotItem = SCHEDULE.find(s => s.slot === task.targetSlot && s.account === task.accountId);
+        if (slotItem) {
+          const h24 = Math.floor(slotItem.minsOfDay / 60);
+          const m = slotItem.minsOfDay % 60;
+          const nowMs = Date.now();
+          const istOffsetMs = 5.5 * 3600000;
+          const istNow = new Date(nowMs + istOffsetMs);
+          let target = Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate(), h24, m, 0, 0) - istOffsetMs;
+          if (target <= nowMs) target += 24 * 3600000;
+          return target;
+        }
+      }
+      const qAt = Number(task.queuedAtTimestamp) || Date.parse(task.queuedAt || '') || 0;
+      return qAt;
+    }
+
+    function getLatestScheduledTask(tasks) {
+      if (!tasks || tasks.length === 0) return null;
+      const scheduledTasks = tasks.filter(task => {
+        if (!task || task.status === 'completed' || task.status === 'failed') return false;
+        return getTaskScheduledMinsOfDay(task) !== null;
+      });
+      if (scheduledTasks.length === 0) return null;
+
+      // Sort tasks by upcoming execution timestamp descending (furthest future scheduled task first)
+      const sorted = [...scheduledTasks].sort((a, b) => {
+        const tsB = getTaskTargetTimestamp(b);
+        const tsA = getTaskTargetTimestamp(a);
+        if (tsB !== tsA) return tsB - tsA;
+        const minsB = getTaskScheduledMinsOfDay(b) ?? 0;
+        const minsA = getTaskScheduledMinsOfDay(a) ?? 0;
+        return minsB - minsA;
+      });
+
+      return sorted[0];
     }
 
     function getLatestTaskScheduledMinsOfDay(tasks) {
-      if (!tasks || tasks.length === 0) return null;
-      const scheduledTasks = tasks.filter(task => getTaskScheduledMinsOfDay(task) !== null);
-      if (scheduledTasks.length === 0) return null;
-      const chronological = scheduledTasks.sort((a, b) =>
-        getTaskQueuedAtTimestamp(b) - getTaskQueuedAtTimestamp(a) ||
-        (Number(b.targetTimestamp) || 0) - (Number(a.targetTimestamp) || 0)
-      );
-      if (getTaskQueuedAtTimestamp(chronological[0]) > 0) {
-        return getTaskScheduledMinsOfDay(chronological[0]);
-      }
-
-      // Older queue records may not have a creation timestamp. Prefer the
-      // latest scheduled instant when available, then fall back to time of day.
-      const withTimestamp = chronological
-        .filter(task => Number.isFinite(Number(task.targetTimestamp)) && Number(task.targetTimestamp) > 0)
-        .sort((a, b) => Number(b.targetTimestamp) - Number(a.targetTimestamp));
-      if (withTimestamp.length) return getTaskScheduledMinsOfDay(withTimestamp[0]);
-      return chronological.reduce((latest, task) => {
-        const mins = getTaskScheduledMinsOfDay(task);
-        return mins !== null && (latest === null || mins > latest) ? mins : latest;
-      }, null);
+      const latestTask = getLatestScheduledTask(tasks);
+      return latestTask ? getTaskScheduledMinsOfDay(latestTask) : null;
     }
 
     let lastSmartPresetKey = '';
@@ -4246,13 +4227,10 @@ export function renderDashboardHTML(initialAccounts = []) {
       const otherLatestTaskMins = getLatestTaskScheduledMinsOfDay(otherTasks);
 
       const stateKey = [
-        // Only regenerate the grid from picker time when its fallback cascade
-        // suggestions actually depend on that value. Queue-derived suggestions
-        // stay mounted while the user applies the Set button or edits the clock.
-        targetLatestTaskMins === null ? currentPickerTime : '',
+        currentPickerTime,
         targetAccId,
-        targetTasks.map(t => [getTaskScheduledMinsOfDay(t), getTaskQueuedAtTimestamp(t)].join(':')).join(','),
-        otherTasks.map(t => [getTaskScheduledMinsOfDay(t), getTaskQueuedAtTimestamp(t)].join(':')).join(','),
+        targetTasks.map(t => [getTaskScheduledMinsOfDay(t), getTaskTargetTimestamp(t)].join(':')).join(','),
+        otherTasks.map(t => [getTaskScheduledMinsOfDay(t), getTaskTargetTimestamp(t)].join(':')).join(','),
         targetState ? (targetState.isActive ? 'act' : 'sb') : 'na',
         otherState ? (otherState.isActive ? 'act' : 'sb') : 'na'
       ].join('||');
@@ -4274,17 +4252,16 @@ export function renderDashboardHTML(initialAccounts = []) {
             callout.dataset.setHandlerBound = 'true';
           }
 
-          // Use the inputs that determine the recommendation as its render key.
-          // Comparing innerHTML is unreliable because browsers normalize markup
-          // (for example, SVG path tags) and could replace a clicked button mid-update.
+          const sparkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>';
+
           const calloutKey = [targetAcc.id, targetLatestTaskMins, postTaskTime].join('|');
           if (callout.dataset.renderKey !== calloutKey) {
             callout.innerHTML =
               '<div class="smart-queue-callout-text">' +
-                '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>' +
+                sparkSvg +
                 '<span><strong>' + escapeHtml(targetAcc.name) + '</strong> has a task queued for <strong>' + taskTimeStr + '</strong>. Suggested reset: <strong>' + postTaskTime + '</strong> (+5h 2m).</span>' +
               '</div>' +
-              '<button type="button" class="btn-callout-apply" data-time="' + escapeHtml(postTaskTime) + '" aria-label="Set exact time to ' + escapeHtml(postTaskTime) + '">Set ' + escapeHtml(postTaskTime) + '</button>';
+              '<button type="button" class="btn-callout-apply" onclick="applyTimePreset(\'' + escapeHtml(postTaskTime) + '\')" data-time="' + escapeHtml(postTaskTime) + '" aria-label="Set exact time to ' + escapeHtml(postTaskTime) + '">Set ' + escapeHtml(postTaskTime) + '</button>';
             callout.dataset.renderKey = calloutKey;
           }
         } else {
@@ -4578,7 +4555,7 @@ export function renderDashboardHTML(initialAccounts = []) {
 
       let sb = '<span class="task-status queued"><span style="width:6px;height:6px;border-radius:50%;background:var(--cyan);display:inline-block;box-shadow:0 0 5px var(--cyan);"></span>Queued</span>';
 
-      let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping</span>';
+      let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3.5l2.5-6 4 12 2.5-6H22"/></svg>Next Ping</span>';
       let tt = 'Fires on next scheduled reset ping';
 
       if (task.targetType === 'slot') {
@@ -4602,13 +4579,13 @@ export function renderDashboardHTML(initialAccounts = []) {
         } else {
           const nextPing = getNextPingDisplayForAccount(task.accountId);
           const npLabel = nextPing ? ('Next Ping (' + escapeHtml(nextPing) + ')') : 'Next Ping';
-          tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' + npLabel + '</span>';
+          tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3.5l2.5-6 4 12 2.5-6H22"/></svg>' + npLabel + '</span>';
           tt = 'Fires on next scheduled reset ping' + (nextPing ? (' at ' + escapeHtml(nextPing) + ' IST') : '');
         }
       } else {
         const nextPing = getNextPingDisplayForAccount(task.accountId);
         if (nextPing) {
-          tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping (' + escapeHtml(nextPing) + ')</span>';
+          tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3.5l2.5-6 4 12 2.5-6H22"/></svg>Next Ping (' + escapeHtml(nextPing) + ')</span>';
           tt = 'Fires on next scheduled reset ping at ' + escapeHtml(nextPing) + ' IST';
         }
       }
