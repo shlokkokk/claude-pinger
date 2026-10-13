@@ -333,5 +333,19 @@ describe('Smart Cascade & Rate Limit Reset Calculation', () => {
     assert.equal(calculateCascadeResetTime('25:00 AM'), null);
     assert.equal(calculateCascadeResetTime('12:65 PM'), null);
   });
+
+  test('calculates correct reset when subsequent task is queued (06:35 AM then 11:40 AM -> 04:42 PM)', () => {
+    // When Task 1 is at 06:35 AM, reset is 11:37 AM
+    const task1Reset = calculateCascadeResetTime('06:35 AM', 2);
+    assert.equal(task1Reset, '11:37 AM');
+
+    // When Task 2 is at 11:40 AM, next reset must calculate from the LATEST scheduled task (11:40 AM)
+    const task2Reset = calculateCascadeResetTime('11:40 AM', 2);
+    assert.equal(task2Reset, '04:42 PM');
+
+    // Cycle 2 from 11:40 AM is 09:44 PM
+    const cycle2Reset = calculateCascadeResetTime(task2Reset, 2);
+    assert.equal(cycle2Reset, '09:44 PM');
+  });
 });
 
