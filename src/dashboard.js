@@ -4261,7 +4261,7 @@ export function renderDashboardHTML(initialAccounts = []) {
                 sparkSvg +
                 '<span><strong>' + escapeHtml(targetAcc.name) + '</strong> has a task queued for <strong>' + taskTimeStr + '</strong>. Suggested reset: <strong>' + postTaskTime + '</strong> (+5h 2m).</span>' +
               '</div>' +
-              '<button type="button" class="btn-callout-apply" onclick="applyTimePreset(\'' + escapeHtml(postTaskTime) + '\')" data-time="' + escapeHtml(postTaskTime) + '" aria-label="Set exact time to ' + escapeHtml(postTaskTime) + '">Set ' + escapeHtml(postTaskTime) + '</button>';
+              '<button type="button" class="btn-callout-apply" onclick="applyTimePreset(this.dataset.time)" data-time="' + escapeHtml(postTaskTime) + '" aria-label="Set exact time to ' + escapeHtml(postTaskTime) + '">Set ' + escapeHtml(postTaskTime) + '</button>';
             callout.dataset.renderKey = calloutKey;
           }
         } else {
