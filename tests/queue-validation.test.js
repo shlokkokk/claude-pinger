@@ -1,6 +1,8 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import worker, { validateQueuePayload, calculateTargetTimestamp, parseRateLimitNotice, calculateCascadeResetTime, TaskScheduler } from '../src/index.js';
+import { renderDashboardHTML } from '../src/dashboard.js';
+import vm from 'node:vm';
 
 describe('Overnight Autopilot Queue Payload Validation', () => {
   test('accepts valid payload with explicit prompt', () => {
@@ -346,6 +348,22 @@ describe('Smart Cascade & Rate Limit Reset Calculation', () => {
     // Cycle 2 from 11:40 AM is 09:44 PM
     const cycle2Reset = calculateCascadeResetTime(task2Reset, 2);
     assert.equal(cycle2Reset, '09:44 PM');
+  });
+});
+
+describe('Dashboard Client-Side Script Syntax & HTML Integrity', () => {
+  test('renders HTML with completely valid, parseable client-side JavaScript', () => {
+    const html = renderDashboardHTML();
+    assert.ok(html.length > 10000, 'HTML output should be non-empty');
+
+    const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/);
+    assert.ok(scriptMatch, 'Should contain a client-side script tag');
+
+    const scriptContent = scriptMatch[1];
+    // Verify script parses without SyntaxError in V8
+    assert.doesNotThrow(() => {
+      new vm.Script(scriptContent);
+    }, 'Client script inside HTML template must be syntactically valid in V8');
   });
 });
 
