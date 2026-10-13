@@ -365,5 +365,14 @@ describe('Dashboard Client-Side Script Syntax & HTML Integrity', () => {
       new vm.Script(scriptContent);
     }, 'Client script inside HTML template must be syntactically valid in V8');
   });
+
+  test('client script applyTimePreset correctly parses and updates time values', () => {
+    const html = renderDashboardHTML();
+    const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+
+    // Ensure regex was not swallowed by template literal unescaping
+    assert.ok(script.includes('/^(\\d{1,2}):(\\d{2})\\s*(AM|PM)?$/i'), 'applyTimePreset regex must retain double backslashes in script output');
+    assert.ok(script.includes('/^(\\d{1,2}):(\\d{1,2})(?:\\s*(AM|PM))?$/i'), 'parseTimeToMinsOfDay regex must retain double backslashes in script output');
+  });
 });
 
