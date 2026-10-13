@@ -3335,7 +3335,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     function timeInputValueToText(value) {
-      const match = String(value || '').match(/^(\d{2}):(\d{2})$/);
+      const match = String(value || '').match(/^(\\d{2}):(\\d{2})$/);
       return match ? fmtMinsToTime(Number(match[1]) * 60 + Number(match[2])) : (value || '');
     }
 
@@ -3960,7 +3960,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     function handleHourInput(el) {
-      let raw = el.value.replace(/\D/g, '');
+      let raw = el.value.replace(/\\D/g, '');
       if (raw.length > 2) raw = raw.slice(-2);
       el.value = raw;
       if (raw.length === 2 || (raw.length === 1 && parseInt(raw, 10) >= 2)) {
@@ -3982,7 +3982,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     function handleMinuteInput(el) {
-      let raw = el.value.replace(/\D/g, '');
+      let raw = el.value.replace(/\\D/g, '');
       if (raw.length > 2) raw = raw.slice(-2);
       el.value = raw;
       onExactTimeChanged();
@@ -4007,7 +4007,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     function applyTimePreset(timeStr) {
-      const match = String(timeStr || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+      const match = String(timeStr || '').trim().match(/^(\\d{1,2}):(\\d{2})\\s*(AM|PM)?$/i);
       if (!match) return;
       let hour = parseInt(match[1], 10);
       const minute = parseInt(match[2], 10);
@@ -4025,8 +4025,14 @@ export function renderDashboardHTML(initialAccounts = []) {
       currentMeridiem = mer;
       const hEl = document.getElementById('queueExactHour');
       const mEl = document.getElementById('queueExactMinute');
-      if (hEl) hEl.value = String(hour).padStart(2, '0');
-      if (mEl) mEl.value = String(minute).padStart(2, '0');
+      if (hEl) {
+        hEl.value = String(hour).padStart(2, '0');
+        hEl.setAttribute('value', hEl.value);
+      }
+      if (mEl) {
+        mEl.value = String(minute).padStart(2, '0');
+        mEl.setAttribute('value', mEl.value);
+      }
       paintMeridiemButtons();
       onExactTimeChanged();
       showToast('Time set to ' + getExact12hTime(), 'info');
@@ -4087,8 +4093,8 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     function parseTimeToMinsOfDay(str) {
       if (!str) return null;
-      const clean = String(str).trim().replace(/\s*(IST|UTC|GMT)$/i, '').trim();
-      const match = clean.match(/^(\d{1,2}):(\d{1,2})(?:\s*(AM|PM))?$/i);
+      const clean = String(str).trim().replace(/\\s*(IST|UTC|GMT)$/i, '').trim();
+      const match = clean.match(/^(\\d{1,2}):(\\d{1,2})(?:\\s*(AM|PM))?$/i);
       if (!match) return null;
       let h = parseInt(match[1], 10);
       const m = parseInt(match[2], 10);
@@ -4273,8 +4279,8 @@ export function renderDashboardHTML(initialAccounts = []) {
       lastSmartPresetKey = stateKey;
 
       const presets = [];
-      const targetAccLabel = targetAcc.name.replace(/^Account\s*/i, 'Acc ');
-      const otherAccLabel = otherAcc ? otherAcc.name.replace(/^Account\s*/i, 'Acc ') : 'Other';
+      const targetAccLabel = targetAcc.name.replace(/^Account\\s*/i, 'Acc ');
+      const otherAccLabel = otherAcc ? otherAcc.name.replace(/^Account\\s*/i, 'Acc ') : 'Other';
 
       // 1. Primary Suggestion 1: Selected Account's Next Scheduled Reset
       if (targetState && targetState.isActive && targetState.mostRecent) {
@@ -4873,6 +4879,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           addConsoleLog('Queued for ' + acc.name + ': "' + pr + '"', 'ok');
           showToast('Task successfully queued for ' + acc.name, 'ok');
           if (ci) ci.value = '';
+          if (pi) pi.value = '';
           const b = document.getElementById('urlVerifyBadge'); if (b) { b.className = 'verify-badge idle'; b.innerText = 'Awaiting URL'; }
           const pc = document.getElementById('urlPreviewCard'); if (pc) pc.style.display = 'none';
           await fetchQueueTasks();
