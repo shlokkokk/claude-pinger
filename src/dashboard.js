@@ -4006,7 +4006,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       }
     }
 
-    function applyTimePreset(timeStr) {
+    function applyTimePreset(timeStr, label) {
       const match = String(timeStr || '').trim().match(/^(\\d{1,2}):(\\d{2})\\s*(AM|PM)?$/i);
       if (!match) return;
       let hour = parseInt(match[1], 10);
@@ -4035,7 +4035,8 @@ export function renderDashboardHTML(initialAccounts = []) {
       }
       paintMeridiemButtons();
       onExactTimeChanged();
-      showToast('Time set to ' + getExact12hTime(), 'info');
+      const msg = label ? ('Time set to ' + getExact12hTime() + ' (' + label + ')') : ('Time set to ' + getExact12hTime());
+      showToast(msg, 'info');
     }
 
     function updateExactTimeCountdownOnly() {
@@ -4253,7 +4254,7 @@ export function renderDashboardHTML(initialAccounts = []) {
               const button = event.target.closest('.btn-callout-apply');
               if (!button || !callout.contains(button)) return;
               event.preventDefault();
-              applyTimePreset(button.dataset.time);
+              applyTimePreset(button.dataset.time, '+5h 2m Cascade');
             });
             callout.dataset.setHandlerBound = 'true';
           }
@@ -4267,7 +4268,7 @@ export function renderDashboardHTML(initialAccounts = []) {
                 sparkSvg +
                 '<span><strong>' + escapeHtml(targetAcc.name) + '</strong> has a task queued for <strong>' + taskTimeStr + '</strong>. Suggested reset: <strong>' + postTaskTime + '</strong> (+5h 2m).</span>' +
               '</div>' +
-              '<button type="button" class="btn-callout-apply" onclick="applyTimePreset(this.dataset.time)" data-time="' + escapeHtml(postTaskTime) + '" aria-label="Set exact time to ' + escapeHtml(postTaskTime) + '">Set ' + escapeHtml(postTaskTime) + '</button>';
+              '<button type="button" class="btn-callout-apply" data-time="' + escapeHtml(postTaskTime) + '" aria-label="Set exact time to ' + escapeHtml(postTaskTime) + '">Set ' + escapeHtml(postTaskTime) + '</button>';
             callout.dataset.renderKey = calloutKey;
           }
         } else {
@@ -4417,8 +4418,7 @@ export function renderDashboardHTML(initialAccounts = []) {
         btn.className = 'chrono-preset-pill' + (p.highlight ? ' highlight-reset' : '') + (isSelected ? ' current-selected' : '');
         btn.title = p.tooltip || ('Set time to ' + p.time);
         btn.onclick = () => {
-          applyTimePreset(p.time);
-          showToast('Time set to ' + p.time + ' (' + p.sub + ')', 'info');
+          applyTimePreset(p.time, p.sub);
         };
 
         const dotHtml = p.dot ? '<span class="preset-dot-claude"></span>' : '';
