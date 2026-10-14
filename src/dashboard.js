@@ -4370,16 +4370,7 @@ export function renderDashboardHTML(initialAccounts = []) {
         }
       }
 
-      // 5. Claude Global Daily Reset (03:30 AM)
-      presets.push({
-        time: '03:30 AM',
-        sub: 'Claude Global Reset',
-        tooltip: 'Daily midnight quota reset (03:30 AM IST)',
-        highlight: false,
-        dot: true
-      });
-
-      // 6. Earliest Upcoming Autopilot Cron Slot
+      // 5. Earliest Upcoming Autopilot Cron Slot
       const upcomingCron = SCHEDULE.find(s => s.minsOfDay > telemetry.currentMinsOfDay) || SCHEDULE[0];
       if (upcomingCron) {
         presets.push({
