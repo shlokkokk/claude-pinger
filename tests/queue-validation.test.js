@@ -316,10 +316,22 @@ describe('Smart Cascade & Rate Limit Reset Calculation', () => {
     assert.equal(res, '09:50 AM');
   });
 
+  test('handles single-digit minutes and single-digit hours (4:5 AM -> 09:07 AM)', () => {
+    const res = calculateCascadeResetTime('4:5 AM');
+    assert.equal(res, '09:07 AM');
+  });
+
+  test('handles single-digit hour with standard minutes (4:45 AM -> 09:47 AM)', () => {
+    const res = calculateCascadeResetTime('4:45 AM');
+    assert.equal(res, '09:47 AM');
+  });
+
   test('returns null for invalid time string inputs', () => {
     assert.equal(calculateCascadeResetTime('invalid-time'), null);
     assert.equal(calculateCascadeResetTime(''), null);
     assert.equal(calculateCascadeResetTime(null), null);
+    assert.equal(calculateCascadeResetTime('25:00 AM'), null);
+    assert.equal(calculateCascadeResetTime('12:65 PM'), null);
   });
 });
 

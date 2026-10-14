@@ -3668,8 +3668,8 @@ export function renderDashboardHTML(initialAccounts = []) {
       let mer = match[3] ? match[3].toUpperCase() : null;
       if (!mer) {
         mer = h >= 12 ? 'PM' : 'AM';
-        h = (h % 12 === 0) ? 12 : (h % 12);
       }
+      h = (h % 12 === 0) ? 12 : (h % 12);
       const hStr = String(h).padStart(2, '0');
       const hEl = document.getElementById('queueExactHour');
       const mEl = document.getElementById('queueExactMinute');

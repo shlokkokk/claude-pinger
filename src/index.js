@@ -4,8 +4,8 @@ export function getAccountCredentials(env, accountNum) {
   const num = parseInt(accountNum, 10);
   if (isNaN(num) || num < 1) return null;
 
-  const key = (num === 1) 
-    ? (env.CLAUDE_SESSION_KEY || env.CLAUDE_SESSION_KEY_1) 
+  const key = (num === 1)
+    ? (env.CLAUDE_SESSION_KEY || env.CLAUDE_SESSION_KEY_1)
     : env[`CLAUDE_SESSION_KEY_${num}`];
 
   if (!key) return null;
@@ -108,9 +108,9 @@ export function normalizeClaudeChatUrl(rawUrl) {
   } else if (path === '/new' || path === '/new/') {
     chatType = 'New Chat Creation Endpoint';
   } else {
-    return { 
-      valid: false, 
-      error: 'URL is on claude.ai but does not point to a specific chat (expected /chat/<uuid>).' 
+    return {
+      valid: false,
+      error: 'URL is on claude.ai but does not point to a specific chat (expected /chat/<uuid>).'
     };
   }
 
@@ -202,7 +202,7 @@ export function parseRateLimitNotice(text) {
 export function calculateCascadeResetTime(timeStr, bufferMins = 2) {
   if (!timeStr || typeof timeStr !== 'string') return null;
   const clean = timeStr.trim().replace(/\s*(IST|UTC|GMT)$/i, '').trim();
-  const match = clean.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+  const match = clean.match(/^(\d{1,2}):(\d{1,2})(?:\s*(AM|PM))?$/i);
   if (!match) return null;
   let h = parseInt(match[1], 10);
   const m = parseInt(match[2], 10);
@@ -210,7 +210,8 @@ export function calculateCascadeResetTime(timeStr, bufferMins = 2) {
   if (mer === 'PM' && h < 12) h += 12;
   if (mer === 'AM' && h === 12) h = 0;
   if (h < 0 || h > 23 || m < 0 || m > 59) return null;
-  const totalMins = (h * 60 + m + 300 + bufferMins) % 1440;
+  const safeBuffer = typeof bufferMins === 'number' && !isNaN(bufferMins) ? bufferMins : 2;
+  const totalMins = (((h * 60 + m + 300 + safeBuffer) % 1440) + 1440) % 1440;
   const h24 = Math.floor(totalMins / 60);
   const remM = totalMins % 60;
   const isPm = h24 >= 12;
@@ -243,7 +244,7 @@ export async function sendNotification(env, { type, accountName, accountId, prom
     try {
       const snippet = await env.TASK_QUEUE.get(`account_snippet_${accountId}`);
       if (snippet) realName = snippet;
-    } catch (e) {}
+    } catch (e) { }
   }
   if ((!realName || realName.startsWith('Account ')) && env && accountId) {
     const envName = env[`CLAUDE_ACCOUNT_NAME_${accountId}`];
@@ -252,7 +253,7 @@ export async function sendNotification(env, { type, accountName, accountId, prom
 
   const hasCustomName = realName && !realName.startsWith('Account ');
   const safeRealName = escapeTelegramHtml(realName);
-  const accountHeader = hasCustomName 
+  const accountHeader = hasCustomName
     ? `<b>${safeRealName}</b> (Account #${accountId || 1})`
     : `<b>Account #${accountId || 1}</b>`;
   const shortName = realName || `Account #${accountId || 1}`;
@@ -265,14 +266,14 @@ export async function sendNotification(env, { type, accountName, accountId, prom
       const alreadySent = await env.TASK_QUEUE.get(debounceKey);
       if (alreadySent) return;
       await env.TASK_QUEUE.put(debounceKey, 'sent', { expirationTtl: 14400 });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Clear debounce if account succeeded
   if (type === 'ping_success' && env.TASK_QUEUE && accountId) {
     try {
       await env.TASK_QUEUE.delete(`alert_session_expired_${accountId}`);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   let title = '';
@@ -645,7 +646,7 @@ export class TaskScheduler {
     const url = new URL(request.url);
     if (url.pathname === '/sync' || url.pathname === '/task') {
       let body = null;
-      try { body = await request.json(); } catch (e) {}
+      try { body = await request.json(); } catch (e) { }
       const syncResult = await this.syncAlarm(body);
       const alarm = await this.ctx.storage.getAlarm();
       return new Response(JSON.stringify({
@@ -665,7 +666,7 @@ export class TaskScheduler {
     }
     if (url.pathname === '/status') {
       let alarm = null;
-      try { alarm = await this.ctx.storage.getAlarm(); } catch (e) {}
+      try { alarm = await this.ctx.storage.getAlarm(); } catch (e) { }
       const storedTasks = await this.getStoredTasks();
       return new Response(JSON.stringify({
         success: true,
@@ -704,10 +705,10 @@ async function fallbackEdgeSweep(env) {
 
   for (const acc of accounts) {
     const tasks = await getAccountTasks(env, acc.id);
-    const dueTasks = tasks.filter(t => 
+    const dueTasks = tasks.filter(t =>
       (t.status === 'queued' || (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000))) &&
-      t.targetType === 'time' && 
-      t.targetTimestamp && 
+      t.targetType === 'time' &&
+      t.targetTimestamp &&
       t.targetTimestamp <= (now + 2500)
     );
 
@@ -928,9 +929,9 @@ export default {
       }
 
       if (!env.TASK_SCHEDULER) {
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: 'TASK_SCHEDULER Durable Object binding is not configured.' 
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'TASK_SCHEDULER Durable Object binding is not configured.'
         }), { status: 200, headers: corsHeaders });
       }
 
@@ -939,7 +940,7 @@ export default {
         const stub = env.TASK_SCHEDULER.get(id);
         if (pathname === '/api/scheduler/sync' || request.method === 'POST') {
           let reqBody = null;
-          try { reqBody = await request.json(); } catch (e) {}
+          try { reqBody = await request.json(); } catch (e) { }
           await stub.fetch('http://task-scheduler/sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -980,7 +981,7 @@ export default {
           const body = await request.json();
           chatUrl = (body.chatUrl || '').trim();
           accountId = parseInt(body.accountId || 1, 10);
-        } catch (e) {}
+        } catch (e) { }
       } else {
         chatUrl = (url.searchParams.get('chatUrl') || '').trim();
         accountId = parseInt(url.searchParams.get('accountId') || 1, 10);
@@ -988,9 +989,9 @@ export default {
 
       const norm = normalizeClaudeChatUrl(chatUrl);
       if (!norm.valid) {
-        return new Response(JSON.stringify({ 
-          valid: false, 
-          error: norm.error 
+        return new Response(JSON.stringify({
+          valid: false,
+          error: norm.error
         }), { status: 400, headers: corsHeaders });
       }
 
@@ -1024,7 +1025,7 @@ export default {
       }
 
       if (!env.TASK_QUEUE) {
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
           error: 'TASK_QUEUE KV namespace is not configured on Cloudflare.',
           tasks: {}
         }), { status: 200, headers: corsHeaders });
@@ -1041,7 +1042,7 @@ export default {
           const accTasks = await getAccountTasks(env, a.id);
           tasks[a.id] = accTasks;
           if (!hasDueTask) {
-            hasDueTask = accTasks.some(t => 
+            hasDueTask = accTasks.some(t =>
               (t.status === 'queued' || (t.status === 'processing' && t.processingStartedAt && (now - t.processingStartedAt > 360000))) &&
               t.targetType === 'time' &&
               t.targetTimestamp &&
@@ -1092,11 +1093,11 @@ export default {
 
           // Anti-spam cooldown: prevent rapid duplicate re-queueing of the exact same prompt
           const existingTasks = await getAccountTasks(env, accountId);
-          const recentDuplicate = existingTasks.find(t => 
-            t.chatUrl === chatUrl && 
-            t.prompt === prompt && 
-            t.status === 'queued' && 
-            t.queuedAtTimestamp && 
+          const recentDuplicate = existingTasks.find(t =>
+            t.chatUrl === chatUrl &&
+            t.prompt === prompt &&
+            t.status === 'queued' &&
+            t.queuedAtTimestamp &&
             (Date.now() - t.queuedAtTimestamp < 4000)
           );
           if (recentDuplicate) {
@@ -1126,7 +1127,7 @@ export default {
 
           existingTasks.push(task);
           await saveAccountTasks(env, accountId, existingTasks);
-          
+
           // Pass the complete task directly into the DO to eliminate KV replication lag
           await notifyTaskScheduler(env, {
             action: 'upsert',
@@ -1138,14 +1139,14 @@ export default {
             ctx.waitUntil(sweepDueTasks(env));
           }
 
-          const targetDesc = targetType === 'slot' 
-            ? `scheduled for ${targetSlotDisplay || `Slot ${targetSlot}`}` 
-            : targetType === 'time' 
-            ? `scheduled for exact time ${targetTime || 'custom'}` 
-            : 'will execute on next scheduled ping';
+          const targetDesc = targetType === 'slot'
+            ? `scheduled for ${targetSlotDisplay || `Slot ${targetSlot}`}`
+            : targetType === 'time'
+              ? `scheduled for exact time ${targetTime || 'custom'}`
+              : 'will execute on next scheduled ping';
 
-          return new Response(JSON.stringify({ 
-            success: true, 
+          return new Response(JSON.stringify({
+            success: true,
             message: `Task queued for ${matchedAcc.name}. It ${targetDesc}.`,
             task,
             tasks: existingTasks
@@ -1173,10 +1174,10 @@ export default {
             await saveAccountTasks(env, acc.id, remaining);
           }
           await notifyTaskScheduler(env);
-          return new Response(JSON.stringify({ 
-            success: true, 
+          return new Response(JSON.stringify({
+            success: true,
             clearedCount,
-            message: `Cleared ${clearedCount} completed task${clearedCount === 1 ? '' : 's'}.` 
+            message: `Cleared ${clearedCount} completed task${clearedCount === 1 ? '' : 's'}.`
           }), { status: 200, headers: corsHeaders });
         }
 
@@ -1196,9 +1197,9 @@ export default {
             taskId,
             accountId: accId
           });
-          return new Response(JSON.stringify({ 
-            success: true, 
-            message: `Task removed for ${matchedAcc.name}.` 
+          return new Response(JSON.stringify({
+            success: true,
+            message: `Task removed for ${matchedAcc.name}.`
           }), { status: 200, headers: corsHeaders });
         } else {
           await env.TASK_QUEUE.delete(`tasks_account_${accId}`);
@@ -1207,9 +1208,9 @@ export default {
             action: 'clear_account',
             accountId: accId
           });
-          return new Response(JSON.stringify({ 
-            success: true, 
-            message: `All queued tasks removed for ${matchedAcc.name}.` 
+          return new Response(JSON.stringify({
+            success: true,
+            message: `All queued tasks removed for ${matchedAcc.name}.`
           }), { status: 200, headers: corsHeaders });
         }
       }
@@ -1238,7 +1239,7 @@ export default {
           const b = await request.json();
           taskId = taskId || b.taskId;
           accountId = isNaN(accountId) ? parseInt(b.accountId, 10) : accountId;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       if (isNaN(accountId) || !taskId) {
@@ -1265,7 +1266,7 @@ export default {
       }
       return new Response(JSON.stringify({ message: 'Ping finished!', results }), {
         status: 200,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         }
@@ -1399,7 +1400,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
           prompt: queuedTask.prompt,
           error: noTokenErr
         });
-      } catch (e) {}
+      } catch (e) { }
     }
     return { success: false, error: noTokenErr };
   }
@@ -1701,7 +1702,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
       try {
         const jsonErr = JSON.parse(errorText);
         parsedError = jsonErr.error || jsonErr.message || errorText;
-      } catch (e) {}
+      } catch (e) { }
       result = { success: false, status: response.status, error: parsedError, stepError: parsedError };
     } else {
       result = await response.json();
@@ -1715,11 +1716,11 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
     if (result && result.accountSnippet && env && env.TASK_QUEUE && accountId) {
       try {
         await env.TASK_QUEUE.put(`account_snippet_${accountId}`, result.accountSnippet, { expirationTtl: 86400 * 30 });
-      } catch (e) {}
+      } catch (e) { }
     }
 
-    const resolvedAccountName = (accountName && !accountName.startsWith('Account ')) 
-      ? accountName 
+    const resolvedAccountName = (accountName && !accountName.startsWith('Account '))
+      ? accountName
       : (result?.accountSnippet || accountName);
 
     const isSessionDead = result && result.stepError && (
@@ -1744,7 +1745,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
     if (result && result.success && env && env.TASK_QUEUE && accountId) {
       try {
         await env.TASK_QUEUE.delete(`alert_session_expired_${accountId}`);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Update KV task status and handle fallback if needed
@@ -1768,7 +1769,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
             if (env.TASK_QUEUE && accountId) {
               await env.TASK_QUEUE.delete(`alert_session_expired_${accountId}`);
             }
-          } catch (e) {}
+          } catch (e) { }
 
           await sendNotification(env, {
             type: 'task_completed',
@@ -1836,7 +1837,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
           prompt: promptToSend,
           error: err.message
         });
-      } catch (e) {}
+      } catch (e) { }
     }
 
     return { success: false, error: err.message };
