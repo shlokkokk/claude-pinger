@@ -2711,10 +2711,10 @@ export function renderDashboardHTML(initialAccounts = []) {
     #taskQueueSection #queuePromptGroup { min-height: 128px; }
     #taskQueueSection #queuePromptGroup .form-input { min-height: 50px; }
     #taskQueueSection #queueTimingGroup {
-      padding: clamp(15px, 1.8vw, 22px);
-      border-color: rgba(0,229,240,.15);
-      background: rgba(7,12,21,.55);
-      gap: 14px;
+      padding: clamp(13px, 1.5vw, 18px);
+      border-color: rgba(255,255,255,.065);
+      background: rgba(7,12,21,.32);
+      gap: 10px;
     }
     #taskQueueSection .timing-pill-group { gap: 7px; padding: 5px; border-radius: 12px; background: rgba(0,0,0,.2); }
     #taskQueueSection .timing-pill-btn { min-height: 44px; border-radius: 9px; font-size: .75rem; }
@@ -2723,37 +2723,40 @@ export function renderDashboardHTML(initialAccounts = []) {
     #taskQueueSection .timing-pill-btn.active { background: rgba(0,229,240,.12); box-shadow: inset 0 0 0 1px rgba(0,229,240,.12); }
     #taskQueueSection #timingSlotWrap { margin-top: 2px !important; }
     #taskQueueSection #timingExactWrap { margin-top: 4px !important; }
-    #taskQueueSection .chrono-deck { border-radius: 15px; border-color: rgba(255,255,255,.085); background: rgba(3,7,14,.45); }
-    #taskQueueSection .chrono-deck-main { align-items: stretch; gap: 16px; }
-    #taskQueueSection .chrono-clock-cluster { flex: 0 0 auto; gap: 10px; padding: 10px 12px; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; background: rgba(255,255,255,.018); }
-    #taskQueueSection .chrono-stepper-cell { width: 76px; gap: 5px; }
-    #taskQueueSection .stepper-btn { height: 30px; border-radius: 8px; }
+    #taskQueueSection .chrono-deck { padding: 10px 12px; border-radius: 12px; border-color: rgba(255,255,255,.055); background: rgba(3,7,14,.26); box-shadow: none; gap: 8px; }
+    #taskQueueSection .chrono-deck:focus-within { box-shadow: none; }
+    #taskQueueSection .chrono-deck-main { align-items: center; gap: 12px; }
+    #taskQueueSection .chrono-clock-cluster { flex: 0 0 auto; gap: 7px; padding: 6px 8px; border: 1px solid rgba(255,255,255,.055); border-radius: 10px; background: rgba(255,255,255,.012); }
+    #taskQueueSection .chrono-stepper-cell { width: 70px; gap: 3px; }
+    #taskQueueSection .stepper-btn { height: 24px; border-radius: 7px; }
     #taskQueueSection .stepper-btn:focus-visible,
     #taskQueueSection .btn-meridiem-switch:focus-visible,
     #taskQueueSection .btn-quick-adjust:focus-visible,
     #taskQueueSection .chrono-preset-pill:focus-visible,
     #taskQueueSection .btn-callout-apply:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-    #taskQueueSection .chrono-digit-box { height: 64px; border-radius: 11px; background: rgba(4,8,15,.72); }
-    #taskQueueSection .chrono-digit-box:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,229,240,.1); }
-    #taskQueueSection .chrono-digit-input { font-size: 29px; font-variant-numeric: tabular-nums; text-shadow: none; }
-    #taskQueueSection .meridiem-dock { height: auto; gap: 6px; margin-left: 0; }
-    #taskQueueSection .btn-meridiem-switch { min-height: 40px; min-width: 64px; border-radius: 9px; }
-    #taskQueueSection .chrono-divider { align-self: center; height: 52px; }
-    #taskQueueSection .chrono-quick-adjust { flex: 1 1 auto; align-self: center; flex-wrap: wrap; gap: 8px; }
-    #taskQueueSection .btn-quick-adjust { min-height: 42px; padding-inline: 13px; border-radius: 9px; }
-    #taskQueueSection .chrono-presets-row { gap: 10px; padding-top: 14px; }
+    #taskQueueSection .chrono-digit-box { height: 50px; border-radius: 9px; background: rgba(4,8,15,.5); box-shadow: none; }
+    #taskQueueSection .chrono-digit-box:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(0,229,240,.09); }
+    #taskQueueSection .chrono-digit-input { font-size: 25px; font-variant-numeric: tabular-nums; text-shadow: none; }
+    #taskQueueSection .meridiem-dock { height: auto; gap: 4px; margin-left: 0; }
+    #taskQueueSection .btn-meridiem-switch { min-height: 34px; min-width: 58px; border-radius: 8px; padding: 6px 8px; }
+    #taskQueueSection .btn-meridiem-switch.active.am,
+    #taskQueueSection .btn-meridiem-switch.active.pm { box-shadow: none; }
+    #taskQueueSection .chrono-divider { align-self: center; height: 36px; }
+    #taskQueueSection .chrono-quick-adjust { flex: 1 1 auto; align-self: center; flex-wrap: wrap; gap: 6px; }
+    #taskQueueSection .btn-quick-adjust { min-height: 36px; padding: 6px 10px; border-radius: 8px; }
+    #taskQueueSection .chrono-presets-row { gap: 8px; padding-top: 10px; }
     #taskQueueSection .chrono-presets-header { align-items: flex-start; }
     #taskQueueSection .chrono-presets-label { font-size: .64rem; letter-spacing: .09em; }
     #taskQueueSection .preset-auto-badge { padding: 3px 7px; border-radius: 999px; font-size: .58rem; }
     #taskQueueSection .chrono-presets-sub { font-size: .65rem; white-space: normal; text-align: right; }
-    #taskQueueSection .chrono-presets-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-    #taskQueueSection .chrono-preset-pill { min-height: 62px; justify-content: center; padding: 9px 11px; border-radius: 11px; }
+    #taskQueueSection .chrono-presets-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
+    #taskQueueSection .chrono-preset-pill { min-width: 0; min-height: 52px; justify-content: center; padding: 7px 9px; border-radius: 9px; }
     #taskQueueSection .chrono-preset-pill:hover { transform: none; box-shadow: none; }
     #taskQueueSection .preset-pill-time { gap: 7px; font-size: .76rem; font-variant-numeric: tabular-nums; }
     #taskQueueSection .preset-pill-sub { font-size: .62rem; line-height: 1.4; white-space: normal; }
-    #taskQueueSection .smart-queue-callout { padding: 11px 13px; border-radius: 11px; background: rgba(0,229,240,.055); }
-    #taskQueueSection .btn-callout-apply { min-height: 38px; padding: 7px 12px; border-radius: 8px; }
-    #taskQueueSection .chrono-hud-status { min-height: 48px; padding: 10px 13px; border-radius: 11px; }
+    #taskQueueSection .smart-queue-callout { padding: 9px 11px; border-radius: 9px; background: rgba(0,229,240,.035); }
+    #taskQueueSection .btn-callout-apply { min-height: 36px; padding: 6px 11px; border-radius: 8px; }
+    #taskQueueSection .chrono-hud-status { min-height: 40px; padding: 8px 11px; border-radius: 9px; background: rgba(0,229,240,.035); }
     #taskQueueSection .hud-primary-time { font-size: .78rem; font-variant-numeric: tabular-nums; }
     #taskQueueSection .hud-countdown-badge { padding: 4px 9px; border: 1px solid rgba(255,255,255,.07); border-radius: 999px; font-variant-numeric: tabular-nums; }
     #taskQueueSection .hud-tz-tag { font-size: .62rem; }
@@ -2777,7 +2780,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       border-top-color: rgba(255,255,255,.09);
     }
     #taskQueueSection .tasks-section { gap: 12px; }
-    #taskQueueSection .tasks-header { padding: 0 2px; font-size: .7rem; letter-spacing: .095em; color: var(--text-300); }
+    #taskQueueSection .tasks-header { padding: 0 12px 0 6px; font-size: .7rem; letter-spacing: .095em; color: var(--text-300); }
     #taskQueueSection .tasks-header-left { gap: 9px; }
     #taskQueueSection .task-count { min-width: 27px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
     #taskQueueSection .tasks-list { gap: 11px; }
@@ -2831,6 +2834,7 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     @media (max-width: 959px) {
       #taskQueueSection .queue-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      #taskQueueSection .chrono-presets-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       #taskQueueSection #queueAccountGroup { grid-column: 1 / -1; }
       #taskQueueSection #queueUrlGroup { grid-column: 1 / -1; }
       #taskQueueSection #queuePromptGroup,
