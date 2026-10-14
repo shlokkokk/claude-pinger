@@ -2641,6 +2641,280 @@ export function renderDashboardHTML(initialAccounts = []) {
       .queue-btns { grid-template-columns:minmax(0,1fr); }
     }
 
+    /* ===== QUEUE EXPERIENCE REFINEMENT ===== */
+    #taskQueueSection {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border-color: var(--border-default);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-card);
+      gap: 18px;
+    }
+
+    #taskQueueSection > .card-header { margin-bottom: -8px; align-items: center; }
+    #taskQueueSection .card-title { gap: 11px; letter-spacing: -.025em; }
+    #taskQueueSection .card-title svg {
+      box-sizing: content-box;
+      width: 17px;
+      height: 17px;
+      padding: 9px;
+      border: 1px solid rgba(0,229,240,.16);
+      border-radius: 12px;
+      background: rgba(0,229,240,.07);
+    }
+    #taskQueueStatus { border: 1px solid rgba(0,229,240,.2); border-radius: 999px; padding: 6px 10px; background: rgba(0,229,240,.055); font-size: .62rem; letter-spacing: .08em; }
+    #taskQueueSection .queue-desc { max-width: 70ch; color: var(--text-300); font-size: .82rem; line-height: 1.65; margin-top: -3px; }
+
+    #taskQueueSection .queue-form {
+      margin-top: 0;
+      gap: 14px;
+      grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr);
+      align-items: stretch;
+    }
+    #taskQueueSection .queue-form .form-group {
+      min-width: 0;
+      padding: clamp(14px, 1.65vw, 20px);
+      border-color: rgba(255,255,255,.075);
+      border-radius: 17px;
+      background: rgba(255,255,255,.018);
+      gap: 11px;
+    }
+    #taskQueueSection #queueAccountGroup { grid-column: 1; }
+    #taskQueueSection #queueUrlGroup { grid-column: 2; }
+    #taskQueueSection #queuePromptGroup,
+    #taskQueueSection #queueTimingGroup,
+    #taskQueueSection .queue-form > .queue-btns { grid-column: 1 / -1; }
+
+    #taskQueueSection .form-label { color: var(--text-200); font-size: .67rem; letter-spacing: .09em; }
+    #taskQueueSection .form-hint { font-size: .68rem; line-height: 1.5; }
+    #taskQueueSection .form-input,
+    #taskQueueSection .form-select {
+      min-height: 48px;
+      border-radius: 11px;
+      border-color: rgba(255,255,255,.11);
+      background-color: rgba(5, 9, 17, .72);
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    #taskQueueSection .form-input:focus,
+    #taskQueueSection .form-select:focus {
+      border-color: rgba(0,229,240,.65);
+      background-color: rgba(5, 12, 21, .96);
+      box-shadow: 0 0 0 3px rgba(0,229,240,.09), 0 8px 24px rgba(0,0,0,.15);
+      outline: none;
+    }
+    #taskQueueSection .url-bar { align-items: center; }
+    #taskQueueSection .verify-badge { border-radius: 999px; padding: 4px 9px; }
+    #taskQueueSection .btn-link { min-height: 32px; border-radius: 8px; }
+    #taskQueueSection .url-preview { border-radius: 11px; }
+
+    #taskQueueSection #queuePromptGroup { min-height: 128px; }
+    #taskQueueSection #queuePromptGroup .form-input { min-height: 50px; }
+    #taskQueueSection #queueTimingGroup {
+      padding: clamp(15px, 1.8vw, 22px);
+      border-color: rgba(0,229,240,.15);
+      background: rgba(7,12,21,.55);
+      gap: 14px;
+    }
+    #taskQueueSection .timing-pill-group { gap: 7px; padding: 5px; border-radius: 12px; background: rgba(0,0,0,.2); }
+    #taskQueueSection .timing-pill-btn { min-height: 44px; border-radius: 9px; font-size: .75rem; }
+    #taskQueueSection .timing-pill-btn > span { display: inline-flex; align-items: center; gap: 8px; }
+    #taskQueueSection .timing-pill-btn svg { width: 15px; height: 15px; }
+    #taskQueueSection .timing-pill-btn.active { background: rgba(0,229,240,.12); box-shadow: inset 0 0 0 1px rgba(0,229,240,.12); }
+    #taskQueueSection #timingSlotWrap { margin-top: 2px !important; }
+    #taskQueueSection #timingExactWrap { margin-top: 4px !important; }
+    #taskQueueSection .chrono-deck { border-radius: 15px; border-color: rgba(255,255,255,.085); background: rgba(3,7,14,.45); }
+    #taskQueueSection .chrono-deck-main { align-items: stretch; gap: 16px; }
+    #taskQueueSection .chrono-clock-cluster { flex: 0 0 auto; gap: 10px; padding: 10px 12px; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; background: rgba(255,255,255,.018); }
+    #taskQueueSection .chrono-stepper-cell { width: 76px; gap: 5px; }
+    #taskQueueSection .stepper-btn { height: 30px; border-radius: 8px; }
+    #taskQueueSection .stepper-btn:focus-visible,
+    #taskQueueSection .btn-meridiem-switch:focus-visible,
+    #taskQueueSection .btn-quick-adjust:focus-visible,
+    #taskQueueSection .chrono-preset-pill:focus-visible,
+    #taskQueueSection .btn-callout-apply:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    #taskQueueSection .chrono-digit-box { height: 64px; border-radius: 11px; background: rgba(4,8,15,.72); }
+    #taskQueueSection .chrono-digit-box:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,229,240,.1); }
+    #taskQueueSection .chrono-digit-input { font-size: 29px; font-variant-numeric: tabular-nums; text-shadow: none; }
+    #taskQueueSection .meridiem-dock { height: auto; gap: 6px; margin-left: 0; }
+    #taskQueueSection .btn-meridiem-switch { min-height: 40px; min-width: 64px; border-radius: 9px; }
+    #taskQueueSection .chrono-divider { align-self: center; height: 52px; }
+    #taskQueueSection .chrono-quick-adjust { flex: 1 1 auto; align-self: center; flex-wrap: wrap; gap: 8px; }
+    #taskQueueSection .btn-quick-adjust { min-height: 42px; padding-inline: 13px; border-radius: 9px; }
+    #taskQueueSection .chrono-presets-row { gap: 10px; padding-top: 14px; }
+    #taskQueueSection .chrono-presets-header { align-items: flex-start; }
+    #taskQueueSection .chrono-presets-label { font-size: .64rem; letter-spacing: .09em; }
+    #taskQueueSection .preset-auto-badge { padding: 3px 7px; border-radius: 999px; font-size: .58rem; }
+    #taskQueueSection .chrono-presets-sub { font-size: .65rem; white-space: normal; text-align: right; }
+    #taskQueueSection .chrono-presets-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    #taskQueueSection .chrono-preset-pill { min-height: 62px; justify-content: center; padding: 9px 11px; border-radius: 11px; }
+    #taskQueueSection .chrono-preset-pill:hover { transform: none; box-shadow: none; }
+    #taskQueueSection .preset-pill-time { gap: 7px; font-size: .76rem; font-variant-numeric: tabular-nums; }
+    #taskQueueSection .preset-pill-sub { font-size: .62rem; line-height: 1.4; white-space: normal; }
+    #taskQueueSection .smart-queue-callout { padding: 11px 13px; border-radius: 11px; background: rgba(0,229,240,.055); }
+    #taskQueueSection .btn-callout-apply { min-height: 38px; padding: 7px 12px; border-radius: 8px; }
+    #taskQueueSection .chrono-hud-status { min-height: 48px; padding: 10px 13px; border-radius: 11px; }
+    #taskQueueSection .hud-primary-time { font-size: .78rem; font-variant-numeric: tabular-nums; }
+    #taskQueueSection .hud-countdown-badge { padding: 4px 9px; border: 1px solid rgba(255,255,255,.07); border-radius: 999px; font-variant-numeric: tabular-nums; }
+    #taskQueueSection .hud-tz-tag { font-size: .62rem; }
+
+    #taskQueueSection .queue-btns { gap: 12px; margin-top: 1px; }
+    #taskQueueSection .queue-btns button { min-height: 54px; border-radius: 13px; font-size: .84rem; letter-spacing: .005em; }
+    #taskQueueSection .btn-queue-primary { box-shadow: none; }
+    #taskQueueSection .btn-queue-secondary { background: rgba(255,255,255,.035); }
+    #taskQueueSection .queue-btns button:focus-visible,
+    #taskQueueSection .timing-pill-btn:focus-visible,
+    #taskQueueSection .btn-dispatch-task:focus-visible,
+    #taskQueueSection .btn-cancel-task:focus-visible,
+    #taskQueueSection .btn-clear-completed:focus-visible,
+    #taskQueueSection .btn-queue-expand:focus-visible,
+    #taskQueueSection .btn-history-del:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+    #taskQueueSection .tasks-divider {
+      margin-top: 5px;
+      padding-top: 22px;
+      gap: 24px;
+      border-top-color: rgba(255,255,255,.09);
+    }
+    #taskQueueSection .tasks-section { gap: 12px; }
+    #taskQueueSection .tasks-header { padding: 0 2px; font-size: .7rem; letter-spacing: .095em; color: var(--text-300); }
+    #taskQueueSection .tasks-header-left { gap: 9px; }
+    #taskQueueSection .task-count { min-width: 27px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
+    #taskQueueSection .tasks-list { gap: 11px; }
+    #taskQueueSection .task-card,
+    #taskQueueSection .history-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 15px;
+      padding: 16px 18px;
+      gap: 12px;
+      background: rgba(255,255,255,.018);
+      box-shadow: 0 4px 14px rgba(0,0,0,.12);
+      transition: border-color .18s ease, background .18s ease;
+    }
+    #taskQueueSection .task-card::before,
+    #taskQueueSection .history-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 2px; background: rgba(0,229,240,.48); }
+    #taskQueueSection .task-card:hover,
+    #taskQueueSection .history-card:hover { border-color: rgba(0,229,240,.32); background: rgba(255,255,255,.028); }
+    #taskQueueSection .task-card.completed::before,
+    #taskQueueSection .history-card:not(.failed)::before { background: rgba(0,214,143,.55); }
+    #taskQueueSection .task-card.failed::before,
+    #taskQueueSection .history-card.failed::before { background: rgba(240,72,72,.55); }
+    #taskQueueSection .task-top { align-items: flex-start; gap: 12px; }
+    #taskQueueSection .task-acc-wrap { flex-wrap: wrap; gap: 7px; }
+    #taskQueueSection .task-acc-name { margin-right: 3px; font-size: .9rem; }
+    #taskQueueSection .task-status,
+    #taskQueueSection .target-badge,
+    #taskQueueSection .history-pill,
+    #taskQueueSection .history-time-tag { min-height: 25px; display: inline-flex; align-items: center; border-radius: 7px; padding: 3px 9px; }
+    #taskQueueSection .task-prompt-box { border-radius: 11px; padding: 11px 13px; background: rgba(0,0,0,.2); border-color: rgba(255,255,255,.065); }
+    #taskQueueSection .task-prompt-content { font-size: .77rem; line-height: 1.65; }
+    #taskQueueSection .task-footer { align-items: center; gap: 10px 16px; }
+    #taskQueueSection .task-url-chip,
+    #taskQueueSection .history-url-chip { max-width: min(100%, 420px); min-height: 32px; padding: 6px 10px; border-radius: 8px; }
+    #taskQueueSection .task-url-text { max-width: clamp(120px, 28vw, 280px); }
+    #taskQueueSection .task-timing-chip { display: inline-flex; align-items: center; gap: 7px; white-space: normal; line-height: 1.45; color: var(--text-300); }
+    #taskQueueSection .task-actions { gap: 7px; }
+    #taskQueueSection .btn-dispatch-task,
+    #taskQueueSection .btn-cancel-task { min-height: 36px; padding: 7px 11px; border-radius: 8px; }
+    #taskQueueSection .history-card { padding: 14px 17px; }
+    #taskQueueSection .history-head { align-items: flex-start; }
+    #taskQueueSection .history-head-left { gap: 7px; }
+    #taskQueueSection .history-prompt-row { border-radius: 9px; padding: 9px 12px; background: rgba(0,0,0,.2); font-size: .77rem; line-height: 1.55; }
+    #taskQueueSection .history-foot { gap: 8px 14px; }
+    #taskQueueSection .history-finished-text { line-height: 1.5; }
+    #taskQueueSection .btn-history-del { width: 34px; height: 34px; border-radius: 9px; border-color: rgba(255,255,255,.065); }
+    #taskQueueSection .btn-clear-completed { min-height: 34px; padding: 6px 10px; border-radius: 8px; }
+    #taskQueueSection .btn-queue-expand { min-height: 42px; border-radius: 10px; margin-top: 1px; background: rgba(255,255,255,.025); }
+    #taskQueueSection .empty-state { min-height: 104px; border: 1px dashed rgba(255,255,255,.12); border-radius: 14px; background: rgba(255,255,255,.015); }
+    #taskQueueSection .history-section { margin-top: 0; padding-top: 20px; border-top-color: rgba(255,255,255,.075); }
+
+    @media (max-width: 959px) {
+      #taskQueueSection .queue-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      #taskQueueSection #queueAccountGroup { grid-column: 1 / -1; }
+      #taskQueueSection #queueUrlGroup { grid-column: 1 / -1; }
+      #taskQueueSection #queuePromptGroup,
+      #taskQueueSection #queueTimingGroup,
+      #taskQueueSection .queue-form > .queue-btns { grid-column: 1 / -1; }
+      #taskQueueSection .queue-form .form-group { padding: 15px; }
+    }
+    @media (max-width: 600px) {
+      #taskQueueSection { gap: 15px; }
+      #taskQueueSection > .card-header { align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+      #taskQueueSection .card-title { font-size: 1rem; }
+      #taskQueueStatus { margin-left: 45px; margin-top: -8px; }
+      #taskQueueSection .queue-desc { font-size: .76rem; }
+      #taskQueueSection .queue-form { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+      #taskQueueSection .queue-form .form-group { padding: 14px; border-radius: 14px; }
+      #taskQueueSection #queueAccountGroup,
+      #taskQueueSection #queueUrlGroup,
+      #taskQueueSection #queuePromptGroup,
+      #taskQueueSection #queueTimingGroup,
+      #taskQueueSection .queue-form > .queue-btns { grid-column: 1; }
+      #taskQueueSection .timing-pill-group { gap: 3px; padding: 4px; }
+      #taskQueueSection .timing-pill-btn { min-height: 42px; padding: 6px 3px; font-size: .67rem; }
+      #taskQueueSection .timing-pill-btn > span { gap: 5px; }
+      #taskQueueSection .timing-pill-btn svg { width: 13px; height: 13px; }
+      #taskQueueSection .chrono-deck { padding: 12px; }
+      #taskQueueSection .chrono-deck-main { gap: 12px; }
+      #taskQueueSection .chrono-clock-cluster { justify-content: center; gap: 7px; padding: 9px 7px; }
+      #taskQueueSection .chrono-stepper-cell { width: clamp(66px, 22vw, 84px); }
+      #taskQueueSection .stepper-btn { height: 44px; min-height: 44px; }
+      #taskQueueSection .chrono-digit-box { height: 66px; }
+      #taskQueueSection .chrono-digit-input { font-size: 28px; }
+      #taskQueueSection .meridiem-dock { height: auto; gap: 6px; margin-left: 1px; }
+      #taskQueueSection .btn-meridiem-switch { min-width: 58px; min-height: 44px; justify-content: center; padding: 7px; }
+      #taskQueueSection .chrono-quick-adjust { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+      #taskQueueSection .btn-quick-adjust { min-height: 44px; padding: 8px 3px; font-size: .68rem; }
+      #taskQueueSection .chrono-presets-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+      #taskQueueSection .chrono-preset-pill { min-height: 58px; padding: 8px; }
+      #taskQueueSection .chrono-presets-header { flex-direction: column; gap: 5px; }
+      #taskQueueSection .chrono-presets-sub { text-align: left; }
+      #taskQueueSection .smart-queue-callout { align-items: stretch; flex-direction: column; }
+      #taskQueueSection .btn-callout-apply { width: 100%; justify-content: center; }
+      #taskQueueSection .chrono-hud-status { flex-direction: row; align-items: center; flex-wrap: wrap; }
+      #taskQueueSection .hud-tz-tag { margin-left: auto; align-self: auto; }
+      #taskQueueSection .hud-primary-time { white-space: normal; }
+      #taskQueueSection .queue-btns { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+      #taskQueueSection .queue-btns button { min-height: 50px; }
+      #taskQueueSection .tasks-divider { padding-top: 18px; gap: 20px; }
+      #taskQueueSection .task-card { padding: 14px; }
+      #taskQueueSection .task-top { flex-direction: column; }
+      #taskQueueSection .task-acc-wrap { width: 100%; }
+      #taskQueueSection .task-actions { width: 100%; }
+      #taskQueueSection .task-actions > button { flex: 1 1 0; justify-content: center; }
+      #taskQueueSection .task-footer { align-items: flex-start; flex-direction: column; }
+      #taskQueueSection .task-url-chip,
+      #taskQueueSection .history-url-chip { max-width: 100%; width: fit-content; }
+      #taskQueueSection .task-url-text { max-width: min(62vw, 260px); }
+      #taskQueueSection .history-card { padding: 12px; }
+      #taskQueueSection .history-head { gap: 6px; }
+      #taskQueueSection .history-head-left { align-items: flex-start; }
+      #taskQueueSection .history-foot { align-items: flex-start; flex-direction: column; }
+      #taskQueueSection .completed-header {
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      #taskQueueSection .completed-header .tasks-header-left { min-width: 0; gap: 7px; }
+      #taskQueueSection .completed-header .tasks-header-left > span:first-child { white-space: nowrap; }
+      #taskQueueSection .btn-clear-completed { flex: 0 0 auto; min-height: 44px; padding: 7px 10px; font-size: .66rem; white-space: nowrap; }
+      #taskQueueSection .btn-clear-completed svg { width: 11px; height: 11px; }
+      #taskQueueSection .btn-history-del { width: 44px; height: 44px; }
+      #taskQueueSection .btn-queue-expand { min-height: 44px; }
+      #taskQueueSection .btn-callout-apply { min-height: 44px; }
+    }
+
+    @media (max-width: 360px) {
+      #taskQueueSection .completed-header .tasks-header-left > span:first-child { font-size: .64rem; letter-spacing: .04em; }
+      #taskQueueSection .btn-clear-completed { width: 44px; min-width: 44px; padding: 0; justify-content: center; }
+      #taskQueueSection .btn-clear-completed span { display: none; }
+      #taskQueueSection .btn-clear-completed svg { width: 14px; height: 14px; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
@@ -2818,14 +3092,14 @@ export function renderDashboardHTML(initialAccounts = []) {
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Execution Schedule
           </label>
-          <div class="timing-pill-group">
-            <button type="button" class="timing-pill-btn active" id="pillTimingNext" onclick="setTimingMode('next')">
+          <div class="timing-pill-group" role="group" aria-label="Execution time mode">
+            <button type="button" class="timing-pill-btn active" id="pillTimingNext" aria-pressed="true" onclick="setTimingMode('next')">
               <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></svg>Next Ping</span>
             </button>
-            <button type="button" class="timing-pill-btn" id="pillTimingSlot" onclick="setTimingMode('slot')">
+            <button type="button" class="timing-pill-btn" id="pillTimingSlot" aria-pressed="false" onclick="setTimingMode('slot')">
               <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path stroke-linecap="round" d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 14 2 2 4-4"/></svg>Scheduled</span>
             </button>
-            <button type="button" class="timing-pill-btn" id="pillTimingTime" onclick="setTimingMode('time')">
+            <button type="button" class="timing-pill-btn" id="pillTimingTime" aria-pressed="false" onclick="setTimingMode('time')">
               <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>Exact Time</span>
             </button>
           </div>
@@ -2880,12 +3154,12 @@ export function renderDashboardHTML(initialAccounts = []) {
                   </div>
 
                   <!-- AM / PM Tactical Toggle Deck -->
-                  <div class="meridiem-dock" role="radiogroup" aria-label="Select Period AM or PM">
-                    <button type="button" class="btn-meridiem-switch active am" id="btnMeridiemAM" onclick="setMeridiem('AM')">
+                  <div class="meridiem-dock" role="group" aria-label="Select period AM or PM">
+                    <button type="button" class="btn-meridiem-switch active am" id="btnMeridiemAM" aria-pressed="true" onclick="setMeridiem('AM')">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
                       <span>AM</span>
                     </button>
-                    <button type="button" class="btn-meridiem-switch" id="btnMeridiemPM" onclick="setMeridiem('PM')">
+                    <button type="button" class="btn-meridiem-switch" id="btnMeridiemPM" aria-pressed="false" onclick="setMeridiem('PM')">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                       <span>PM</span>
                     </button>
@@ -2899,7 +3173,7 @@ export function renderDashboardHTML(initialAccounts = []) {
                   <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(15)" title="Add 15 minutes">+15m</button>
                   <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(30)" title="Add 30 minutes">+30m</button>
                   <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(60)" title="Add 1 hour">+1h</button>
-                  <button type="button" class="btn-quick-adjust now" onclick="setTimeToCurrentNow()" title="Set to current time">Now</button>
+                  <button type="button" class="btn-quick-adjust now" onclick="setTimeToCurrentNow()" title="Set to one minute from now (IST)">+1m</button>
                 </div>
               </div>
 
@@ -2920,7 +3194,7 @@ export function renderDashboardHTML(initialAccounts = []) {
               <div class="chrono-hud-status" id="exactTimePreview">
                 <div class="hud-status-main">
                   <div class="hud-pulse-ring"></div>
-                  <span class="hud-primary-time" id="exactTimePreviewText">Will execute at 12:00 AM IST</span>
+                  <span class="hud-primary-time" id="exactTimePreviewText" aria-live="polite">Will execute at 12:00 AM IST</span>
                   <span class="hud-countdown-badge" id="exactTimeCountdownText">in --</span>
                 </div>
                 <span class="hud-tz-tag">IST (UTC+5:30)</span>
@@ -2964,7 +3238,7 @@ export function renderDashboardHTML(initialAccounts = []) {
               <span>Execution History</span>
               <span class="task-count completed" id="taskCompletedCountBadge">0</span>
             </div>
-            <button type="button" class="btn-clear-completed" id="btnClearCompletedTasks" onclick="confirmClearCompleted()">
+            <button type="button" class="btn-clear-completed" id="btnClearCompletedTasks" onclick="confirmClearCompleted()" aria-label="Clear execution history" title="Clear execution history">
               <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               <span>Clear History</span>
             </button>
@@ -3101,15 +3375,16 @@ export function renderDashboardHTML(initialAccounts = []) {
       second: 'numeric'
     });
 
-    function getNowIST() {
-      // Robust cross-platform IST time: works consistently regardless of client device/OS timezone
-      const parts = istFormatter.formatToParts(new Date());
+    function getISTClockParts(date = new Date()) {
+      // Read IST wall-clock fields directly; never round-trip them through the
+      // device timezone, which can shift values around local DST transitions.
+      const parts = istFormatter.formatToParts(date);
       const p = {};
       for (const part of parts) p[part.type] = part.value;
-      const istDate = new Date();
-      istDate.setFullYear(parseInt(p.year, 10), parseInt(p.month, 10) - 1, parseInt(p.day, 10));
-      istDate.setHours(parseInt(p.hour, 10), parseInt(p.minute, 10), parseInt(p.second, 10), 0);
-      return istDate;
+      return {
+        year: Number(p.year), month: Number(p.month), day: Number(p.day),
+        hour: Number(p.hour), minute: Number(p.minute), second: Number(p.second)
+      };
     }
 
     function fmtHM(m) { const h = Math.floor(m / 60), r = Math.floor(m % 60); return h === 0 ? r + 'm' : h + 'h ' + r + 'm'; }
@@ -3136,13 +3411,13 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (!SCHEDULE || SCHEDULE.length === 0) return '';
       const accSchedule = SCHEDULE.filter(s => s.account === accountId);
       if (accSchedule.length === 0) return '';
-      const istDate = getNowIST();
-      const currentMins = istDate.getHours() * 60 + istDate.getMinutes();
+      const istNow = getISTClockParts();
+      const currentMins = istNow.hour * 60 + istNow.minute;
       const upcoming = accSchedule.find(s => s.minsOfDay > currentMins);
       return upcoming ? upcoming.display : accSchedule[0].display;
     }
 
-    function fmtTime(d) { return d.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+    function fmtTime(d) { return d.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
 
     function escapeHtml(s) {
       if (s == null) return '';
@@ -3228,13 +3503,14 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     function calculateTelemetry() {
-      const nowIST = getNowIST();
-      const csd = nowIST.getHours() * 3600 + nowIST.getMinutes() * 60 + nowIST.getSeconds();
+      const now = new Date();
+      const istNow = getISTClockParts(now);
+      const csd = istNow.hour * 3600 + istNow.minute * 60 + istNow.second;
       const cmd = csd / 60;
       const WDS = WINDOW_DURATION_MINS * 60;
 
       if (!ACCOUNTS || ACCOUNTS.length === 0) {
-        return { nowIST, currentMinsOfDay: cmd, accountStates: [], recommendedAcc: null, reason: 'No accounts detected', isStandby: true };
+        return { nowIST: now, currentMinsOfDay: cmd, accountStates: [], recommendedAcc: null, reason: 'No accounts detected', isStandby: true };
       }
 
       const states = ACCOUNTS.map(acc => {
@@ -3260,7 +3536,7 @@ export function renderDashboardHTML(initialAccounts = []) {
         else { rec = active.reduce((m, a) => a.secondsLeftInWindow > m.secondsLeftInWindow ? a : m, active[0]); reason = rec.name + ' has the most time left (' + fmtHMS(rec.secondsLeftInWindow) + ' remaining).'; }
       } else { standby = true; rec = states.reduce((m, a) => a.secondsUntilNext < m.secondsUntilNext ? a : m, states[0]); reason = 'All accounts in standby. Next window opens on ' + rec.name + ' at ' + rec.nextPing.display + ' (in ' + fmtHMS(rec.secondsUntilNext) + ').'; }
       recommendedTargetAccount = rec ? rec.id : 1;
-      return { nowIST, currentMinsOfDay: cmd, accountStates: states, recommendedAcc: rec, reason, isStandby: standby };
+      return { nowIST: now, currentMinsOfDay: cmd, accountStates: states, recommendedAcc: rec, reason, isStandby: standby };
     }
 
     function updateUI() {
@@ -3315,8 +3591,8 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     function inspectScheduleItem(item) {
       selectedScheduleItem = item;
-      const nowIST = getNowIST();
-      const csd = nowIST.getHours() * 3600 + nowIST.getMinutes() * 60 + nowIST.getSeconds();
+      const nowIST = getISTClockParts();
+      const csd = nowIST.hour * 3600 + nowIST.minute * 60 + nowIST.second;
       const ps = item.hour * 3600 + item.min * 60;
       let ds = ps - csd, dt = '';
       if (ds > 0) dt = 'in ' + fmtHMS(ds); else if (ds < 0) { let pd = csd - ps; dt = pd > 43200 ? 'in ' + fmtHMS(ds + 86400) : fmtHMS(pd) + ' ago'; } else dt = 'Right now';
@@ -3672,6 +3948,9 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (pN) pN.className = 'timing-pill-btn ' + (mode === 'next' ? 'active' : '');
       if (pS) pS.className = 'timing-pill-btn ' + (mode === 'slot' ? 'active' : '');
       if (pT) pT.className = 'timing-pill-btn ' + (mode === 'time' ? 'active' : '');
+      if (pN) pN.setAttribute('aria-pressed', String(mode === 'next'));
+      if (pS) pS.setAttribute('aria-pressed', String(mode === 'slot'));
+      if (pT) pT.setAttribute('aria-pressed', String(mode === 'time'));
 
       const slotWrap = document.getElementById('timingSlotWrap');
       const timeWrap = document.getElementById('timingExactWrap');
@@ -3685,12 +3964,22 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     let currentMeridiem = 'AM';
 
-    function setMeridiem(mer) {
-      currentMeridiem = mer;
+    function paintMeridiemButtons() {
       const bAM = document.getElementById('btnMeridiemAM');
       const bPM = document.getElementById('btnMeridiemPM');
-      if (bAM) bAM.className = 'btn-meridiem-switch ' + (mer === 'AM' ? 'active am' : '');
-      if (bPM) bPM.className = 'btn-meridiem-switch ' + (mer === 'PM' ? 'active pm' : '');
+      if (bAM) {
+        bAM.className = 'btn-meridiem-switch ' + (currentMeridiem === 'AM' ? 'active am' : '');
+        bAM.setAttribute('aria-pressed', String(currentMeridiem === 'AM'));
+      }
+      if (bPM) {
+        bPM.className = 'btn-meridiem-switch ' + (currentMeridiem === 'PM' ? 'active pm' : '');
+        bPM.setAttribute('aria-pressed', String(currentMeridiem === 'PM'));
+      }
+    }
+
+    function setMeridiem(mer) {
+      currentMeridiem = mer;
+      paintMeridiemButtons();
       onExactTimeChanged();
     }
 
@@ -3704,16 +3993,21 @@ export function renderDashboardHTML(initialAccounts = []) {
       return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ' ' + currentMeridiem;
     }
 
-    function stepHour(delta) {
+    function stepHour(delta, notify = true) {
       const hEl = document.getElementById('queueExactHour');
       if (!hEl) return;
       let val = parseInt(hEl.value || '12', 10);
-      if (isNaN(val)) val = 12;
-      val = val + delta;
+      if (isNaN(val) || val < 1 || val > 12) val = 12;
+      const previousHour = val;
+      val += delta;
       if (val > 12) val = 1;
       if (val < 1) val = 12;
       hEl.value = String(val).padStart(2, '0');
-      onExactTimeChanged();
+      if ((previousHour === 11 && val === 12) || (previousHour === 12 && val === 11)) {
+        currentMeridiem = currentMeridiem === 'AM' ? 'PM' : 'AM';
+        paintMeridiemButtons();
+      }
+      if (notify) onExactTimeChanged();
     }
 
     function stepMinute(delta) {
@@ -3724,10 +4018,10 @@ export function renderDashboardHTML(initialAccounts = []) {
       val = val + delta;
       if (val >= 60) {
         val = 0;
-        stepHour(1);
+        stepHour(1, false);
       } else if (val < 0) {
         val = 59;
-        stepHour(-1);
+        stepHour(-1, false);
       }
       mEl.value = String(val).padStart(2, '0');
       onExactTimeChanged();
@@ -3785,8 +4079,8 @@ export function renderDashboardHTML(initialAccounts = []) {
       const mEl = document.getElementById('queueExactMinute');
       let h12 = parseInt(hEl ? hEl.value : '12', 10);
       let m = parseInt(mEl ? mEl.value : '00', 10);
-      if (isNaN(h12)) h12 = 12;
-      if (isNaN(m)) m = 0;
+      if (isNaN(h12) || h12 < 1 || h12 > 12) h12 = 12;
+      if (isNaN(m) || m < 0 || m > 59) m = 0;
       let h24 = (h12 % 12) + (currentMeridiem === 'PM' ? 12 : 0);
       let totalMins = (h24 * 60 + m + deltaMinutes) % 1440;
       if (totalMins < 0) totalMins += 1440;
@@ -3802,9 +4096,9 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     function setTimeToCurrentNow() {
-      const istDate = getNowIST();
-      let h24 = istDate.getHours();
-      let m = istDate.getMinutes() + 1;
+      const istNow = getISTClockParts();
+      let h24 = istNow.hour;
+      let m = istNow.minute + 1;
       if (m >= 60) {
         m = 0;
         h24 = (h24 + 1) % 24;
@@ -3820,24 +4114,30 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     function applyTimePreset(timeStr) {
-      const match = String(timeStr || '').match(/^(\d{1,2}):(\d{1,2})\s*(AM|PM)?$/i);
+      const match = String(timeStr || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
       if (!match) return;
-      let h = parseInt(match[1], 10);
-      const m = String(parseInt(match[2], 10)).padStart(2, '0');
+      let hour = parseInt(match[1], 10);
+      const minute = parseInt(match[2], 10);
       let mer = match[3] ? match[3].toUpperCase() : null;
-      if (!mer) {
-        mer = h >= 12 ? 'PM' : 'AM';
+      if (minute > 59) return;
+      if (mer) {
+        if (hour < 1 || hour > 12) return;
+      } else {
+        if (hour < 0 || hour > 23) return;
+        mer = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12 || 12;
       }
-      h = (h % 12 === 0) ? 12 : (h % 12);
-      const hStr = String(h).padStart(2, '0');
+
+      // Commit the whole picker state together. This avoids rebuilding the smart
+      // preset buttons halfway through a click and keeps the preview in sync.
+      if (selectedTimingMode !== 'time') setTimingMode('time');
+      currentMeridiem = mer;
       const hEl = document.getElementById('queueExactHour');
       const mEl = document.getElementById('queueExactMinute');
-      if (hEl) hEl.value = hStr;
-      if (mEl) mEl.value = m;
-      setMeridiem(mer);
-      if (typeof selectedTimingMode !== 'undefined' && selectedTimingMode !== 'time') {
-        setTimingMode('time');
-      }
+      if (hEl) hEl.value = String(hour).padStart(2, '0');
+      if (mEl) mEl.value = String(minute).padStart(2, '0');
+      paintMeridiemButtons();
+      onExactTimeChanged();
     }
 
     function updateExactTimeCountdownOnly() {
@@ -3849,26 +4149,26 @@ export function renderDashboardHTML(initialAccounts = []) {
       if (isNaN(h12)) h12 = 12;
       if (isNaN(m)) m = 0;
       let h24 = (h12 % 12) + (currentMeridiem === 'PM' ? 12 : 0);
-      let targetMins = h24 * 60 + m;
+      const nowMs = Date.now();
+      const istOffsetMs = 5.5 * 60 * 60 * 1000;
+      const istNow = new Date(nowMs + istOffsetMs);
+      let targetTimestamp = Date.UTC(
+        istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate(), h24, m, 0, 0
+      ) - istOffsetMs;
 
-      const istDate = getNowIST();
-      let currentMins = istDate.getHours() * 60 + istDate.getMinutes();
-      let currentSecs = istDate.getSeconds();
-
-      let diffMins = targetMins - currentMins;
-      let isTomorrow = false;
-      if (diffMins < 0 || (diffMins === 0 && currentSecs > 0)) {
-        diffMins += 1440;
-        isTomorrow = true;
-      }
-
-      let diffH = Math.floor(diffMins / 60);
-      let diffRemM = diffMins % 60;
+      // Match calculateTargetTimestamp(): the selected minute must still be in
+      // the future, otherwise the task is scheduled for its next daily run.
+      const isTomorrow = targetTimestamp <= nowMs;
+      if (isTomorrow) targetTimestamp += 24 * 60 * 60 * 1000;
+      const remainingSeconds = Math.max(0, Math.ceil((targetTimestamp - nowMs) / 1000));
+      const remainingMinutes = Math.ceil(remainingSeconds / 60);
+      let diffH = Math.floor(remainingMinutes / 60);
+      let diffRemM = remainingMinutes % 60;
       let countdownStr = '';
-      if (diffH > 0 && diffRemM > 0) countdownStr = 'in ' + diffH + 'h ' + diffRemM + 'm';
+      if (remainingSeconds < 60) countdownStr = 'in ' + remainingSeconds + 's';
+      else if (diffH > 0 && diffRemM > 0) countdownStr = 'in ' + diffH + 'h ' + diffRemM + 'm';
       else if (diffH > 0) countdownStr = 'in ' + diffH + 'h';
-      else if (diffRemM > 0) countdownStr = 'in ' + diffRemM + 'm';
-      else countdownStr = 'under 1m';
+      else countdownStr = 'in ' + diffRemM + 'm';
 
       if (isTomorrow) countdownStr += ' (Tomorrow)';
 
@@ -3949,16 +4249,35 @@ export function renderDashboardHTML(initialAccounts = []) {
       return null;
     }
 
+    function getTaskQueuedAtTimestamp(task) {
+      const numeric = Number(task && task.queuedAtTimestamp);
+      if (Number.isFinite(numeric) && numeric > 0) return numeric;
+      const parsed = Date.parse((task && task.queuedAt) || '');
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
     function getLatestTaskScheduledMinsOfDay(tasks) {
       if (!tasks || tasks.length === 0) return null;
-      let latestMins = null;
-      tasks.forEach(t => {
-        const m = getTaskScheduledMinsOfDay(t);
-        if (m !== null) {
-          if (latestMins === null || m > latestMins) latestMins = m;
-        }
-      });
-      return latestMins;
+      const scheduledTasks = tasks.filter(task => getTaskScheduledMinsOfDay(task) !== null);
+      if (scheduledTasks.length === 0) return null;
+      const chronological = scheduledTasks.sort((a, b) =>
+        getTaskQueuedAtTimestamp(b) - getTaskQueuedAtTimestamp(a) ||
+        (Number(b.targetTimestamp) || 0) - (Number(a.targetTimestamp) || 0)
+      );
+      if (getTaskQueuedAtTimestamp(chronological[0]) > 0) {
+        return getTaskScheduledMinsOfDay(chronological[0]);
+      }
+
+      // Older queue records may not have a creation timestamp. Prefer the
+      // latest scheduled instant when available, then fall back to time of day.
+      const withTimestamp = chronological
+        .filter(task => Number.isFinite(Number(task.targetTimestamp)) && Number(task.targetTimestamp) > 0)
+        .sort((a, b) => Number(b.targetTimestamp) - Number(a.targetTimestamp));
+      if (withTimestamp.length) return getTaskScheduledMinsOfDay(withTimestamp[0]);
+      return chronological.reduce((latest, task) => {
+        const mins = getTaskScheduledMinsOfDay(task);
+        return mins !== null && (latest === null || mins > latest) ? mins : latest;
+      }, null);
     }
 
     let lastSmartPresetKey = '';
@@ -3989,8 +4308,8 @@ export function renderDashboardHTML(initialAccounts = []) {
       const stateKey = [
         currentPickerTime,
         targetAccId,
-        targetTasks.map(t => getTaskScheduledMinsOfDay(t)).join(','),
-        otherTasks.map(t => getTaskScheduledMinsOfDay(t)).join(','),
+        targetTasks.map(t => [getTaskScheduledMinsOfDay(t), getTaskQueuedAtTimestamp(t)].join(':')).join(','),
+        otherTasks.map(t => [getTaskScheduledMinsOfDay(t), getTaskQueuedAtTimestamp(t)].join(':')).join(','),
         targetState ? (targetState.isActive ? 'act' : 'sb') : 'na',
         otherState ? (otherState.isActive ? 'act' : 'sb') : 'na'
       ].join('||');
@@ -4002,12 +4321,14 @@ export function renderDashboardHTML(initialAccounts = []) {
           const postTaskTime = fmtMinsToTime(postTaskMins);
           const taskTimeStr = fmtMinsToTime(targetLatestTaskMins);
           callout.style.display = 'flex';
-          callout.innerHTML =
+          const calloutMarkup =
             '<div class="smart-queue-callout-text">' +
               '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' +
               '<span><strong>' + escapeHtml(targetAcc.name) + '</strong> has a task queued for <strong>' + taskTimeStr + '</strong>. Suggested reset: <strong>' + postTaskTime + '</strong> (+5h 2m).</span>' +
             '</div>' +
             '<button type="button" class="btn-callout-apply" onclick="applyTimePreset(&quot;' + postTaskTime + '&quot;)">Set ' + postTaskTime + '</button>';
+          // Keep the active Set button mounted while only the picker value changes.
+          if (callout.innerHTML !== calloutMarkup) callout.innerHTML = calloutMarkup;
         } else {
           callout.style.display = 'none';
         }
@@ -4383,7 +4704,6 @@ export function renderDashboardHTML(initialAccounts = []) {
       const cList = document.getElementById('completedTasksList');
       const qBadge = document.getElementById('taskCountBadge');
       const cBadge = document.getElementById('taskCompletedCountBadge');
-      const sep = document.getElementById('queueSectionSeparator');
       const compSection = document.getElementById('completedTasksSection');
       const clearBtn = document.getElementById('btnClearCompletedTasks');
 
@@ -4456,7 +4776,6 @@ export function renderDashboardHTML(initialAccounts = []) {
         if (cList) {
           cList.innerHTML = '';
           if (completedItems.length > 0) {
-            if (sep) sep.style.display = 'flex';
             if (compSection) compSection.style.display = 'block';
             if (clearBtn) clearBtn.disabled = false;
 
@@ -4478,7 +4797,6 @@ export function renderDashboardHTML(initialAccounts = []) {
               cList.appendChild(expBtn);
             }
           } else {
-            if (sep) sep.style.display = 'none';
             if (compSection) compSection.style.display = 'none';
             if (clearBtn) clearBtn.disabled = true;
           }
