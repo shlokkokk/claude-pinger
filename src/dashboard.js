@@ -4780,7 +4780,8 @@ export function renderDashboardHTML(initialAccounts = []) {
         if (cList) {
           cList.innerHTML = '';
           if (completedItems.length > 0) {
-            if (compSection) compSection.style.display = 'block';
+            // Keep the section's column layout so its header-to-list gap applies.
+            if (compSection) compSection.style.display = 'flex';
             if (clearBtn) clearBtn.disabled = false;
 
             const visibleCompCount = isCompletedExpanded ? completedItems.length : Math.min(QUEUE_COLLAPSE_THRESHOLD, completedItems.length);
