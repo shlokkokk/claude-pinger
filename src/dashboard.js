@@ -1047,47 +1047,26 @@ export function renderDashboardHTML(initialAccounts = []) {
       height: 11px;
     }
 
-    .chrono-divider {
-      width: 1px;
-      height: 48px;
-      background: rgba(255, 255, 255, 0.08);
-      margin: 0 2px;
-    }
-
-    .chrono-quick-adjust {
-      display: flex;
-      gap: 6px;
+    .btn-next-minute {
+      min-height: 36px;
+      display: inline-flex;
       align-items: center;
-    }
-    .btn-quick-adjust {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-dim);
-      border-radius: 6px;
-      color: var(--text-200);
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 7px 11px;
-      cursor: pointer;
-      transition: all var(--transition);
-      white-space: nowrap;
-    }
-    .btn-quick-adjust:hover {
-      background: rgba(0, 229, 240, 0.12);
-      border-color: var(--cyan);
-      color: #22f7ff;
-      transform: translateY(-1px);
-    }
-    .btn-quick-adjust.now {
-      background: rgba(0, 214, 143, 0.1);
-      border-color: rgba(0, 214, 143, 0.3);
+      justify-content: center;
+      gap: 7px;
+      padding: 7px 12px;
+      border: 1px solid rgba(0, 214, 143, 0.24);
+      border-radius: 9px;
+      background: rgba(0, 214, 143, 0.07);
       color: var(--green);
+      font-family: var(--font);
+      font-size: .72rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background .16s ease, border-color .16s ease;
     }
-    .btn-quick-adjust.now:hover {
-      background: rgba(0, 214, 143, 0.2);
-      border-color: var(--green);
-      color: #fff;
-    }
+    .btn-next-minute:hover { background: rgba(0,214,143,.13); border-color: rgba(0,214,143,.42); }
+    .btn-next-minute svg { width: 14px; height: 14px; }
 
     .chrono-presets-row {
       display: flex;
@@ -1313,24 +1292,6 @@ export function renderDashboardHTML(initialAccounts = []) {
         gap: 12px;
       }
       .chrono-clock-cluster {
-        justify-content: center;
-      }
-      .chrono-divider {
-        display: none;
-      }
-      .chrono-quick-adjust {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        width: 100%;
-        gap: 6px;
-      }
-      .btn-quick-adjust {
-        min-height: 38px;
-        padding: 8px 4px;
-        font-size: 11px;
-        text-align: center;
-        display: flex;
-        align-items: center;
         justify-content: center;
       }
       .chrono-presets-grid {
@@ -2723,28 +2684,30 @@ export function renderDashboardHTML(initialAccounts = []) {
     #taskQueueSection .timing-pill-btn.active { background: rgba(0,229,240,.12); box-shadow: inset 0 0 0 1px rgba(0,229,240,.12); }
     #taskQueueSection #timingSlotWrap { margin-top: 2px !important; }
     #taskQueueSection #timingExactWrap { margin-top: 4px !important; }
-    #taskQueueSection .chrono-deck { padding: 10px 12px; border-radius: 12px; border-color: rgba(255,255,255,.055); background: rgba(3,7,14,.26); box-shadow: none; gap: 8px; }
+    #taskQueueSection .chrono-deck { padding: 12px 14px; border-radius: 12px; border-color: rgba(255,255,255,.055); background: rgba(3,7,14,.22); box-shadow: none; gap: 12px; }
     #taskQueueSection .chrono-deck:focus-within { box-shadow: none; }
-    #taskQueueSection .chrono-deck-main { align-items: center; gap: 12px; }
-    #taskQueueSection .chrono-clock-cluster { flex: 0 0 auto; gap: 7px; padding: 6px 8px; border: 1px solid rgba(255,255,255,.055); border-radius: 10px; background: rgba(255,255,255,.012); }
-    #taskQueueSection .chrono-stepper-cell { width: 70px; gap: 3px; }
-    #taskQueueSection .stepper-btn { height: 24px; border-radius: 7px; }
+    #taskQueueSection .chrono-deck-main { align-items: center; justify-content: space-between; gap: 14px; }
+    #taskQueueSection .chrono-clock-cluster { flex: 0 0 auto; gap: 8px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.055); border-radius: 11px; background: rgba(255,255,255,.012); }
+    #taskQueueSection .chrono-stepper-cell { display: grid; grid-template-columns: 24px 62px 24px; grid-template-rows: 48px; align-items: center; gap: 3px; width: 116px; }
+    #taskQueueSection .chrono-stepper-cell > .stepper-btn:first-child { grid-column: 1; grid-row: 1; }
+    #taskQueueSection .chrono-stepper-cell > .chrono-digit-box { grid-column: 2; grid-row: 1; }
+    #taskQueueSection .chrono-stepper-cell > .stepper-btn:last-child { grid-column: 3; grid-row: 1; }
+    #taskQueueSection .stepper-btn { width: 24px; height: 30px; border-color: transparent; background: transparent; border-radius: 7px; }
+    #taskQueueSection .stepper-btn:hover { transform: none; }
     #taskQueueSection .stepper-btn:focus-visible,
     #taskQueueSection .btn-meridiem-switch:focus-visible,
-    #taskQueueSection .btn-quick-adjust:focus-visible,
+    #taskQueueSection .btn-next-minute:focus-visible,
     #taskQueueSection .chrono-preset-pill:focus-visible,
     #taskQueueSection .btn-callout-apply:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-    #taskQueueSection .chrono-digit-box { height: 50px; border-radius: 9px; background: rgba(4,8,15,.5); box-shadow: none; }
+    #taskQueueSection .chrono-digit-box { height: 48px; border-radius: 9px; background: rgba(4,8,15,.5); box-shadow: none; }
     #taskQueueSection .chrono-digit-box:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(0,229,240,.09); }
     #taskQueueSection .chrono-digit-input { font-size: 25px; font-variant-numeric: tabular-nums; text-shadow: none; }
     #taskQueueSection .meridiem-dock { height: auto; gap: 4px; margin-left: 0; }
     #taskQueueSection .btn-meridiem-switch { min-height: 34px; min-width: 58px; border-radius: 8px; padding: 6px 8px; }
     #taskQueueSection .btn-meridiem-switch.active.am,
     #taskQueueSection .btn-meridiem-switch.active.pm { box-shadow: none; }
-    #taskQueueSection .chrono-divider { align-self: center; height: 36px; }
-    #taskQueueSection .chrono-quick-adjust { flex: 1 1 auto; align-self: center; flex-wrap: wrap; gap: 6px; }
-    #taskQueueSection .btn-quick-adjust { min-height: 36px; padding: 6px 10px; border-radius: 8px; }
-    #taskQueueSection .chrono-presets-row { gap: 8px; padding-top: 10px; }
+    #taskQueueSection .btn-next-minute { margin-left: auto; }
+    #taskQueueSection .chrono-presets-row { gap: 9px; padding-top: 12px; }
     #taskQueueSection .chrono-presets-header { align-items: flex-start; }
     #taskQueueSection .chrono-presets-label { font-size: .64rem; letter-spacing: .09em; }
     #taskQueueSection .preset-auto-badge { padding: 3px 7px; border-radius: 999px; font-size: .58rem; }
@@ -2861,15 +2824,14 @@ export function renderDashboardHTML(initialAccounts = []) {
       #taskQueueSection .timing-pill-btn svg { width: 13px; height: 13px; }
       #taskQueueSection .chrono-deck { padding: 12px; }
       #taskQueueSection .chrono-deck-main { gap: 12px; }
-      #taskQueueSection .chrono-clock-cluster { justify-content: center; gap: 7px; padding: 9px 7px; }
-      #taskQueueSection .chrono-stepper-cell { width: clamp(66px, 22vw, 84px); }
-      #taskQueueSection .stepper-btn { height: 44px; min-height: 44px; }
+      #taskQueueSection .chrono-clock-cluster { width: 100%; justify-content: center; gap: 7px; padding: 9px 7px; }
+      #taskQueueSection .chrono-stepper-cell { display: flex; flex-direction: column; width: clamp(66px, 22vw, 84px); gap: 3px; }
+      #taskQueueSection .stepper-btn { width: 100%; height: 44px; min-height: 44px; border-color: var(--border-dim); background: rgba(255,255,255,.035); }
       #taskQueueSection .chrono-digit-box { height: 66px; }
       #taskQueueSection .chrono-digit-input { font-size: 28px; }
       #taskQueueSection .meridiem-dock { height: auto; gap: 6px; margin-left: 1px; }
       #taskQueueSection .btn-meridiem-switch { min-width: 58px; min-height: 44px; justify-content: center; padding: 7px; }
-      #taskQueueSection .chrono-quick-adjust { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-      #taskQueueSection .btn-quick-adjust { min-height: 44px; padding: 8px 3px; font-size: .68rem; }
+      #taskQueueSection .btn-next-minute { width: 100%; min-height: 44px; margin-left: 0; }
       #taskQueueSection .chrono-presets-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
       #taskQueueSection .chrono-preset-pill { min-height: 58px; padding: 8px; }
       #taskQueueSection .chrono-presets-header { flex-direction: column; gap: 5px; }
@@ -3122,7 +3084,7 @@ export function renderDashboardHTML(initialAccounts = []) {
           <div id="timingExactWrap" style="display:none;margin-top:10px;">
             <div class="chrono-deck">
               <div class="chrono-deck-main">
-                <div class="chrono-clock-cluster">
+                <div class="chrono-clock-cluster" role="group" aria-label="Choose an exact time in IST">
                   <!-- Hour Stepper Cell -->
                   <div class="chrono-stepper-cell">
                     <button type="button" class="stepper-btn" onclick="stepHour(1)" title="Increase Hour" aria-label="Increase Hour">
@@ -3170,25 +3132,20 @@ export function renderDashboardHTML(initialAccounts = []) {
                   </div>
                 </div>
 
-                <div class="chrono-divider" aria-hidden="true"></div>
-
-                <!-- Quick Offset Controls (+15m, +30m, +1h, Now) -->
-                <div class="chrono-quick-adjust">
-                  <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(15)" title="Add 15 minutes">+15m</button>
-                  <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(30)" title="Add 30 minutes">+30m</button>
-                  <button type="button" class="btn-quick-adjust" onclick="adjustTimeMinutes(60)" title="Add 1 hour">+1h</button>
-                  <button type="button" class="btn-quick-adjust now" onclick="setTimeToCurrentNow()" title="Set to one minute from now (IST)">+1m</button>
-                </div>
+                <button type="button" class="btn-next-minute" onclick="setTimeToCurrentNow()" title="Set the execution time to the next minute in IST" aria-label="Set to the next minute in IST">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2M18.5 5.5 20 4"/></svg>
+                  <span>Next minute</span>
+                </button>
               </div>
 
               <!-- Smart Presets Bar -->
               <div class="chrono-presets-row">
                 <div class="chrono-presets-header">
                   <div style="display:flex;align-items:center;gap:6px;">
-                    <span class="chrono-presets-label">Smart Reset &amp; Cascade Presets</span>
-                    <span class="preset-auto-badge">+5h 2m Buffer</span>
+                    <span class="chrono-presets-label">Recommended times</span>
+                    <span class="preset-auto-badge">Cascade +5h 2m</span>
                   </div>
-                  <span class="chrono-presets-sub" id="chronoPresetsSub">Auto-computed from queue &amp; rate limits</span>
+                  <span class="chrono-presets-sub" id="chronoPresetsSub">Based on queue and rate limits</span>
                 </div>
                 <div class="smart-queue-callout" id="smartQueueCallout" style="display:none;"></div>
                 <div class="chrono-presets-grid" id="chronoPresetsGrid"></div>
@@ -4076,27 +4033,6 @@ export function renderDashboardHTML(initialAccounts = []) {
         event.preventDefault();
         if (type === 'hour') stepHour(-1); else stepMinute(-1);
       }
-    }
-
-    function adjustTimeMinutes(deltaMinutes) {
-      const hEl = document.getElementById('queueExactHour');
-      const mEl = document.getElementById('queueExactMinute');
-      let h12 = parseInt(hEl ? hEl.value : '12', 10);
-      let m = parseInt(mEl ? mEl.value : '00', 10);
-      if (isNaN(h12) || h12 < 1 || h12 > 12) h12 = 12;
-      if (isNaN(m) || m < 0 || m > 59) m = 0;
-      let h24 = (h12 % 12) + (currentMeridiem === 'PM' ? 12 : 0);
-      let totalMins = (h24 * 60 + m + deltaMinutes) % 1440;
-      if (totalMins < 0) totalMins += 1440;
-
-      let newH24 = Math.floor(totalMins / 60);
-      let newM = totalMins % 60;
-      let newMer = newH24 >= 12 ? 'PM' : 'AM';
-      let newH12 = newH24 % 12 === 0 ? 12 : newH24 % 12;
-
-      if (hEl) hEl.value = String(newH12).padStart(2, '0');
-      if (mEl) mEl.value = String(newM).padStart(2, '0');
-      setMeridiem(newMer);
     }
 
     function setTimeToCurrentNow() {
