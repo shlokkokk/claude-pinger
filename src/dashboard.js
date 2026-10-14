@@ -1613,53 +1613,55 @@ export function renderDashboardHTML(initialAccounts = []) {
       gap: 14px;
     }
 
-    .tasks-section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
     .tasks-divider {
       margin-top: 26px;
       padding-top: 20px;
       border-top: 1px solid var(--border-dim);
       display: flex;
       flex-direction: column;
-      gap: 22px;
+      gap: 24px;
     }
 
     .tasks-section {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
+    }
+
+    .tasks-section.history-section {
+      margin-top: 6px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
     }
 
     .tasks-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       font-weight: 800;
       color: var(--text-200);
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      padding: 0 2px;
+      padding: 0 6px;
+      margin-bottom: 2px;
     }
 
     .tasks-header-left {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .task-count {
       font-family: var(--mono);
       font-size: 0.65rem;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: 2px 9px;
       border-radius: 12px;
       background: rgba(255,255,255,0.06);
       color: var(--text-100);
+      letter-spacing: normal;
     }
 
     .task-count.queued {
@@ -1681,13 +1683,14 @@ export function renderDashboardHTML(initialAccounts = []) {
       font-size: 0.68rem;
       font-weight: 700;
       border-radius: 6px;
-      padding: 4px 10px;
+      padding: 5px 12px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       cursor: pointer;
       font-family: var(--font);
       transition: all var(--transition);
+      margin-right: 2px;
     }
 
     .btn-clear-completed:hover:not(:disabled) {
@@ -1695,6 +1698,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       border-color: var(--red);
       color: #fff;
       transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(240, 72, 72, 0.2);
     }
 
     .btn-clear-completed:disabled {
@@ -2586,6 +2590,15 @@ export function renderDashboardHTML(initialAccounts = []) {
       .diag-status { font-size: .68rem; }
       .task-actions { width: 100%; }
       .task-actions > button { flex: 1 1 0; justify-content: center; min-height: 42px; }
+      .tasks-header { padding: 0 4px; gap: 8px; margin-bottom: 4px; }
+      .tasks-header-left { gap: 6px; }
+      .tasks-header-left > span:first-child { font-size: 0.69rem; }
+      .btn-clear-completed { padding: 4px 9px; font-size: 0.65rem; gap: 4px; }
+      .history-card { padding: 10px 12px; gap: 7px; }
+      .history-head-left { gap: 6px; }
+      .history-prompt-row { font-size: 0.76rem; padding: 5px 8px; }
+      .history-foot { font-size: 0.62rem; gap: 6px; }
+      .history-url-chip { max-width: 170px; font-size: 0.62rem; }
     }
 
     @media (min-width: 960px) {
