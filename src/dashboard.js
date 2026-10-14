@@ -1619,15 +1619,31 @@ export function renderDashboardHTML(initialAccounts = []) {
       gap: 10px;
     }
 
+    .tasks-divider {
+      margin-top: 26px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-dim);
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .tasks-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .tasks-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.70rem;
+      font-size: 0.72rem;
       font-weight: 800;
-      color: var(--text-300);
+      color: var(--text-200);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
+      padding: 0 2px;
     }
 
     .tasks-header-left {
@@ -1641,7 +1657,7 @@ export function renderDashboardHTML(initialAccounts = []) {
       font-size: 0.65rem;
       font-weight: 700;
       padding: 2px 8px;
-      border-radius: 10px;
+      border-radius: 12px;
       background: rgba(255,255,255,0.06);
       color: var(--text-100);
     }
@@ -1658,60 +1674,27 @@ export function renderDashboardHTML(initialAccounts = []) {
       border: 1px solid rgba(0, 214, 143, 0.28);
     }
 
-    .queue-section-separator {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 4px 0 2px 0;
-    }
-
-    .separator-line {
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border-default), transparent);
-    }
-
-    .separator-chip {
+    .btn-clear-completed {
+      background: rgba(240, 72, 72, 0.08);
+      border: 1px solid rgba(240, 72, 72, 0.22);
+      color: var(--red);
+      font-size: 0.68rem;
+      font-weight: 700;
+      border-radius: 6px;
+      padding: 4px 10px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.64rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-300);
-      padding: 4px 10px;
-      background: rgba(255, 255, 255, 0.025);
-      border: 1px solid var(--border-dim);
-      border-radius: 12px;
-    }
-
-    .separator-chip svg {
-      color: var(--green);
-    }
-
-    .btn-clear-completed {
-      background: rgba(240, 72, 72, 0.08);
-      border: 1px solid rgba(240, 72, 72, 0.24);
-      color: var(--red);
-      font-size: 0.66rem;
-      font-weight: 700;
-      border-radius: 6px;
-      padding: 4px 9px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
       cursor: pointer;
       font-family: var(--font);
       transition: all var(--transition);
-      text-transform: none;
-      letter-spacing: normal;
     }
 
     .btn-clear-completed:hover:not(:disabled) {
       background: rgba(240, 72, 72, 0.18);
       border-color: var(--red);
       color: #fff;
+      transform: translateY(-1px);
     }
 
     .btn-clear-completed:disabled {
@@ -1722,12 +1705,186 @@ export function renderDashboardHTML(initialAccounts = []) {
       background: transparent;
     }
 
+    /* Ultra-Sleek Glassmorphism History Item */
+    .history-card {
+      background: rgba(13, 18, 32, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all var(--transition);
+      backdrop-filter: blur(8px);
+    }
+
+    .history-card:hover {
+      background: rgba(17, 24, 42, 0.9);
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .history-card.failed {
+      border-color: rgba(240, 72, 72, 0.24);
+    }
+
+    .history-card.failed:hover {
+      border-color: rgba(240, 72, 72, 0.42);
+    }
+
+    .history-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-head-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .history-acc-tag {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .history-acc-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .history-pill {
+      font-family: var(--mono);
+      font-size: 0.60rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .history-pill.done {
+      background: rgba(0, 214, 143, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(0, 214, 143, 0.25);
+    }
+
+    .history-pill.failed {
+      background: rgba(240, 72, 72, 0.12);
+      color: var(--red);
+      border: 1px solid rgba(240, 72, 72, 0.25);
+    }
+
+    .history-time-tag {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-300);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border-dim);
+    }
+
+    .btn-history-del {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-400);
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .btn-history-del:hover {
+      background: rgba(240, 72, 72, 0.15);
+      border-color: rgba(240, 72, 72, 0.3);
+      color: var(--red);
+    }
+
+    .history-prompt-row {
+      font-size: 0.80rem;
+      color: var(--text-100);
+      line-height: 1.45;
+      font-family: var(--mono);
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 6px;
+      border-left: 2px solid rgba(0, 214, 143, 0.4);
+      word-break: break-word;
+    }
+
+    .history-card.failed .history-prompt-row {
+      border-left-color: rgba(240, 72, 72, 0.4);
+    }
+
+    .history-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.66rem;
+      color: var(--text-300);
+      flex-wrap: wrap;
+    }
+
+    .history-url-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--cyan);
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      transition: opacity var(--transition);
+      max-width: 280px;
+    }
+
+    .history-url-chip:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    .history-url-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-finished-text {
+      font-family: var(--mono);
+      color: var(--text-300);
+      font-size: 0.65rem;
+    }
+
+    /* Accordion Button */
     .btn-queue-expand {
       width: 100%;
-      background: rgba(255, 255, 255, 0.025);
-      border: 1px dashed var(--border-default);
-      border-radius: var(--radius-sm);
-      padding: 9px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 9px 14px;
       color: var(--text-200);
       font-size: 0.72rem;
       font-weight: 700;
@@ -1742,10 +1899,9 @@ export function renderDashboardHTML(initialAccounts = []) {
     }
 
     .btn-queue-expand:hover {
-      background: rgba(0, 229, 240, 0.06);
-      border-color: rgba(0, 229, 240, 0.35);
-      border-style: solid;
-      color: var(--cyan);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #fff;
     }
 
     .btn-queue-expand svg {
@@ -1778,7 +1934,7 @@ export function renderDashboardHTML(initialAccounts = []) {
     .tasks-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .task-card {
@@ -2788,21 +2944,11 @@ export function renderDashboardHTML(initialAccounts = []) {
           <div class="tasks-list" id="activeTasksList"></div>
         </div>
 
-        <!-- SEPARATOR BETWEEN QUEUED & COMPLETED -->
-        <div class="queue-section-separator" id="queueSectionSeparator" style="display:none;">
-          <div class="separator-line"></div>
-          <div class="separator-chip">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Execution History</span>
-          </div>
-          <div class="separator-line"></div>
-        </div>
-
         <!-- COMPLETED & HISTORY SECTION -->
-        <div class="tasks-section" id="completedTasksSection" style="display:none;">
+        <div class="tasks-section history-section" id="completedTasksSection" style="display:none;">
           <div class="tasks-header completed-header">
             <div class="tasks-header-left">
-              <span>Completed & History</span>
+              <span>Execution History</span>
               <span class="task-count completed" id="taskCompletedCountBadge">0</span>
             </div>
             <button type="button" class="btn-clear-completed" id="btnClearCompletedTasks" onclick="confirmClearCompleted()">
@@ -2810,7 +2956,7 @@ export function renderDashboardHTML(initialAccounts = []) {
               <span>Clear History</span>
             </button>
           </div>
-          <div class="tasks-list" id="completedTasksList"></div>
+          <div class="tasks-list history-list" id="completedTasksList"></div>
         </div>
       </div>
     </section>
@@ -4092,14 +4238,63 @@ export function renderDashboardHTML(initialAccounts = []) {
 
     function buildTaskCardElement(task) {
       const acc = ACCOUNTS.find(a => a.id === task.accountId) || { name: task.accountName || ('Account ' + task.accountId), color: '#00e5f0' };
+      const su = (task.chatUrl && (task.chatUrl.startsWith('http://') || task.chatUrl.startsWith('https://'))) ? escapeHtml(task.chatUrl) : '#';
+      const suClean = su.startsWith('https://') ? su.slice(8) : (su.startsWith('http://') ? su.slice(7) : su);
+      const isHistory = task.status === 'completed' || task.status === 'failed';
+
+      if (isHistory) {
+        const el = document.createElement('div');
+        el.className = 'history-card ' + task.status;
+        const isDone = task.status === 'completed';
+        const statusBadge = isDone
+          ? '<span class="history-pill done"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;"></span>Done</span>'
+          : '<span class="history-pill failed"><span style="width:5px;height:5px;border-radius:50%;background:var(--red);display:inline-block;"></span>Failed</span>';
+
+        let finishTimeStr = 'Recently';
+        if (task.completedAt) {
+          try {
+            finishTimeStr = new Date(task.completedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+          } catch (_) {}
+        }
+
+        const scheduledTimeTag = task.targetTime
+          ? ('<span class="history-time-tag"><svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' + escapeHtml(task.targetTime) + '</span>')
+          : '';
+
+        el.innerHTML =
+          '<div class="history-head">' +
+            '<div class="history-head-left">' +
+              '<span class="history-acc-tag" style="color:' + (acc.color || '#00e5f0') + ';">' +
+                '<span class="history-acc-dot" style="background:' + (acc.color || '#00e5f0') + ';"></span>' +
+                escapeHtml(acc.name) +
+              '</span>' +
+              statusBadge +
+              scheduledTimeTag +
+            '</div>' +
+            '<button type="button" class="btn-history-del" onclick="confirmClearSingleTask(' + task.accountId + ', &quot;' + task.id + '&quot;)" title="Remove record">' +
+              '<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
+            '</button>' +
+          '</div>' +
+          '<div class="history-prompt-row">' +
+            '&ldquo;' + escapeHtml(task.prompt || 'continue') + '&rdquo;' +
+          '</div>' +
+          '<div class="history-foot">' +
+            '<a href="' + su + '" target="_blank" rel="noopener noreferrer" class="history-url-chip">' +
+              '<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>' +
+              '<span class="history-url-text">' + suClean + '</span>' +
+              '<svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
+            '</a>' +
+            '<span class="history-finished-text">' + (isDone ? ('Finished ' + finishTimeStr) : ('Failed: ' + escapeHtml(task.error || 'Execution error'))) + '</span>' +
+          '</div>';
+        return el;
+      }
+
+      // Active Queued Card
       const el = document.createElement('div');
       el.className = 'task-card ' + (task.status || 'queued');
 
       let sb = '<span class="task-status queued"><span style="width:6px;height:6px;border-radius:50%;background:var(--cyan);display:inline-block;box-shadow:0 0 5px var(--cyan);"></span>Queued</span>';
-      if (task.status === 'completed') sb = '<span class="task-status completed"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Done</span>';
-      if (task.status === 'failed') sb = '<span class="task-status failed"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;"></span>Failed</span>';
 
-      // Target badge & timing description
       let tb = '<span class="target-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Next Ping</span>';
       let tt = 'Fires on next scheduled reset ping';
 
@@ -4134,18 +4329,11 @@ export function renderDashboardHTML(initialAccounts = []) {
           tt = 'Fires on next scheduled reset ping at ' + escapeHtml(nextPing) + ' IST';
         }
       }
-      if (task.status === 'completed') tt = 'Finished ' + (task.completedAt ? new Date(task.completedAt).toLocaleTimeString('en-US') : 'recently');
-      if (task.status === 'failed') tt = 'Error: ' + escapeHtml(task.error || 'Execution failed');
 
-      const actionBtns = task.status === 'queued'
-        ? '<div class="task-actions">' +
-            '<button type="button" class="btn-dispatch-task" onclick="confirmDispatchSingleTask(&quot;' + task.id + '&quot;, ' + task.accountId + ')" title="Execute this prompt immediately"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>Run Now</button>' +
-            '<button type="button" class="btn-cancel-task" onclick="confirmCancelTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel</button>' +
-          '</div>'
-        : '<button type="button" class="btn-cancel-task" onclick="confirmClearSingleTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Clear</button>';
-
-      const su = (task.chatUrl && (task.chatUrl.startsWith('http://') || task.chatUrl.startsWith('https://'))) ? escapeHtml(task.chatUrl) : '#';
-      const suClean = su.startsWith('https://') ? su.slice(8) : (su.startsWith('http://') ? su.slice(7) : su);
+      const actionBtns = '<div class="task-actions">' +
+        '<button type="button" class="btn-dispatch-task" onclick="confirmDispatchSingleTask(&quot;' + task.id + '&quot;, ' + task.accountId + ')" title="Execute this prompt immediately"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>Run Now</button>' +
+        '<button type="button" class="btn-cancel-task" onclick="confirmCancelTask(' + task.accountId + ', &quot;' + task.id + '&quot;)"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>Cancel</button>' +
+      '</div>';
 
       el.innerHTML =
         '<div class="task-top">' +
@@ -4269,10 +4457,10 @@ export function renderDashboardHTML(initialAccounts = []) {
               expBtn.className = 'btn-queue-expand' + (isCompletedExpanded ? ' expanded' : '');
               expBtn.onclick = toggleCompletedExpand;
               if (isCompletedExpanded) {
-                expBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg><span>Show less (' + QUEUE_COLLAPSE_THRESHOLD + ' visible)</span>';
+                expBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg><span>Collapse history (showing all ' + completedItems.length + ')</span>';
               } else {
                 const remaining = completedItems.length - QUEUE_COLLAPSE_THRESHOLD;
-                expBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg><span>Show ' + remaining + ' more completed task' + (remaining === 1 ? '' : 's') + '</span><span class="expand-badge completed">+' + remaining + '</span>';
+                expBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg><span>View ' + remaining + ' more completed execution' + (remaining === 1 ? '' : 's') + '</span><span class="expand-badge completed">+' + remaining + '</span>';
               }
               cList.appendChild(expBtn);
             }
