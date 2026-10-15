@@ -4246,7 +4246,10 @@ export function renderDashboardHTML(initialAccounts = []) {
       const otherLatestTaskMins = getLatestTaskScheduledMinsOfDay(otherTasks);
 
       const stateKey = [
-        currentPickerTime,
+        // Only regenerate the grid from picker time when its fallback cascade
+        // suggestions actually depend on that value. Queue-derived suggestions
+        // stay mounted while the user applies the Set button or edits the clock.
+        targetLatestTaskMins === null ? currentPickerTime : '',
         targetAccId,
         targetTasks.map(t => [getTaskScheduledMinsOfDay(t), getTaskQueuedAtTimestamp(t)].join(':')).join(','),
         otherTasks.map(t => [getTaskScheduledMinsOfDay(t), getTaskQueuedAtTimestamp(t)].join(':')).join(','),
@@ -4261,14 +4264,29 @@ export function renderDashboardHTML(initialAccounts = []) {
           const postTaskTime = fmtMinsToTime(postTaskMins);
           const taskTimeStr = fmtMinsToTime(targetLatestTaskMins);
           callout.style.display = 'flex';
-          const calloutMarkup =
-            '<div class="smart-queue-callout-text">' +
-              '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' +
-              '<span><strong>' + escapeHtml(targetAcc.name) + '</strong> has a task queued for <strong>' + taskTimeStr + '</strong>. Suggested reset: <strong>' + postTaskTime + '</strong> (+5h 2m).</span>' +
-            '</div>' +
-            '<button type="button" class="btn-callout-apply" onclick="applyTimePreset(&quot;' + postTaskTime + '&quot;)">Set ' + postTaskTime + '</button>';
-          // Keep the active Set button mounted while only the picker value changes.
-          if (callout.innerHTML !== calloutMarkup) callout.innerHTML = calloutMarkup;
+          if (!callout.dataset.setHandlerBound) {
+            callout.addEventListener('click', event => {
+              const button = event.target.closest('.btn-callout-apply');
+              if (!button || !callout.contains(button)) return;
+              event.preventDefault();
+              applyTimePreset(button.dataset.time);
+            });
+            callout.dataset.setHandlerBound = 'true';
+          }
+
+          // Use the inputs that determine the recommendation as its render key.
+          // Comparing innerHTML is unreliable because browsers normalize markup
+          // (for example, SVG path tags) and could replace a clicked button mid-update.
+          const calloutKey = [targetAcc.id, targetLatestTaskMins, postTaskTime].join('|');
+          if (callout.dataset.renderKey !== calloutKey) {
+            callout.innerHTML =
+              '<div class="smart-queue-callout-text">' +
+                '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>' +
+                '<span><strong>' + escapeHtml(targetAcc.name) + '</strong> has a task queued for <strong>' + taskTimeStr + '</strong>. Suggested reset: <strong>' + postTaskTime + '</strong> (+5h 2m).</span>' +
+              '</div>' +
+              '<button type="button" class="btn-callout-apply" data-time="' + escapeHtml(postTaskTime) + '" aria-label="Set exact time to ' + escapeHtml(postTaskTime) + '">Set ' + escapeHtml(postTaskTime) + '</button>';
+            callout.dataset.renderKey = calloutKey;
+          }
         } else {
           callout.style.display = 'none';
         }
