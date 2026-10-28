@@ -1679,8 +1679,16 @@ async function pingSpecificAccount(env, accountNum) {
     return [{ success: false, error: `Account ${accountNum} credentials not found.` }];
   }
 
+  let accKey = acc.key;
+  if (env && env.TASK_QUEUE && acc.id) {
+    try {
+      const kvKey = await env.TASK_QUEUE.get(`account_session_key_${acc.id}`);
+      if (kvKey && kvKey.length > 20) accKey = kvKey;
+    } catch { }
+  }
+
   console.log(`Pinging ${acc.name}...`);
-  const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl, acc.id);
+  const res = await pingClaudeAccount(env, acc.name, accKey, acc.chatUrl, acc.id);
   return [{ account: acc.name, result: res }];
 }
 
@@ -1691,9 +1699,16 @@ async function pingAccountsList(env, accounts, currentSlotNumber = null) {
 
   const results = [];
   for (const acc of accounts) {
+    let accKey = acc.key;
+    if (env && env.TASK_QUEUE && acc.id) {
+      try {
+        const kvKey = await env.TASK_QUEUE.get(`account_session_key_${acc.id}`);
+        if (kvKey && kvKey.length > 20) accKey = kvKey;
+      } catch { }
+    }
     console.log(`Pinging ${acc.name}... (Slot ${currentSlotNumber || 'manual'})`);
     try {
-      const res = await pingClaudeAccount(env, acc.name, acc.key, acc.chatUrl, acc.id, currentSlotNumber);
+      const res = await pingClaudeAccount(env, acc.name, accKey, acc.chatUrl, acc.id, currentSlotNumber);
       results.push({ account: acc.name, result: res });
     } catch (err) {
       results.push({ account: acc.name, result: { success: false, error: err.message } });
@@ -1798,6 +1813,16 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
     return { success: false, error: noTokenErr };
   }
 
+  let effectiveSessionKey = sessionKey;
+  if (env && env.TASK_QUEUE && accountId) {
+    try {
+      const kvKey = await env.TASK_QUEUE.get(`account_session_key_${accountId}`);
+      if (kvKey && kvKey.length > 20) {
+        effectiveSessionKey = kvKey;
+      }
+    } catch { }
+  }
+
   const targetCustomUrl = queuedTask ? queuedTask.chatUrl : null;
   const promptToSend = queuedTask ? queuedTask.prompt : 'ping. Reply with "." only.';
   const isCustomTask = Boolean(queuedTask);
@@ -1805,7 +1830,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
   const browserlessCode = `
     export default async ({ page, browser }) => {
       try {
-        const sessionKey = ${JSON.stringify(sessionKey)};
+        const sessionKey = ${JSON.stringify(effectiveSessionKey)};
         const directChatUrlHint = ${JSON.stringify(chatUrlHint || null)};
         const targetCustomUrl = ${JSON.stringify(targetCustomUrl)};
         const promptToSend = ${JSON.stringify(promptToSend)};
@@ -2243,7 +2268,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
           // Resilience Fallback: run normal ping so account 5-hour window is preserved
           console.warn(`Custom task failed for ${accountName}. Dispatching fallback keep-alive ping...`);
           try {
-            await pingClaudeAccount(env, accountName, sessionKey, null, null);
+            await pingClaudeAccount(env, accountName, effectiveSessionKey, null, accountId);
           } catch (fbErr) {
             console.error(`Fallback ping failed:`, fbErr.message);
           }
