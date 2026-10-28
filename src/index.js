@@ -1,4 +1,5 @@
 import { renderDashboardHTML } from './dashboard.js';
+import { handleDiscordInteractions, buildContextualAlert, buildDigestEmbed } from './discord.js';
 
 export function getAccountCredentials(env, accountNum) {
   const num = parseInt(accountNum, 10);
@@ -158,6 +159,21 @@ export function calculateTargetTimestamp(timeStr) {
   if (!timeStr || typeof timeStr !== 'string') return null;
   // Strip optional timezone suffixes (without stripping AM/PM) and trim
   const clean = timeStr.trim().replace(/\s*(IST|UTC|GMT|EDT|EST|CDT|CST|MDT|MST|PDT|PST)$/i, '').trim();
+
+  // Support relative offsets: +5h, +30m, +2h30m, +1h15m
+  const relMatch = clean.match(/^\+(\d+)h(?:(\d+)m)?$/i) || clean.match(/^\+(\d+)m$/i);
+  if (relMatch) {
+    // Check if it matched +Nm only (second regex)
+    if (clean.match(/^\+(\d+)m$/i) && !clean.match(/^\+(\d+)h/i)) {
+      const mins = parseInt(relMatch[1], 10);
+      if (mins > 0) return Date.now() + (mins * 60000);
+    } else {
+      const hours = parseInt(relMatch[1], 10);
+      const mins = relMatch[2] ? parseInt(relMatch[2], 10) : 0;
+      if (hours > 0 || mins > 0) return Date.now() + (hours * 3600000) + (mins * 60000);
+    }
+  }
+
   const match = clean.match(/^(\d{1,2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i);
   if (!match) return null;
   let hour = parseInt(match[1], 10);
@@ -227,13 +243,20 @@ function escapeTelegramHtml(str) {
     .replace(/>/g, '&gt;');
 }
 
-export async function sendNotification(env, { type, accountName, accountId, prompt, url, pageTitle, error }) {
+export async function sendNotification(env, { type, accountName, accountId, prompt, url, pageTitle, error, responseSnippet, fullResponse, taskId }) {
   if (!env) return;
   const tgToken = env.TELEGRAM_BOT_TOKEN;
   const tgChatId = env.TELEGRAM_CHAT_ID;
-  const discordWebhook = env.DISCORD_WEBHOOK_URL;
+  let discordWebhook = env.DISCORD_WEBHOOK_URL;
+  if (type === 'task_completed' || type === 'task_failed') {
+    discordWebhook = env.DISCORD_WEBHOOK_TASKS || env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1565106594889601165/PKIE6ttDR8n8mVzEJ-pWGGEefvYcJUVbnUx7iEW8rDoHQ8wilHMx5bWcGORyU4mBN_cv';
+  } else if (type === 'session_expired' || type === 'scheduler_error') {
+    discordWebhook = env.DISCORD_WEBHOOK_ALARMS || env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1565107176828305578/sBWR-PPxQBZta7Edd4QUeMki8u_P-HftzYaylIyiArohhajoavWAH2hGa9JIU9Y-CPkj';
+  } else if (type === 'daily_digest' || type === 'morning_brew') {
+    discordWebhook = env.DISCORD_WEBHOOK_DIGEST || 'https://discord.com/api/webhooks/1565119127956230264/z0r5oRpLVHb0HoOEAc7sluFL_5IptokTlaziDq0ERXnDXEcGJGU0oQHYJ7Haz99UhUE7';
+  }
 
-  if (!tgToken && !discordWebhook) return;
+  if (!tgToken && !discordWebhook && !env.DISCORD_BOT_TOKEN) return;
 
   // Resolve dynamic account name:
   // 1. Explicitly passed accountName
@@ -347,41 +370,347 @@ export async function sendNotification(env, { type, accountName, accountId, prom
     }
   }
 
-  // 2. Dispatch Discord Webhook
-  if (discordWebhook) {
-    try {
-      const cleanDesc = message
-        .replace(/<[^>]*>/g, '')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>');
+  // 2. Dispatch Discord Webhook / Bot Alert
+  let channelId = null;
+  if (type === 'task_completed' || type === 'task_failed') {
+    channelId = env.DISCORD_CHANNEL_TASKS || '1565106148820910163';
+  } else if (type === 'session_expired' || type === 'scheduler_error') {
+    channelId = env.DISCORD_CHANNEL_ALARMS || '1565106188276990113';
+  } else if (type === 'daily_digest' || type === 'morning_brew') {
+    channelId = env.DISCORD_CHANNEL_DIGEST || '1565119099657265187';
+  }
 
-      const dcRes = await fetch(discordWebhook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'Claude Pulse',
-          avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
-          embeds: [
-            {
-              title: title,
-              description: cleanDesc,
-              color: color,
-              timestamp: new Date().toISOString(),
-              footer: { text: `Claude Pulse • ${shortName}` }
-            }
-          ]
-        })
+  if (discordWebhook || (env.DISCORD_BOT_TOKEN && channelId)) {
+    try {
+      let hasMoreQueuedTasks = false;
+      if (env.TASK_QUEUE && accountId) {
+        try {
+          const tasks = await getAccountTasks(env, accountId);
+          hasMoreQueuedTasks = tasks.some(t => t.status === 'queued');
+        } catch { }
+      }
+
+      const alertData = buildContextualAlert(type, {
+        accountName: realName,
+        accountId,
+        prompt: rawPrompt,
+        url,
+        pageTitle,
+        error: rawError,
+        responseSnippet,
+        fullResponse,
+        taskId,
+        hasMoreQueuedTasks
       });
-      if (!dcRes.ok) {
-        const dcErrText = await dcRes.text().catch(() => '');
-        console.warn(`Discord webhook error (${dcRes.status}):`, dcErrText);
+
+      let sentViaBot = false;
+      if (env.DISCORD_BOT_TOKEN && channelId) {
+        try {
+          if (fullResponse && fullResponse.length > 200) {
+            const fileName = `claude-response-${taskId || Date.now()}.md`;
+            const form = new FormData();
+            form.append('payload_json', JSON.stringify({
+              embeds: [alertData.embed],
+              components: alertData.components,
+              attachments: [{ id: 0, filename: fileName }]
+            }));
+            const blob = new Blob([fullResponse], { type: 'text/markdown;charset=utf-8' });
+            form.append('files[0]', blob, fileName);
+
+            const botRes = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`
+              },
+              body: form
+            });
+            if (botRes.ok) {
+              sentViaBot = true;
+            } else {
+              console.warn(`[sendNotification] Bot multipart upload failed (${botRes.status}):`, await botRes.text().catch(() => ''));
+            }
+          }
+
+          if (!sentViaBot) {
+            const botRes = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                embeds: [alertData.embed],
+                components: alertData.components
+              })
+            });
+            if (botRes.ok) {
+              sentViaBot = true;
+            } else {
+              console.warn(`[sendNotification] Bot json send failed (${botRes.status}):`, await botRes.text().catch(() => ''));
+            }
+          }
+        } catch (botErr) {
+          console.warn('[sendNotification] Discord Bot API error:', botErr.message);
+        }
+      }
+
+      if (!sentViaBot && discordWebhook) {
+        const dcPayload = {
+          username: (type === 'daily_digest' || type === 'morning_brew') ? 'Morning Brew' : 'Claude Pulse',
+          avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
+          embeds: [alertData.embed],
+          components: alertData.components
+        };
+
+        let dcRes = await fetch(discordWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dcPayload)
+        });
+
+        // If Discord rejects components on an unowned webhook, fallback cleanly without components
+        if (!dcRes.ok && alertData.components?.length > 0) {
+          const dcErrText = await dcRes.text().catch(() => '');
+          if (dcErrText.includes('components') || dcRes.status === 400) {
+            delete dcPayload.components;
+            dcRes = await fetch(discordWebhook, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(dcPayload)
+            });
+          }
+        }
+        if (!dcRes.ok) {
+          console.warn(`[sendNotification] Discord Webhook failed (${dcRes.status}):`, await dcRes.text().catch(() => ''));
+        }
       }
     } catch (dcErr) {
       console.warn('Discord notification error:', dcErr.message);
     }
   }
 }
+
+export async function sendDiscordTestShowcase(env) {
+  const tasksWebhook = env.DISCORD_WEBHOOK_TASKS || env.DISCORD_WEBHOOK_URL;
+  const alarmsWebhook = env.DISCORD_WEBHOOK_ALARMS || env.DISCORD_WEBHOOK_URL;
+
+  const results = {};
+
+  // Inspect guild channels and webhook metadata
+  if (env.DISCORD_BOT_TOKEN) {
+    try {
+      const gRes = await fetch('https://discord.com/api/v10/guilds/1556752635439226882/channels', {
+        headers: { 'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}` }
+      });
+      if (gRes.ok) {
+        const channels = await gRes.json();
+        results.guildChannels = channels.map(c => ({ id: c.id, name: c.name, type: c.type }));
+      } else {
+        results.guildChannelsError = `${gRes.status} ${await gRes.text()}`;
+      }
+    } catch (e) {
+      results.guildChannelsError = e.message;
+    }
+  }
+
+  if (tasksWebhook) {
+    try {
+      const whRes = await fetch(tasksWebhook);
+      const wh = await whRes.json();
+      results.tasksWebhook = { url: tasksWebhook.replace(/(\/api\/webhooks\/\d+\/)[^/]+$/, '$1***'), channel_id: wh.channel_id, name: wh.name };
+    } catch (e) {
+      results.tasksWebhook = { error: e.message };
+    }
+  }
+
+  if (alarmsWebhook) {
+    try {
+      const whRes = await fetch(alarmsWebhook);
+      const wh = await whRes.json();
+      results.alarmsWebhook = { url: alarmsWebhook.replace(/(\/api\/webhooks\/\d+\/)[^/]+$/, '$1***'), channel_id: wh.channel_id, name: wh.name };
+    } catch (e) {
+      results.alarmsWebhook = { error: e.message };
+    }
+  }
+
+  // 1. Dispatch sample task completion to #claude-autopilot
+  if (tasksWebhook || env.DISCORD_BOT_TOKEN) {
+    const taskAlert = buildContextualAlert('task_completed', {
+      accountName: 'shlokshah412',
+      accountId: 1,
+      prompt: 'Review architecture changes and prepare pull request description.',
+      url: 'https://claude.ai/chat/sample-thread-uuid',
+      pageTitle: 'Changes summarized successfully',
+      hasMoreQueuedTasks: false
+    });
+
+    let sentViaBot = false;
+    if (env.DISCORD_BOT_TOKEN) {
+      try {
+        const botRes = await fetch('https://discord.com/api/v10/channels/1565106148820910163/messages', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            embeds: [taskAlert.embed],
+            components: taskAlert.components
+          })
+        });
+        if (botRes.ok) {
+          sentViaBot = true;
+          results.tasksChannel = { success: true, method: 'bot_api_with_buttons' };
+        }
+      } catch (e) { }
+    }
+
+    if (!sentViaBot && tasksWebhook) {
+      const taskPayload = {
+        username: 'Claude Pulse',
+        avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
+        embeds: [taskAlert.embed],
+        components: taskAlert.components
+      };
+
+      try {
+        let res = await fetch(tasksWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(taskPayload)
+        });
+        if (!res.ok) {
+          delete taskPayload.components;
+          res = await fetch(tasksWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskPayload)
+          });
+        }
+        results.tasksChannel = { success: res.ok, status: res.status, method: 'webhook_fallback' };
+      } catch (e) {
+        results.tasksChannel = { success: false, error: e.message };
+      }
+    }
+  }
+
+  // 2. Dispatch sample session alert to #claude-alarms
+  if (alarmsWebhook || env.DISCORD_BOT_TOKEN) {
+    const alarmAlert = buildContextualAlert('session_expired', {
+      accountName: 'pcgpt',
+      accountId: 2,
+      error: '401 Unauthorized'
+    });
+
+    let sentViaBot = false;
+    if (env.DISCORD_BOT_TOKEN) {
+      try {
+        const botRes = await fetch('https://discord.com/api/v10/channels/1565106188276990113/messages', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            embeds: [alarmAlert.embed],
+            components: alarmAlert.components
+          })
+        });
+        if (botRes.ok) {
+          sentViaBot = true;
+          results.alarmsChannel = { success: true, method: 'bot_api_with_buttons' };
+        }
+      } catch (e) { }
+    }
+
+    if (!sentViaBot && alarmsWebhook) {
+      const alarmPayload = {
+        username: 'Claude Pulse Alarms',
+        avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
+        embeds: [alarmAlert.embed],
+        components: alarmAlert.components
+      };
+
+      try {
+        let res = await fetch(alarmsWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(alarmPayload)
+        });
+        if (!res.ok) {
+          delete alarmPayload.components;
+          res = await fetch(alarmsWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(alarmPayload)
+          });
+        }
+        results.alarmsChannel = { success: res.ok, status: res.status, method: 'webhook_fallback' };
+      } catch (e) {
+        results.alarmsChannel = { success: false, error: e.message };
+      }
+    }
+  }
+
+  // 3. Dispatch sample digest to #daily-digest (Morning Brew)
+  const digestWebhook = env.DISCORD_WEBHOOK_DIGEST || 'https://discord.com/api/webhooks/1565119127956230264/z0r5oRpLVHb0HoOEAc7sluFL_5IptokTlaziDq0ERXnDXEcGJGU0oQHYJ7Haz99UhUE7';
+  const accounts = getAllAccounts(env);
+  const digestEmbed = buildDigestEmbed(accounts, {});
+
+  let digestSentViaBot = false;
+  if (env.DISCORD_BOT_TOKEN) {
+    try {
+      const botRes = await fetch('https://discord.com/api/v10/channels/1565119099657265187/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          embeds: [digestEmbed],
+          components: [
+            {
+              type: 1,
+              components: [
+                { type: 2, style: 1, label: 'Schedule Task', custom_id: 'open_schedule_modal' },
+                { type: 2, style: 2, label: 'Refresh Telemetry', custom_id: 'refresh_status' },
+                { type: 2, style: 5, label: 'Web Dashboard', url: 'https://claude-pinger.claude-pinger.workers.dev' }
+              ]
+            }
+          ]
+        })
+      });
+      if (botRes.ok) {
+        digestSentViaBot = true;
+        results.digestChannel = { success: true, method: 'bot_api_with_buttons' };
+      }
+    } catch (e) { }
+  }
+
+  if (!digestSentViaBot && digestWebhook) {
+    try {
+      const res = await fetch(digestWebhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'Morning Brew',
+          avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
+          embeds: [digestEmbed]
+        })
+      });
+      results.digestChannel = { success: res.ok, status: res.status, method: 'webhook_fallback' };
+    } catch (e) {
+      results.digestChannel = { success: false, error: e.message };
+    }
+  }
+
+  return {
+    success: true,
+    channels: results,
+    note: 'Sample test messages dispatched to all dedicated Discord channels.'
+  };
+}
+
 
 export async function getAccountTasks(env, accountId) {
   if (!env || !env.TASK_QUEUE) return [];
@@ -593,7 +922,7 @@ export class TaskScheduler {
       }
 
       for (const dueTask of candidates.values()) {
-        const acc = accounts.find(a => a.id === dueTask.accountId) || accounts[0];
+        const acc = accounts.find(a => Number(a.id) === Number(dueTask.accountId)) || accounts[0];
         if (!acc) continue;
 
         console.log(`[TaskScheduler DO] Executing due task for ${acc.name}: "${dueTask.prompt}" (id: ${dueTask.id})`);
@@ -912,6 +1241,45 @@ export default {
           'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'no-cache'
         }
+      });
+    }
+
+    if (pathname === '/api/discord/interactions') {
+      if (request.method === 'POST') {
+        return handleDiscordInteractions(request, env, ctx, {
+          getAllAccounts,
+          getAccountTasks,
+          saveAccountTasks,
+          notifyTaskScheduler,
+          pingSpecificAccount,
+          pingAllClaudeAccounts,
+          pingClaudeAccount,
+          normalizeClaudeChatUrl,
+          calculateTargetTimestamp,
+          sweepDueTasks,
+          pruneAccountChats
+        });
+      }
+      return new Response('Method Not Allowed', { status: 405 });
+    }
+
+    if (pathname === '/api/test-discord') {
+      const corsHeaders = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Cache-Control': 'no-cache'
+      };
+
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { headers: corsHeaders });
+      }
+
+      const testResult = await sendDiscordTestShowcase(env);
+      return new Response(JSON.stringify(testResult, null, 2), {
+        status: testResult.success ? 200 : 500,
+        headers: corsHeaders
       });
     }
 
@@ -1296,6 +1664,13 @@ export default {
   }
 };
 
+export async function pruneAccountChats(env, accountId) {
+  const acc = getAccountCredentials(env, accountId);
+  if (!acc || !acc.key) return 0;
+  const res = await pingClaudeAccount(env, acc.name, acc.key, null, acc.id);
+  return res?.cleanedUpSpamCount || 0;
+}
+
 async function pingSpecificAccount(env, accountNum) {
   const acc = getAccountCredentials(env, accountNum);
 
@@ -1351,6 +1726,24 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
 
       if (targetTaskId) {
         queuedTask = allTasks.find(t => t.id === targetTaskId) || null;
+        if (!queuedTask) {
+          // If task not found in this account, search across all configured accounts
+          const allAccs = getAllAccounts(env);
+          for (const otherAcc of allAccs) {
+            if (Number(otherAcc.id) === Number(accountId)) continue;
+            const otherTasks = await getAccountTasks(env, otherAcc.id);
+            const found = otherTasks.find(t => t.id === targetTaskId);
+            if (found) {
+              queuedTask = found;
+              allTasks = otherTasks;
+              accountId = otherAcc.id;
+              accountName = otherAcc.name;
+              sessionKey = otherAcc.key;
+              console.log(`[pingClaudeAccount] Target task ${targetTaskId} resolved across accounts to ${otherAcc.name} (ID #${otherAcc.id})`);
+              break;
+            }
+          }
+        }
       } else if (queuedTasks.length > 0) {
         const now = Date.now();
         // Priority 1: Due timestamp tasks (exact time arrived)
@@ -1762,7 +2155,50 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
           if (taskIdx >= 0) allTasks[taskIdx] = completedTask;
           else allTasks.push(completedTask);
           await saveAccountTasks(env, accountId, allTasks);
-          await notifyTaskScheduler(env);
+          await notifyTaskScheduler(env, { action: 'delete', taskId: queuedTask.id });
+
+          // If the task originated from Discord and has a stored message ID, patch the original card to retire the action buttons
+          if (queuedTask.discordMessageId && queuedTask.discordChannelId && env.DISCORD_BOT_TOKEN) {
+            try {
+              await fetch(`https://discord.com/api/v10/channels/${queuedTask.discordChannelId}/messages/${queuedTask.discordMessageId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  embeds: [{
+                    author: {
+                      name: 'Claude Pulse • Autopilot Completed',
+                      url: 'https://claude-pinger.claude-pinger.workers.dev',
+                      icon_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png'
+                    },
+                    title: `[TASK COMPLETED] ${resolvedAccountName}`,
+                    description: 'Scheduled task finished execution. Controls (+1h, +5h, Edit, Run Now) have been retired.',
+                    color: 0x10b981,
+                    fields: [
+                      { name: 'Account', value: `\`${resolvedAccountName}\` [ID #${accountId}]`, inline: true },
+                      { name: 'Status', value: '`200 OK • Stream Completed`', inline: true },
+                      ...(queuedTask.chatUrl ? [{ name: 'Chat', value: `\`${queuedTask.chatUrl.replace('https://claude.ai/chat/', '')}\``, inline: false }] : [])
+                    ],
+                    footer: { text: `Task ID: ${queuedTask.id} • Completed` },
+                    timestamp: new Date().toISOString()
+                  }],
+                  components: (queuedTask.chatUrl && queuedTask.chatUrl.startsWith('http')) ? [
+                    {
+                      type: 1,
+                      components: [
+                        { type: 2, style: 5, label: 'Open Claude Chat', url: queuedTask.chatUrl },
+                        { type: 2, style: 5, label: 'Web Dashboard', url: 'https://claude-pinger.claude-pinger.workers.dev' }
+                      ]
+                    }
+                  ] : []
+                })
+              });
+            } catch (patchErr) {
+              console.warn('[discord] Error retiring buttons on scheduled message:', patchErr.message);
+            }
+          }
 
           // Clear the debounce flag so session expiry can alert fresh next time
           try {
@@ -1777,7 +2213,10 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
             accountId,
             prompt: promptToSend,
             url: result.url || queuedTask.chatUrl,
-            pageTitle: result.pageTitle
+            pageTitle: result.pageTitle,
+            responseSnippet: result.responseSnippet,
+            fullResponse: result.fullResponse,
+            taskId: queuedTask.id
           });
         } else {
           const failedTask = {
@@ -1789,14 +2228,16 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
           if (taskIdx >= 0) allTasks[taskIdx] = failedTask;
           else allTasks.push(failedTask);
           await saveAccountTasks(env, accountId, allTasks);
-          await notifyTaskScheduler(env);
+          await notifyTaskScheduler(env, { action: 'delete', taskId: queuedTask.id });
 
           await sendNotification(env, {
             type: 'task_failed',
             accountName: resolvedAccountName,
             accountId,
             prompt: promptToSend,
-            error: failedTask.error
+            url: result?.url || queuedTask.chatUrl,
+            error: failedTask.error,
+            taskId: queuedTask.id
           });
 
           // Resilience Fallback: run normal ping so account 5-hour window is preserved
@@ -1828,7 +2269,7 @@ async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, acco
         if (taskIdx >= 0) allTasks[taskIdx] = failedTask;
         else allTasks.push(failedTask);
         await saveAccountTasks(env, accountId, allTasks);
-        await notifyTaskScheduler(env);
+        await notifyTaskScheduler(env, { action: 'delete', taskId: queuedTask.id });
 
         await sendNotification(env, {
           type: 'task_failed',
