@@ -777,6 +777,17 @@ export async function handleDiscordInteractions(request, env, ctx, helpers) {
   }
 
   const accounts = helpers.getAllAccounts(env);
+  if (env.TASK_QUEUE) {
+    for (const a of accounts) {
+      try {
+        const kvKey = await env.TASK_QUEUE.get(`account_session_key_${a.id}`);
+        if (kvKey && kvKey.length > 20) {
+          a.key = kvKey;
+          a.keyLength = kvKey.length;
+        }
+      } catch { }
+    }
+  }
 
   async function getQueueMap() {
     const map = {};
