@@ -249,11 +249,11 @@ export async function sendNotification(env, { type, accountName, accountId, prom
   const tgChatId = env.TELEGRAM_CHAT_ID;
   let discordWebhook = env.DISCORD_WEBHOOK_URL;
   if (type === 'task_completed' || type === 'task_failed') {
-    discordWebhook = env.DISCORD_WEBHOOK_TASKS || env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1565106594889601165/PKIE6ttDR8n8mVzEJ-pWGGEefvYcJUVbnUx7iEW8rDoHQ8wilHMx5bWcGORyU4mBN_cv';
+    discordWebhook = env.DISCORD_WEBHOOK_TASKS || env.DISCORD_WEBHOOK_URL || null;
   } else if (type === 'session_expired' || type === 'scheduler_error') {
-    discordWebhook = env.DISCORD_WEBHOOK_ALARMS || env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1565107176828305578/sBWR-PPxQBZta7Edd4QUeMki8u_P-HftzYaylIyiArohhajoavWAH2hGa9JIU9Y-CPkj';
+    discordWebhook = env.DISCORD_WEBHOOK_ALARMS || env.DISCORD_WEBHOOK_URL || null;
   } else if (type === 'daily_digest' || type === 'morning_brew') {
-    discordWebhook = env.DISCORD_WEBHOOK_DIGEST || 'https://discord.com/api/webhooks/1565119127956230264/z0r5oRpLVHb0HoOEAc7sluFL_5IptokTlaziDq0ERXnDXEcGJGU0oQHYJ7Haz99UhUE7';
+    discordWebhook = env.DISCORD_WEBHOOK_DIGEST || env.DISCORD_WEBHOOK_URL || null;
   }
 
   if (!tgToken && !discordWebhook && !env.DISCORD_BOT_TOKEN) return;
@@ -373,11 +373,11 @@ export async function sendNotification(env, { type, accountName, accountId, prom
   // 2. Dispatch Discord Webhook / Bot Alert
   let channelId = null;
   if (type === 'task_completed' || type === 'task_failed') {
-    channelId = env.DISCORD_CHANNEL_TASKS || '1565106148820910163';
+    channelId = env.DISCORD_CHANNEL_TASKS || null;
   } else if (type === 'session_expired' || type === 'scheduler_error') {
-    channelId = env.DISCORD_CHANNEL_ALARMS || '1565106188276990113';
+    channelId = env.DISCORD_CHANNEL_ALARMS || null;
   } else if (type === 'daily_digest' || type === 'morning_brew') {
-    channelId = env.DISCORD_CHANNEL_DIGEST || '1565119099657265187';
+    channelId = env.DISCORD_CHANNEL_DIGEST || null;
   }
 
   if (discordWebhook || (env.DISCORD_BOT_TOKEN && channelId)) {
@@ -493,13 +493,18 @@ export async function sendNotification(env, { type, accountName, accountId, prom
 export async function sendDiscordTestShowcase(env) {
   const tasksWebhook = env.DISCORD_WEBHOOK_TASKS || env.DISCORD_WEBHOOK_URL;
   const alarmsWebhook = env.DISCORD_WEBHOOK_ALARMS || env.DISCORD_WEBHOOK_URL;
+  const digestWebhook = env.DISCORD_WEBHOOK_DIGEST || env.DISCORD_WEBHOOK_URL;
+
+  const accounts = getAllAccounts(env);
+  const acc1 = accounts[0] || { name: 'Account 1', id: 1 };
+  const acc2 = accounts[1] || accounts[0] || { name: 'Account 2', id: 2 };
 
   const results = {};
 
   // Inspect guild channels and webhook metadata
-  if (env.DISCORD_BOT_TOKEN) {
+  if (env.DISCORD_BOT_TOKEN && env.DISCORD_GUILD_ID) {
     try {
-      const gRes = await fetch('https://discord.com/api/v10/guilds/1556752635439226882/channels', {
+      const gRes = await fetch(`https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/channels`, {
         headers: { 'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}` }
       });
       if (gRes.ok) {
@@ -533,11 +538,12 @@ export async function sendDiscordTestShowcase(env) {
     }
   }
 
-  // 1. Dispatch sample task completion to #claude-autopilot
-  if (tasksWebhook || env.DISCORD_BOT_TOKEN) {
+  // 1. Dispatch sample task completion to tasks channel
+  const tasksChannelId = env.DISCORD_CHANNEL_TASKS;
+  if (tasksWebhook || (env.DISCORD_BOT_TOKEN && tasksChannelId)) {
     const taskAlert = buildContextualAlert('task_completed', {
-      accountName: 'shlokshah412',
-      accountId: 1,
+      accountName: acc1.name,
+      accountId: acc1.id,
       prompt: 'Review architecture changes and prepare pull request description.',
       url: 'https://claude.ai/chat/sample-thread-uuid',
       pageTitle: 'Changes summarized successfully',
@@ -545,9 +551,9 @@ export async function sendDiscordTestShowcase(env) {
     });
 
     let sentViaBot = false;
-    if (env.DISCORD_BOT_TOKEN) {
+    if (env.DISCORD_BOT_TOKEN && tasksChannelId) {
       try {
-        const botRes = await fetch('https://discord.com/api/v10/channels/1565106148820910163/messages', {
+        const botRes = await fetch(`https://discord.com/api/v10/channels/${tasksChannelId}/messages`, {
           method: 'POST',
           headers: {
             'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
@@ -594,18 +600,19 @@ export async function sendDiscordTestShowcase(env) {
     }
   }
 
-  // 2. Dispatch sample session alert to #claude-alarms
-  if (alarmsWebhook || env.DISCORD_BOT_TOKEN) {
+  // 2. Dispatch sample session alert to alarms channel
+  const alarmsChannelId = env.DISCORD_CHANNEL_ALARMS;
+  if (alarmsWebhook || (env.DISCORD_BOT_TOKEN && alarmsChannelId)) {
     const alarmAlert = buildContextualAlert('session_expired', {
-      accountName: 'pcgpt',
-      accountId: 2,
+      accountName: acc2.name,
+      accountId: acc2.id,
       error: '401 Unauthorized'
     });
 
     let sentViaBot = false;
-    if (env.DISCORD_BOT_TOKEN) {
+    if (env.DISCORD_BOT_TOKEN && alarmsChannelId) {
       try {
-        const botRes = await fetch('https://discord.com/api/v10/channels/1565106188276990113/messages', {
+        const botRes = await fetch(`https://discord.com/api/v10/channels/${alarmsChannelId}/messages`, {
           method: 'POST',
           headers: {
             'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
@@ -652,15 +659,14 @@ export async function sendDiscordTestShowcase(env) {
     }
   }
 
-  // 3. Dispatch sample digest to #daily-digest (Morning Brew)
-  const digestWebhook = env.DISCORD_WEBHOOK_DIGEST || 'https://discord.com/api/webhooks/1565119127956230264/z0r5oRpLVHb0HoOEAc7sluFL_5IptokTlaziDq0ERXnDXEcGJGU0oQHYJ7Haz99UhUE7';
-  const accounts = getAllAccounts(env);
+  // 3. Dispatch sample digest to digest channel
+  const digestChannelId = env.DISCORD_CHANNEL_DIGEST;
   const digestEmbed = buildDigestEmbed(accounts, {});
 
   let digestSentViaBot = false;
-  if (env.DISCORD_BOT_TOKEN) {
+  if (env.DISCORD_BOT_TOKEN && digestChannelId) {
     try {
-      const botRes = await fetch('https://discord.com/api/v10/channels/1565119099657265187/messages', {
+      const botRes = await fetch(`https://discord.com/api/v10/channels/${digestChannelId}/messages`, {
         method: 'POST',
         headers: {
           'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
@@ -1730,7 +1736,7 @@ async function pingAllClaudeAccounts(env) {
   return pingAccountsList(env, accounts);
 }
 
-async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, accountId, currentSlotNumber = null, targetTaskId = null) {
+export async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHint, accountId, currentSlotNumber = null, targetTaskId = null) {
   // 1. Resolve eligible queued task for this account
   let queuedTask = null;
   let allTasks = [];
