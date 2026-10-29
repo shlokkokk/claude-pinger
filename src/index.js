@@ -455,31 +455,76 @@ export async function sendNotification(env, { type, accountName, accountId, prom
       }
 
       if (!sentViaBot && discordWebhook) {
-        const dcPayload = {
-          username: (type === 'daily_digest' || type === 'morning_brew') ? 'Morning Brew' : 'Claude Pulse',
-          avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
-          embeds: [alertData.embed],
-          components: alertData.components
-        };
+        let dcRes = null;
+        if (fullResponse && fullResponse.length > 200) {
+          try {
+            const fileName = `claude-response-${taskId || Date.now()}.md`;
+            const form = new FormData();
+            form.append('payload_json', JSON.stringify({
+              username: (type === 'daily_digest' || type === 'morning_brew') ? 'Morning Brew' : 'Claude Pulse',
+              avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
+              embeds: [alertData.embed],
+              components: alertData.components,
+              attachments: [{ id: 0, filename: fileName }]
+            }));
+            const blob = new Blob([fullResponse], { type: 'text/markdown;charset=utf-8' });
+            form.append('files[0]', blob, fileName);
 
-        let dcRes = await fetch(discordWebhook, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dcPayload)
-        });
-
-        // If Discord rejects components on an unowned webhook, fallback cleanly without components
-        if (!dcRes.ok && alertData.components?.length > 0) {
-          const dcErrText = await dcRes.text().catch(() => '');
-          if (dcErrText.includes('components') || dcRes.status === 400) {
-            delete dcPayload.components;
             dcRes = await fetch(discordWebhook, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(dcPayload)
+              body: form
             });
+
+            if (!dcRes.ok && alertData.components?.length > 0) {
+              const dcErrText = await dcRes.text().catch(() => '');
+              if (dcErrText.includes('components') || dcRes.status === 400) {
+                const retryForm = new FormData();
+                retryForm.append('payload_json', JSON.stringify({
+                  username: (type === 'daily_digest' || type === 'morning_brew') ? 'Morning Brew' : 'Claude Pulse',
+                  avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
+                  embeds: [alertData.embed],
+                  attachments: [{ id: 0, filename: fileName }]
+                }));
+                retryForm.append('files[0]', blob, fileName);
+                dcRes = await fetch(discordWebhook, {
+                  method: 'POST',
+                  body: retryForm
+                });
+              }
+            }
+          } catch (whFileErr) {
+            console.warn('[sendNotification] Webhook multipart upload failed:', whFileErr.message);
           }
         }
+
+        if (!dcRes || !dcRes.ok) {
+          const dcPayload = {
+            username: (type === 'daily_digest' || type === 'morning_brew') ? 'Morning Brew' : 'Claude Pulse',
+            avatar_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png',
+            embeds: [alertData.embed],
+            components: alertData.components
+          };
+
+          dcRes = await fetch(discordWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dcPayload)
+          });
+
+          // If Discord rejects components on an unowned webhook, fallback cleanly without components
+          if (!dcRes.ok && alertData.components?.length > 0) {
+            const dcErrText = await dcRes.text().catch(() => '');
+            if (dcErrText.includes('components') || dcRes.status === 400) {
+              delete dcPayload.components;
+              dcRes = await fetch(discordWebhook, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dcPayload)
+              });
+            }
+          }
+        }
+
         if (!dcRes.ok) {
           console.warn(`[sendNotification] Discord Webhook failed (${dcRes.status}):`, await dcRes.text().catch(() => ''));
         }
@@ -2205,7 +2250,7 @@ export async function pingClaudeAccount(env, accountName, sessionKey, chatUrlHin
                       icon_url: 'https://raw.githubusercontent.com/shlokkokk/claude-pinger/main/claude-pulse-icon-512.png'
                     },
                     title: `[TASK COMPLETED] ${resolvedAccountName}`,
-                    description: 'Scheduled task finished execution. Controls (+1h, +5h, Edit, Run Now) have been retired.',
+                    description: 'Scheduled task finished execution. Action controls have been retired.',
                     color: 0x10b981,
                     fields: [
                       { name: 'Account', value: `\`${resolvedAccountName}\` [ID #${accountId}]`, inline: true },
