@@ -12,7 +12,7 @@ import {
   buildDigestEmbed,
   DISCORD_COLORS
 } from '../src/discord.js';
-import { sendNotification } from '../src/index.js';
+import { sendNotification, pingClaudeAccount } from '../src/index.js';
 
 describe('Discord Bot & Interactions Engine', () => {
   const sampleAccounts = [
@@ -259,6 +259,47 @@ describe('Discord Bot & Interactions Engine', () => {
       });
 
       assert.ok(capturedUrl?.includes('1565106148820910163'));
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test('pingSpecificAccount and pingClaudeAccount prioritize dynamic KV session key override over static env', async () => {
+    let capturedBody = null;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (url, options) => {
+      capturedBody = options?.body;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          url: 'https://claude.ai/chat/mock',
+          pageTitle: 'Claude Chat',
+          accountSnippet: 'pcgpt'
+        })
+      };
+    };
+
+    try {
+      const mockEnv = {
+        CLAUDE_SESSION_KEY_2: 'sk-ant-sid01-stale-env-key-12345',
+        CLAUDE_ACCOUNT_NAME_2: 'pcgpt',
+        BROWSERLESS_TOKEN: 'mock_browserless_token',
+        TASK_QUEUE: {
+          get: async (key) => {
+            if (key === 'account_session_key_2') return 'sk-ant-sid02-fresh-kv-key-67890';
+            return null;
+          },
+          put: async () => {},
+          delete: async () => {}
+        }
+      };
+
+      const result = await pingClaudeAccount(mockEnv, 'pcgpt', mockEnv.CLAUDE_SESSION_KEY_2, null, 2);
+      assert.ok(result.success);
+      assert.ok(capturedBody?.includes('sk-ant-sid02-fresh-kv-key-67890'), 'Should send fresh KV key to Browserless, not stale env key');
+      assert.ok(!capturedBody?.includes('sk-ant-sid01-stale-env-key-12345'), 'Must NOT send stale env key');
     } finally {
       globalThis.fetch = originalFetch;
     }
